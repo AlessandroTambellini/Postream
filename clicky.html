@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Up and Down Button</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f0f0f0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .up-down-button {
+            position: relative;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
+            border: 2px solid #d0d0d0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            user-select: none;
+            box-shadow: 
+                0 6px 0 #b8b8b8,
+                0 8px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(0);
+        }
+
+        .up-down-button:hover {
+            background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 0 #b8b8b8,
+                0 12px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .up-down-button:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 2px 0 #b8b8b8,
+                0 4px 8px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(180deg, #e8e8e8 0%, #d8d8d8 100%);
+        }
+    </style>
+</head>
+<body>
+    <button class="up-down-button">
+        Click Me
+    </button>
+</body>
+</html>

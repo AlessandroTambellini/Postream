@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Send a msg in the stream">
+        
+    <title>Msg Stream</title>
+    
+    <base href="http://localhost:3000/">
+
+    <link rel="icon" type="image/svg+xml" href="assets/paper-airplane.svg">
+    <link rel="stylesheet" href="index.css">
+
+    <script src="index.js" defer></script>
+</head>
+<body>
+    <main>
+        <h1 class="hidden">Msg Stream</h1>
+        
+        <section id="msg-stream">
+
+        </section>
+
+        <form id="msg-form" action="api/msg" method="POST">
+            <textarea name="msg-textarea" id="msg-textarea" rows="5" placeholder="_"></textarea>
+
+            <button id="send-msg-btn" type="submit">
+                Send 
+                <img src="assets/paper-airplane.svg" alt="Paper Aiplane">
+            </button>
+            
+            <div id="req-feedback">
+                <img src="assets/x.svg" alt="Remove">
+                <p>The msg can't be empty</p>
+            </div>
+        </form>
+    </main>
+
+    <div id="background">
+        <div class="bkg-row">
+            <img class="lighter" src="assets/cell-phone.svg" alt="Cell Phone">
+            <div></div>
+            <div></div>
+            <div></div>
+            <img src="assets/ufo.svg" alt="Ufo">
+            <div></div>
+        </div>
+        <div class="bkg-row">
+            <div></div>
+            <img src="assets/ufo.svg" alt="Ufo">
+            <div></div>
+            <div></div>
+            <div></div>
+            <img src="assets/boomerang.svg" alt="Boomerang">
+        </div>
+        <div class="bkg-row">
+            <img src="assets/boomerang.svg" alt="Boomerang">
+            <div></div>
+            <img src="assets/cell-phone.svg" alt="Cell Phone">
+        </div>
+
+        <div class="bkg-row">
+            <img src="assets/sailboat.svg" alt="Sailboat">
+            <div></div>
+            <div></div>
+            <img src="assets/rocket.svg" alt="Rocket">
+        </div>
+
+        <div class="bkg-row">
+            <img src="assets/kite.svg" alt="Kite">
+            <img src="assets/sailing-boat.svg" alt="Sailing Boat">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <img src="assets/kite.svg" alt="Kite">
+            <img src="assets/sailboat.svg" alt="Sailboat">
+        </div>
+
+        <div class="bkg-row">
+            <img src="assets/rocket.svg" alt="Rocket">
+            <div></div>
+            <img src="assets/horse.svg" alt="Horse">
+        </div>
+        <div class="bkg-row">
+            <div></div>
+            <img src="assets/horse.svg" alt="Horse">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+</body>
+</html>

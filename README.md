@@ -1,2 +1,6 @@
-# Twitter
-A simplified version of twitter
+# Msg Stream
+Share a message.
+
+```bash
+node server/server.mjs
+```
