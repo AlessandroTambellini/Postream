@@ -30,12 +30,14 @@ textarea, button {
 
 main {
     width: fit-content;
-    margin-inline: auto;
     display: flex;
     flex-direction: column;
     height: 100vh;
     max-height: 100vh;
-    padding-block: 1rem;
+    margin-inline: auto;
+    padding: 2rem .5rem;
+    background-color: var(--clr-bkg);
+    box-shadow: 0 0 10px 7px var(--clr-bkg);
 }
 
 /* --- */
@@ -44,40 +46,63 @@ main {
     flex-grow: 2;
     overflow-y: scroll;
     scrollbar-width: none;
-    background-color: var(--clr-bkg);
-    
-    padding-inline: 1rem;
-    margin-bottom: 1rem;
+    padding: .5rem;
+    /* border: 1px solid purple; */
 }
 
-.msg-sheet {
-    border-left: 1px solid darkgrey;
-    border-right: 1px solid darkgrey;
-    border-radius: 15px;
-    
+.letter {
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     padding: 1.2rem;
-    margin-block: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    transform: rotate(-.5deg);
 }
 
-.msg-txt {
+.letter:last-child {
+    margin-bottom: 0;
+}
+
+.letter:nth-child(even) {
+    transform: rotate(.5deg);
+}
+
+.letter::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-top: 12px solid #ddd;
+}
+
+.letter-msg {
+    color: var(--clr-txt);
     font-size: 1.2rem;
     line-height: 1.4;
-    color: var(--clr-txt);
-
     max-width: 70ch;
+    white-space: pre-wrap; /* Keep extra whitespaces and newlines. */
 }
+
+/* --- */
 
 #msg-form {
-    margin-inline: 1rem;
+    margin-top: 1rem;
+    padding-inline: .5rem; /* to let the textarea have the same with of the letters */
 }
 
-#msg-form #msg-textarea {
+#msg-textarea {
     padding: 1.2rem;
     font-size: 1.2rem;
     line-height: 1.4;
     width: 100%;
     border-bottom-left-radius: 15px;
     border-bottom-right-radius: 15px;
+    resize: vertical;
 }
 
 #send-msg-btn {
@@ -88,7 +113,6 @@ main {
 
     font-size: 1.5rem;
     padding: .9rem;
-
     margin-left: auto;
     border-radius: 15px;
     border-width: 1px;
@@ -97,7 +121,6 @@ main {
 
     background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
     border: 1px solid #b9b9b9;
-    position: relative;
     transition: all 0.035s ease;
     user-select: none;
     box-shadow: 
@@ -182,6 +205,12 @@ main {
     flex-direction: column;
 }
 
+@media (min-width: 768px) {
+    #background {
+        display: flex;
+    }
+}
+
 #background > .bkg-row {
     flex-grow: 1;
     display: flex;
@@ -192,12 +221,6 @@ main {
 #background img {
     width: 7rem;
     opacity: 0.9;
-}
-
-@media (min-width: 768px) {
-    #background {
-        display: flex;
-    }
 }
 
 /* --- */

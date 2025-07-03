@@ -9,16 +9,16 @@ msg_form.addEventListener('submit', async e =>
     e.preventDefault();
     req_feedback.style.display = 'none';
 
-    const path = msg_form.attributes.action.value;
-    const method = msg_form.attributes.method.value;
-    const msg = msg_textarea.value.trim();
-
-    if (msg.length === 0) {
+    if (msg_textarea.value.trim().length === 0) {
         req_feedback.className = 'error';
         req_feedback_p.textContent = 'The msg is empty.';
         req_feedback.style.display = 'block';
         return;
     }
+
+    const path = msg_form.attributes.action.value;
+    const method = msg_form.attributes.method.value;
+    const msg = msg_textarea.value;
 
     const { status_code, payload } = await req(path, method, { msg });
 
@@ -29,7 +29,6 @@ msg_form.addEventListener('submit', async e =>
         req_feedback.className = 'error';
         req_feedback_p.textContent = payload.Error;
     }
-
 
     req_feedback.style.display = 'block';
     msg_textarea.value = null;
@@ -97,11 +96,11 @@ async function fill_stream()
         for (const msg of payload)
         {
             const msg_p = document.createElement('p');
-            msg_p.classList.add('msg-txt', 'libertinus-mono-regular');
+            msg_p.classList.add('letter-msg', 'libertinus-mono-regular');
             msg_p.textContent = msg;
             
             const msg_article = document.createElement('article');
-            msg_article.classList.add('msg-sheet');
+            msg_article.classList.add('letter');
             msg_article.appendChild(msg_p);
             
             messages_stream.appendChild(msg_article);
