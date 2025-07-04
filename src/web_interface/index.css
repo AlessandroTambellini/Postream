@@ -35,9 +35,7 @@ main {
     height: 100vh;
     max-height: 100vh;
     margin-inline: auto;
-    padding: 2rem .5rem;
-    background-color: var(--clr-bkg);
-    box-shadow: 0 0 10px 7px var(--clr-bkg);
+    padding: 2vh 2vw;
 }
 
 /* --- */
@@ -46,6 +44,8 @@ main {
     flex-grow: 2;
     overflow-y: scroll;
     scrollbar-width: none;
+    /* The letters have some shadow and to avoid being covered
+    I add a bit of padding to their container (so, the msg-stream). */
     padding: .5rem;
     /* border: 1px solid purple; */
 }
@@ -58,15 +58,10 @@ main {
     margin-bottom: 1rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     position: relative;
-    transform: rotate(-.5deg);
 }
 
 .letter:last-child {
     margin-bottom: 0;
-}
-
-.letter:nth-child(even) {
-    transform: rotate(.5deg);
 }
 
 .letter::after {
@@ -91,6 +86,7 @@ main {
 /* --- */
 
 #msg-form {
+    /* border: 1px solid green; */
     margin-top: 1rem;
     padding-inline: .5rem; /* to let the textarea have the same with of the letters */
 }
@@ -100,8 +96,7 @@ main {
     font-size: 1.2rem;
     line-height: 1.4;
     width: 100%;
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
+    border-radius: 6px;
     resize: vertical;
 }
 
@@ -120,7 +115,7 @@ main {
     cursor: pointer;
 
     background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
-    border: 1px solid #b9b9b9;
+    border: 1px solid #ababab;
     transition: all 0.035s ease;
     user-select: none;
     box-shadow: 
@@ -190,37 +185,6 @@ main {
     0% { opacity: 1; }
     50% { opacity: 1; }
     100% { opacity: 0; display: none; }
-}
-
-/* --- */
-
-#background {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    width: 100vw;
-    height: 100vh;
-    flex-direction: column;
-}
-
-@media (min-width: 768px) {
-    #background {
-        display: flex;
-    }
-}
-
-#background > .bkg-row {
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-}
-
-#background img {
-    width: 7rem;
-    opacity: 0.9;
 }
 
 /* --- */

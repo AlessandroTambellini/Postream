@@ -1,7 +1,16 @@
 import { readFile } from "fs/promises";
-import { store_msg, retrieve_all_messages } from "./data.mjs";
+import { join } from "path";
 
-export async function get_home_page(method, res_data) 
+import { 
+    PAGE_LIMIT,
+    db_store_msg, 
+    db_retrieve_all_messages, 
+    db_get_messages_page 
+} from "./database.mjs";
+
+const CLIENT_PATH = join(import.meta.dirname, 'web_interface');
+
+async function hdl_get_home_page(method, res_data) 
 {
     if (method !== 'GET') {
         res_data.status_code = 405;
@@ -9,7 +18,7 @@ export async function get_home_page(method, res_data)
     }
 
     try {
-        res_data.payload = await readFile('client/index.html', { encoding: 'utf8' });
+        res_data.payload = await readFile(join(CLIENT_PATH, 'index.html'), { encoding: 'utf8' });
         res_data.content_type = 'text/html';
         res_data.status_code = 200;
     } catch (error) {
@@ -19,7 +28,7 @@ export async function get_home_page(method, res_data)
     }
 }
 
-export async function get_asset(req_data, res_data) 
+async function hdl_get_asset(req_data, res_data) 
 {
     if (req_data.method !== 'GET') {
         res_data.status_code = 405;
@@ -60,7 +69,7 @@ export async function get_asset(req_data, res_data)
             }
         }   
 
-        res_data.payload = await readFile('client/' + asset_path, f_binary ? {} : { encoding: 'utf8' });
+        res_data.payload = await readFile(join(CLIENT_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
         res_data.status_code = 200;
 
     } catch (error) {
@@ -76,7 +85,7 @@ export async function get_asset(req_data, res_data)
     }
 }
 
-export async function handle_msg(req_data, res_data)
+async function hdl_handle_msg(req_data, res_data)
 {
     const allowed_methods = ['GET', 'POST'];
     if (!allowed_methods.includes(req_data.method)) {
@@ -118,20 +127,31 @@ _handle_msg.POST = async function (req_data, res_data)
         return;
     }
 
-    const res = await store_msg(msg);
+    const res = await db_store_msg(msg);
     
-    res_data.status_code = res.Error ? 400 : 200;
-    res_data.payload = res;
+    if (res.Error) {
+        res_data.status_code = 500;
+        /*
+            I could write `res_data.payload = res.Error`, but I don't want to share the catched error msg
+            with the user.
+        */
+        res_data.payload = { Error: 'Something went wrong while trying to store the msg.' };
+        console.log('ERROR:', res.Error);
+    } else {
+        res_data.status_code = 200;
+        res_data.payload = res;
+    }
 }
 
-export async function get_all_messages(method, res_data)
+async function hdl_get_all_messages(method, res_data)
 {
     if (method !== 'GET') {
         res_data.status_code = 405;
         return;
     } 
 
-    const res = await retrieve_all_messages();
+    const res = await db_retrieve_all_messages();
+
     if (res.Error) {
         res_data.status_code = 500;
         res_data.payload = { Error: 'Unable to retrieve the messages.' };
@@ -141,3 +161,45 @@ export async function get_all_messages(method, res_data)
         res_data.payload = res;
     }
 }
+
+async function hdl_get_messages_page(req_data, res_data)
+{
+    if (req_data.method !== 'GET') {
+        res_data.status_code = 405;
+        return;
+    } 
+
+    const page = parseInt(req_data.search_params.get('page')) || 1;
+    const limit = parseInt(req_data.search_params.get('limit')) || 50;
+
+    if (page < 1) {
+        res_data.status_code = 400;
+        res_data.payload = { Error: `Invalid pagination param. Page must be >= 1. Got ${page} instead.` };
+        return;
+    }
+    
+    if (limit < 1 || limit > PAGE_LIMIT) {
+        res_data.status_code = 400;
+        res_data.payload = { Error: `Invalid pagination param. Limit must be 1-100. Got ${limit} instead.` };
+        return;
+    }
+
+    const res = await db_get_messages_page(page, limit);
+
+    if (res.Error) {
+        res_data.status_code = 500;
+        res_data.payload = { Error: 'Unable to retrieve the messages.' };
+        console.log('ERROR:', res.Error);
+    } else {
+        res_data.status_code = 200;
+        res_data.payload = res;
+    }
+}
+
+export {
+    hdl_get_home_page,
+    hdl_get_asset,
+    hdl_handle_msg,
+    hdl_get_all_messages,
+    hdl_get_messages_page
+};

@@ -1,7 +1,16 @@
 import { createServer } from 'node:http';
 import { StringDecoder } from 'node:string_decoder';
 import { debuglog as _debuglog } from 'node:util';
-import { get_home_page, get_asset, handle_msg, get_all_messages } from './handlers.mjs';
+
+import { 
+    hdl_get_home_page, 
+    hdl_get_asset, 
+    hdl_handle_msg, // TODO change this name
+    hdl_get_all_messages, 
+    hdl_get_messages_page 
+} from './handlers.mjs';
+
+import { db_close } from './database.mjs';
 
 const PORT = 3000;
 
@@ -30,7 +39,7 @@ server.on('request', (req, res) =>
 
         const req_data = {
             'pathname': trimmed_pathname,
-            // 'search_params': new URLSearchParams(url_obj.searchParams),
+            'search_params': new URLSearchParams(url_obj.searchParams),
             'method': req.method,
             // 'headers': req.headers,
             'payload': str_buffer
@@ -51,16 +60,20 @@ server.on('request', (req, res) =>
                 res_data.payload = 'pong';
                 break;
             case '':
-                await get_home_page(req_data.method, res_data);
+                await hdl_get_home_page(req_data.method, res_data);
                 break;
             case 'api/msg':
-                await handle_msg(req_data, res_data);
+                await hdl_handle_msg(req_data, res_data);
                 break;
+            case 'api/msg/page':
+                await hdl_get_messages_page(req_data, res_data);
+                break;
+            // Not used by the web interface
             case 'api/msg/get-all':
-                await get_all_messages(req_data.method, res_data);
+                await hdl_get_all_messages(req_data.method, res_data);
                 break;
             default:
-                await get_asset(req_data, res_data);
+                await hdl_get_asset(req_data, res_data);
             }
         } catch (error) {
             res_data.content_type = 'application/json';
@@ -96,18 +109,28 @@ server.on('listening', () => {
 
 server.on('error', (e) => {
     if (e.code === 'EADDRINUSE') {
-        console.log('[WARN] Address in use, retrying...');
+        console.log('WARN: Address in use, retrying.');
         setTimeout(() => {
             server.close();
             server.listen(PORT);
         }, 1000);
     } else {
-        console.error('[ERROR] While trying to start the server:', e.message);
+        console.error('ERROR: While trying to start the server:', e.message);
     }
 });
 
-server.on('close', () => {
-    console.log('[INFO] Server has been closed.');
-});
+process.on('SIGHUP', () => shutdown_server(128 + 1));
+process.on('SIGINT', () => shutdown_server(128 + 2));
+process.on('SIGTERM', () => shutdown_server(128 + 15));
+
+function shutdown_server(exit_code) {
+    console.log(`\nINFO: Shutting down. Exit code ${exit_code}.`);
+    server.close(() => {
+        console.log('INFO: The server has been shut down.');
+        db_close();
+        console.log('INFO: Database connection closed.');
+        process.exit(128 + exit_code);
+    });
+}
 
 server.listen(PORT);

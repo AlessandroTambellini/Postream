@@ -20,7 +20,7 @@ msg_form.addEventListener('submit', async e =>
     const method = msg_form.attributes.method.value;
     const msg = msg_textarea.value;
 
-    const { status_code, payload } = await req(path, method, { msg });
+    const { status_code, payload } = await req(path, null, method, { msg });
 
     if (status_code === 200) {
         req_feedback.className = 'success';
@@ -34,15 +34,13 @@ msg_form.addEventListener('submit', async e =>
     msg_textarea.value = null;
 });
 
-async function req(path, method, payload = {}) 
+async function req(path, search_params, method, payload) 
 {
-    let url = path;
-    method = method.toUpperCase();
-    // const params = new URLSearchParams(search_params);
-    // if (params.toString()) {
-    //     url += '?' + params.toString();
-    // }
+    const params = new URLSearchParams(search_params).toString();
+    const url = params ? `${path}?${params}` : path;
 
+    method = method.toUpperCase();
+    
     const options = {
         method: method,
         headers: {
@@ -51,6 +49,7 @@ async function req(path, method, payload = {})
     };
 
     if (method !== 'GET' && method !== 'HEAD') {
+        // I expect a payload to be there
         options.body = JSON.stringify(payload);
     }
 
@@ -89,15 +88,17 @@ async function req(path, method, payload = {})
 
 async function fill_stream()
 {
-    const { status_code, payload } = await req('api/msg/get-all', 'GET', null);
+    const { status_code, payload } = await req('api/msg/page', { page: 1, limit: 50 }, 'GET', null);
 
     if (status_code === 200) 
     {
-        for (const msg of payload)
+        console.log(payload);
+        const messages_arr = payload.messages;
+        for (const msg_obj of messages_arr)
         {
             const msg_p = document.createElement('p');
             msg_p.classList.add('letter-msg', 'libertinus-mono-regular');
-            msg_p.textContent = msg;
+            msg_p.textContent = msg_obj.content;
             
             const msg_article = document.createElement('article');
             msg_article.classList.add('letter');

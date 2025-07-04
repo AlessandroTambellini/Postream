@@ -1,3 +1,4 @@
-server/messages.db
-server/data.mjs
+src/messages.*
 node_modules
+test.mjs
+notes
