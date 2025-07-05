@@ -1,5 +1,5 @@
 import { readFile } from "fs/promises";
-import { join } from "path";
+import { join } from "node:path";
 
 import { 
     PAGE_LIMIT,
@@ -10,10 +10,16 @@ import {
 
 const CLIENT_PATH = join(import.meta.dirname, 'web_interface');
 
-async function hdl_get_home_page(method, res_data) 
+function hdl_pong(res_data) {
+    res_data.status_code = 200;
+    res_data.payload = 'pong';
+}
+
+async function hdl_get_home_page(req_data, res_data) 
 {
-    if (method !== 'GET') {
+    if (req_data.method !== 'GET') {
         res_data.status_code = 405;
+        res_data.payload = { Error: `The method '${req_data.method}' is not allowed for path '${req_data.path}'.` };
         return;
     }
 
@@ -32,10 +38,11 @@ async function hdl_get_asset(req_data, res_data)
 {
     if (req_data.method !== 'GET') {
         res_data.status_code = 405;
+        res_data.payload = { Error: `The method '${req_data.method}' is not allowed for path '${req_data.path}'.` };
         return;
     }
 
-    const asset_path = req_data.pathname;
+    const asset_path = req_data.path;
 
     try {
         let f_binary = false;
@@ -90,6 +97,7 @@ async function hdl_handle_msg(req_data, res_data)
     const allowed_methods = ['GET', 'POST'];
     if (!allowed_methods.includes(req_data.method)) {
         res_data.status_code = 405;
+        res_data.payload = { Error: `The method '${req_data.method}' is not allowed for path '${req_data.path}'.` };
         return;
     }
 
@@ -131,10 +139,8 @@ _handle_msg.POST = async function (req_data, res_data)
     
     if (res.Error) {
         res_data.status_code = 500;
-        /*
-            I could write `res_data.payload = res.Error`, but I don't want to share the catched error msg
-            with the user.
-        */
+        // I could write `res_data.payload = res.Error`, but I don't want to share the catched error msg
+        // with the user because I don't think is useful.
         res_data.payload = { Error: 'Something went wrong while trying to store the msg.' };
         console.log('ERROR:', res.Error);
     } else {
@@ -143,10 +149,11 @@ _handle_msg.POST = async function (req_data, res_data)
     }
 }
 
-async function hdl_get_all_messages(method, res_data)
+async function hdl_get_all_messages(req_data, res_data)
 {
-    if (method !== 'GET') {
+    if (req_data.method !== 'GET') {
         res_data.status_code = 405;
+        res_data.payload = { Error: `The method '${req_data.method}' is not allowed for path '${req_data.path}'.` };
         return;
     } 
 
@@ -166,6 +173,7 @@ async function hdl_get_messages_page(req_data, res_data)
 {
     if (req_data.method !== 'GET') {
         res_data.status_code = 405;
+        res_data.payload = { Error: `The method '${req_data.method}' is not allowed for path '${req_data.path}'.` };
         return;
     } 
 
@@ -197,6 +205,7 @@ async function hdl_get_messages_page(req_data, res_data)
 }
 
 export {
+    hdl_pong,
     hdl_get_home_page,
     hdl_get_asset,
     hdl_handle_msg,

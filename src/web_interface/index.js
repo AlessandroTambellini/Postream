@@ -68,7 +68,7 @@ async function req(path, search_params, method, payload)
                 payload = JSON.parse(text);
             }
         } catch (error) {
-            console.error('ERROR:', error);
+            console.error('ERROR:', error.message);
             return res_obj;
         }
 
@@ -78,7 +78,7 @@ async function req(path, search_params, method, payload)
         return res_obj;
         
     } catch (error) {
-        console.error('ERROR:', error);
+        console.error('ERROR:', error.message);
         return {
             status_code: 0,
             payload: []
