@@ -7,8 +7,8 @@ import {
     hdl_get_home_page, 
     hdl_get_asset, 
     hdl_handle_msg, // TODO change this name
-    hdl_get_all_messages, 
-    hdl_get_messages_page 
+    hdl_get_all_msgs, 
+    hdl_get_msgs_page 
 } from './handlers.mjs';
 
 import { db_close } from './database.mjs';
@@ -90,10 +90,10 @@ server.on('request', (req, res) =>
                 await hdl_handle_msg(req_data, res_data);
                 break;
             case 'api/msg/page':
-                await hdl_get_messages_page(req_data, res_data);
+                await hdl_get_msgs_page(req_data, res_data);
                 break;
             case 'api/msg/get-all':
-                await hdl_get_all_messages(req_data, res_data);
+                await hdl_get_all_msgs(req_data, res_data);
                 break;
             default:
                 await hdl_get_asset(req_data, res_data);

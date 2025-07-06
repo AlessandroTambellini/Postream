@@ -22,9 +22,9 @@ db.exec(create_table);
 // end INIT_DB
 
 const insert_msg = db.prepare('INSERT INTO messages (content) VALUES (?)');
-const select_all_messages = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC');
-const select_messages_page = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ? OFFSET ?');
-const select_messages_count = db.prepare('SELECT COUNT(*) as count FROM messages');
+const select_all_msgs = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC');
+const select_msgs_page = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ? OFFSET ?');
+const select_msgs_count = db.prepare('SELECT COUNT(*) as count FROM messages');
 
 async function db_store_msg(msg) {
     try {
@@ -39,36 +39,37 @@ async function db_store_msg(msg) {
 }
 
 // I leave this function for testing
-async function db_retrieve_all_messages() {
+async function db_retrieve_all_msgs() {
     try {
-        const { count: num_of_messages } = select_messages_count.get();
-        if (num_of_messages > 1000) {
-            console.warn(`WARN: Retrieving ${num_of_messages} messages at once. Consider using pagination.`);
+        const { count: num_of_msgs } = select_msgs_count.get();
+        if (num_of_msgs > 1000) {
+            console.warn(`WARN: Retrieving ${num_of_msgs} messages at once. Consider using pagination.`);
         }
 
-        return select_all_messages.all();
+        return select_all_msgs.all();
     } catch (error) {
         return { Error: `Can't retrieve messages from database: ${error.message}.` };
     }
 }
 
-async function db_get_messages_page(page = 1, limit = 50) {
+async function db_get_msgs_page(page = 1, limit = 50) {
     try {
         const offset = (page - 1) * limit;
         
-        const { count: num_of_messages } = select_messages_count.get();
+        const { count: num_of_msgs } = select_msgs_count.get();
         
-        const messages = select_messages_page.all(limit, offset);
+        const msgs = select_msgs_page.all(limit, offset);
         
         return {
-            messages,
+            msgs,
             pagination: {
                 page,
-                limit,
-                num_of_messages,
-                num_of_pages: Math.ceil(num_of_messages / limit),
-                has_next: page < Math.ceil(num_of_messages / limit),
-                has_prev: page > 1
+                // I don't use this data for now
+                // limit,
+                // num_of_msgs,
+                // num_of_pages: Math.ceil(num_of_msgs / limit),
+                // has_next: page < Math.ceil(num_of_msgs / limit),
+                // has_prev: page > 1
             }
         };
     } catch (error) {
@@ -83,14 +84,14 @@ function db_close() {
 export {
     PAGE_LIMIT,
     db_store_msg,
-    db_retrieve_all_messages,
-    db_get_messages_page,
+    db_retrieve_all_msgs,
+    db_get_msgs_page,
     db_close
 };
 
 /*
 export async function get_num_of_messages() {
-    return select_messages_count.get().count;
+    return select_msgs_count.get().count;
 }
 
 export async function get_message_by_id(id) {
@@ -118,7 +119,7 @@ export async function delete_message(id) {
     }
 }
 
-// This function is sugar on top of db_get_messages_page.
+// This function is sugar on top of db_get_msgs_page.
 export async function get_recent_messages(limit = 50) {
     try {
         const get_recent_messages = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ?');

@@ -4,8 +4,8 @@ import { join } from "node:path";
 import { 
     PAGE_LIMIT,
     db_store_msg, 
-    db_retrieve_all_messages, 
-    db_get_messages_page 
+    db_retrieve_all_msgs, 
+    db_get_msgs_page 
 } from "./database.mjs";
 
 const CLIENT_PATH = join(import.meta.dirname, 'web_interface');
@@ -149,7 +149,7 @@ _handle_msg.POST = async function (req_data, res_data)
     }
 }
 
-async function hdl_get_all_messages(req_data, res_data)
+async function hdl_get_all_msgs(req_data, res_data)
 {
     if (req_data.method !== 'GET') {
         res_data.status_code = 405;
@@ -157,7 +157,7 @@ async function hdl_get_all_messages(req_data, res_data)
         return;
     } 
 
-    const res = await db_retrieve_all_messages();
+    const res = await db_retrieve_all_msgs();
 
     if (res.Error) {
         res_data.status_code = 500;
@@ -169,7 +169,7 @@ async function hdl_get_all_messages(req_data, res_data)
     }
 }
 
-async function hdl_get_messages_page(req_data, res_data)
+async function hdl_get_msgs_page(req_data, res_data)
 {
     if (req_data.method !== 'GET') {
         res_data.status_code = 405;
@@ -192,7 +192,7 @@ async function hdl_get_messages_page(req_data, res_data)
         return;
     }
 
-    const res = await db_get_messages_page(page, limit);
+    const res = await db_get_msgs_page(page, limit);
 
     if (res.Error) {
         res_data.status_code = 500;
@@ -209,6 +209,6 @@ export {
     hdl_get_home_page,
     hdl_get_asset,
     hdl_handle_msg,
-    hdl_get_all_messages,
-    hdl_get_messages_page
+    hdl_get_all_msgs,
+    hdl_get_msgs_page
 };

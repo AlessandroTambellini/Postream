@@ -1,0 +1,107 @@
+@font-face { 
+    font-family: 'Libertinus Mono';
+    src:
+        local('Libertinus Mono'), 
+        url('../assets/LibertinusMono-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+:root {
+    --clr-txt: #343A40;
+    --clr-bkg: #F8F9FA;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    background-color: var(--clr-bkg);
+    font-family: 'Libertinus Mono', monospace;
+}
+
+main {
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    margin-inline: auto;
+    padding: 2vh 2vw;
+}
+
+/* --- */
+
+#msg-stream {
+    flex-grow: 2;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    /* The msg-card have some shadow and to avoid being covered
+    I add a bit of padding to their container (msg-stream). */
+    padding: .5rem;
+    /* border: 1px solid purple; */
+}
+
+.msg-card {
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.msg-txt {
+    color: var(--clr-txt);
+    font-size: 1.2rem;
+    line-height: 1.4;
+    max-width: 70ch;
+    white-space: pre-wrap; /* Keep extra whitespaces and newlines. */
+}
+
+#load-more-msgs-btn {
+    font-size: 1.2rem;
+    padding: .8rem;
+    margin: auto;
+    margin-top: .5rem;
+    display: block;
+}
+
+/* --- */
+
+#msg-form {
+    /* border: 1px solid green; */
+    margin-top: 1rem;
+    padding-inline: .5rem; /* to let the textarea have the same with of the msg-card */
+}
+
+#msg-textarea {
+    font-family: inherit;
+    padding: 1.2rem;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    width: 100%;
+    border-radius: 8px;
+    resize: vertical;
+}
+
+#send-msg-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    font-size: 1.5rem;
+    padding: .9rem;
+    margin-top: .5rem;
+    margin-left: auto;
+}
+
+#send-msg-btn img {
+    width: 2rem;
+}
+
