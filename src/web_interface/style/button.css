@@ -3,6 +3,10 @@ button {
     cursor: pointer;
 }
 
+button img {
+    display: block;
+}
+
 .primary-button {
     border-radius: 15px;
     border-width: 1px;
@@ -11,8 +15,8 @@ button {
     transition: all 0.035s ease;
     user-select: none;
     box-shadow: 
-        0 5px 0 #b8b8b8,
-        0 8px 12px rgba(0, 0, 0, 0.15);
+        0 2px 0 #b8b8b8,
+        0 4px 6px rgba(0, 0, 0, 0.1);
     transform: translateY(0);
 }
 
@@ -20,14 +24,38 @@ button {
     background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
     transform: translateY(-1px);
     box-shadow: 
-        0 6px 0 #b8b8b8,
-        0 12px 16px rgba(0, 0, 0, 0.2);
+        0 3px 0 #b8b8b8,
+        0 6px 8px rgba(0, 0, 0, 0.12);
 }
 
 .primary-button:active {
-    transform: translateY(4px);
+    transform: translateY(1px);
     box-shadow: 
-        0 2px 0 #b8b8b8,
-        0 4px 8px rgba(0, 0, 0, 0.2);
+        0 1px 0 #b8b8b8,
+        0 2px 4px rgba(0, 0, 0, 0.15);
     background: linear-gradient(180deg, #e8e8e8 0%, #d8d8d8 100%);
+}
+
+.secondary-btn {
+    font-size: 1.2rem;
+    padding: .25em .5em;
+    border-radius: 8px;
+    border: 1px solid #ababab;
+    transition: all 0.035s ease;
+    user-select: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.secondary-btn:hover {
+    border-color: #999;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.secondary-btn:active {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transform: translateY(1px);
+}
+
+.secondary-btn .icon {
+    width: 2rem;
 }

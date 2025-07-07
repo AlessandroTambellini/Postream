@@ -71,11 +71,9 @@
 .feedback-info {
     border-left-color: #3b82f6;
 }
-
 .feedback-info .feedback-icon {
     background-color: #3b82f6;
 }
-
 .feedback-info .feedback-title {
     color: #1e40af;
 }
@@ -83,23 +81,29 @@
 .feedback-success {
     border-left-color: #10b981;
 }
-
 .feedback-success .feedback-icon {
     background-color: #10b981;
 }
-
 .feedback-success .feedback-title {
     color: #047857;
+}
+
+.feedback-warn {
+    border-left-color: #ff8f3f;
+}
+.feedback-warn .feedback-icon {
+    background-color: #ff8f3f;
+}
+.feedback-warn .feedback-title {
+    color: #dd6713;
 }
 
 .feedback-error {
     border-left-color: #ef4444;
 }
-
 .feedback-error .feedback-icon {
     background-color: #ef4444;
 }
-
 .feedback-error .feedback-title {
     color: #dc2626;
 }

@@ -19,7 +19,6 @@
 }
 
 body {
-    margin: 0;
     background-color: var(--clr-bkg);
     font-family: 'Libertinus Mono', monospace;
 }
@@ -46,6 +45,15 @@ main {
     /* border: 1px solid purple; */
 }
 
+#msg-stream nav {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: end;
+    gap: .5rem;
+    padding-block: 1.5vh;
+}
+
 .msg-card {
     background: #f5f5f5;
     border: 1px solid #ccc;
@@ -53,7 +61,6 @@ main {
     padding: 1.2rem;
     margin-bottom: 1rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    position: relative;
 }
 
 .msg-txt {
@@ -62,6 +69,13 @@ main {
     line-height: 1.4;
     max-width: 70ch;
     white-space: pre-wrap; /* Keep extra whitespaces and newlines. */
+}
+
+.msg-card time {
+    display: block;
+    text-align: right;
+    padding-top: 1em;
+    color: rgb(72, 72, 72);
 }
 
 #load-more-msgs-btn {
@@ -101,7 +115,7 @@ main {
     margin-left: auto;
 }
 
-#send-msg-btn img {
+#send-msg-btn .icon {
     width: 2rem;
 }
 

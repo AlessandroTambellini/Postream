@@ -7,8 +7,9 @@ import {
     hdl_get_home_page, 
     hdl_get_asset, 
     hdl_handle_msg, // TODO change this name
-    hdl_get_all_msgs, 
-    hdl_get_msgs_page 
+    hdl_get_msgs_all, 
+    hdl_get_msgs_page, 
+    hdl_get_msgs_page_rand
 } from './handlers.mjs';
 
 import { db_close } from './database.mjs';
@@ -87,13 +88,16 @@ server.on('request', (req, res) =>
                 await hdl_get_home_page(req_data, res_data);
                 break;
             case 'api/msg':
-                await hdl_handle_msg(req_data, res_data);
+                await hdl_handle_msg(req_data, res_data); // TODO change the name 'hdl_handle_msg'
                 break;
             case 'api/msg/page':
                 await hdl_get_msgs_page(req_data, res_data);
                 break;
+            case 'api/msg/page-rand':
+                await hdl_get_msgs_page_rand(req_data, res_data);
+                break;
             case 'api/msg/get-all':
-                await hdl_get_all_msgs(req_data, res_data);
+                await hdl_get_msgs_all(req_data, res_data);
                 break;
             default:
                 await hdl_get_asset(req_data, res_data);
@@ -144,7 +148,7 @@ server.on('listening', () => {
 
 server.on('error', (e) => {
     if (e.code === 'EADDRINUSE') {
-        console.log('WARN: Address in use, retrying.');
+        console.warn('WARN: Address in use, retrying.');
         setTimeout(() => {
             server.close();
             server.listen(PORT);

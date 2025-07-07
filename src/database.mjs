@@ -23,8 +23,11 @@ db.exec(create_table);
 
 const insert_msg = db.prepare('INSERT INTO messages (content) VALUES (?)');
 const select_all_msgs = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC');
-const select_msgs_page = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ? OFFSET ?');
 const select_msgs_count = db.prepare('SELECT COUNT(*) as count FROM messages');
+const get_msg = db.prepare('SELECT * FROM messages WHERE id = ?');
+const select_msgs_page_desc = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ? OFFSET ?');
+const select_msgs_page_asc = db.prepare('SELECT * FROM messages ORDER BY timestamp ASC LIMIT ? OFFSET ?');
+const select_msgs_page_rand = db.prepare('SELECT * FROM messages ORDER BY RANDOM() LIMIT ?');
 
 async function db_store_msg(msg) {
     try {
@@ -39,7 +42,7 @@ async function db_store_msg(msg) {
 }
 
 // I leave this function for testing
-async function db_retrieve_all_msgs() {
+async function db_get_msgs_all() {
     try {
         const { count: num_of_msgs } = select_msgs_count.get();
         if (num_of_msgs > 1000) {
@@ -52,28 +55,37 @@ async function db_retrieve_all_msgs() {
     }
 }
 
-async function db_get_msgs_page(page = 1, limit = 50) {
+async function db_get_msgs_page(page = 1, limit = 50, asc = false) {
     try {
-        const offset = (page - 1) * limit;
-        
+        const offset = (page - 1) * limit;    
+        const msgs = asc ? select_msgs_page_asc.all(limit, offset) : select_msgs_page_desc.all(limit, offset);
         const { count: num_of_msgs } = select_msgs_count.get();
         
-        const msgs = select_msgs_page.all(limit, offset);
-        
-        return {
-            msgs,
-            pagination: {
-                page,
-                // I don't use this data for now
-                // limit,
-                // num_of_msgs,
-                // num_of_pages: Math.ceil(num_of_msgs / limit),
-                // has_next: page < Math.ceil(num_of_msgs / limit),
-                // has_prev: page > 1
-            }
+        return { 
+            msgs, 
+            page, 
+            has_next: page < Math.ceil(num_of_msgs / limit) // I assume the limit doesn't vary among requests
         };
     } catch (error) {
-        return { Error: `Can't retrieve messages page: ${error.message}.` };
+        return { Error: `Can't retrieve msgs page: ${error.message}.` };
+    }
+}
+
+async function db_get_msgs_page_rand(limit = 50) {
+    try {
+        const msgs = select_msgs_page_rand.all(limit);
+        return { msgs }; // I return them inside an object for consistency and managelability on the client-side
+    } catch (error) {
+        return { Error: `Can't retrieve rand msgs page: ${error.message}.` };
+    }
+}
+
+async function db_get_msg_by_id(id) {
+    try {
+        const msg = get_msg.get('id');
+        return msg || { Error: `Msg with id ${id} not found.` };
+    } catch (error) {
+        return { Error: `Can't retrieve msg from db: ${error.message}.` };
     }
 }
 
@@ -84,48 +96,10 @@ function db_close() {
 export {
     PAGE_LIMIT,
     db_store_msg,
-    db_retrieve_all_msgs,
+    db_get_msgs_all,
     db_get_msgs_page,
+    db_get_msgs_page_rand,
+    db_get_msg_by_id,
     db_close
 };
 
-/*
-export async function get_num_of_messages() {
-    return select_msgs_count.get().count;
-}
-
-export async function get_message_by_id(id) {
-    try {
-        const getMessage = db.prepare('SELECT * FROM messages WHERE id = ?');
-        const message = getMessage.get(id);
-        return message || { Error: 'Message not found' };
-    } catch (error) {
-        return { Error: `Can't retrieve message: ${error.message}.` };
-    }
-}
-
-export async function delete_message(id) {
-    try {
-        const deleteMessage = db.prepare('DELETE FROM messages WHERE id = ?');
-        const result = deleteMessage.run(id);
-        
-        if (result.changes === 0) {
-            return { Error: 'Message not found' };
-        }
-        
-        return { Success: 'Message deleted' };
-    } catch (error) {
-        return { Error: `Can't delete message: ${error.message}.` };
-    }
-}
-
-// This function is sugar on top of db_get_msgs_page.
-export async function get_recent_messages(limit = 50) {
-    try {
-        const get_recent_messages = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ?');
-        return get_recent_messages.all(limit);
-    } catch (error) {
-        return { Error: `Can't retrieve recent messages: ${error.message}.` };
-    }
-}
-*/

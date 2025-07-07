@@ -28,6 +28,10 @@ Therefore, I modify the state only via CSS classes. */
     display: none;
 }
 
+.selected {
+    background-color: rgb(255, 185, 56);
+}
+
 .hidden {
     position: absolute;
     width: 1px;

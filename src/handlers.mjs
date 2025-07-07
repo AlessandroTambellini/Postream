@@ -4,8 +4,10 @@ import { join } from "node:path";
 import { 
     PAGE_LIMIT,
     db_store_msg, 
-    db_retrieve_all_msgs, 
-    db_get_msgs_page 
+    db_get_msgs_all, 
+    db_get_msgs_page, 
+    db_get_msg_by_id,
+    db_get_msgs_page_rand
 } from "./database.mjs";
 
 const CLIENT_PATH = join(import.meta.dirname, 'web_interface');
@@ -30,7 +32,7 @@ async function hdl_get_home_page(req_data, res_data)
     } catch (error) {
         res_data.status_code = 500;
         res_data.payload = { Error: 'Unable to read HTML page from disk.' };
-        console.log('ERROR:', error.message);
+        console.error('ERROR:', error.message);
     }
 }
 
@@ -71,7 +73,7 @@ async function hdl_get_asset(req_data, res_data)
                     break;
                 default:
                     res_data.content_type = 'text/plain';
-                    console.log(`WARN: unknown file extension: '${file_ext}'. Pathname: '${asset_path}'.`);
+                    console.warn(`WARN: unknown file extension: '${file_ext}'. Pathname: '${asset_path}'.`);
                     break;
             }
         }   
@@ -87,7 +89,7 @@ async function hdl_get_asset(req_data, res_data)
         } else {
             res_data.status_code = 500;
             res_data.payload = { Error: `Un unknown error has occured while trying to read '${asset_path}' from disk.` };
-            console.log('ERROR:', error.message);
+            console.error('ERROR:', error.message);
         }
     }
 }
@@ -108,7 +110,19 @@ const _handle_msg = {};
 
 _handle_msg.GET = async function (req_data, res_data)
 {
+    const id = req_data.search_params.get('id');
+    if (!id) {
+        res_data.status_code = 400;
+        res_data.payload = { Error: 'Missing msg id.' };
+        return;
+    }
 
+    const res = await db_get_msg_by_id(id);
+
+    if (res.Error) res_data.status_code = 404; // TODO not necessarily is a 404. Might be a server error
+    else res_data.status_code = 200;
+
+    res_data.payload = res;
 }
 
 _handle_msg.POST = async function (req_data, res_data)
@@ -142,14 +156,14 @@ _handle_msg.POST = async function (req_data, res_data)
         // I could write `res_data.payload = res.Error`, but I don't want to share the catched error msg
         // with the user because I don't think is useful.
         res_data.payload = { Error: 'Something went wrong while trying to store the msg.' };
-        console.log('ERROR:', res.Error);
+        console.error('ERROR:', res.Error);
     } else {
         res_data.status_code = 200;
         res_data.payload = res;
     }
 }
 
-async function hdl_get_all_msgs(req_data, res_data)
+async function hdl_get_msgs_all(req_data, res_data)
 {
     if (req_data.method !== 'GET') {
         res_data.status_code = 405;
@@ -157,12 +171,12 @@ async function hdl_get_all_msgs(req_data, res_data)
         return;
     } 
 
-    const res = await db_retrieve_all_msgs();
+    const res = await db_get_msgs_all();
 
     if (res.Error) {
         res_data.status_code = 500;
         res_data.payload = { Error: 'Unable to retrieve the messages.' };
-        console.log('ERROR:', res.Error);
+        console.error('ERROR:', res.Error);
     } else {
         res_data.status_code = 200;
         res_data.payload = res;
@@ -179,6 +193,7 @@ async function hdl_get_msgs_page(req_data, res_data)
 
     const page = parseInt(req_data.search_params.get('page')) || 1;
     const limit = parseInt(req_data.search_params.get('limit')) || 50;
+    const asc = req_data.search_params.get('asc') === 'true' || false; // lol, the fact that it is a string made me debug a bit.
 
     if (page < 1) {
         res_data.status_code = 400;
@@ -192,12 +207,40 @@ async function hdl_get_msgs_page(req_data, res_data)
         return;
     }
 
-    const res = await db_get_msgs_page(page, limit);
+    const res = await db_get_msgs_page(page, limit, asc);
 
     if (res.Error) {
         res_data.status_code = 500;
         res_data.payload = { Error: 'Unable to retrieve the messages.' };
-        console.log('ERROR:', res.Error);
+        console.error('ERROR:', res.Error);
+    } else {
+        res_data.status_code = 200;
+        res_data.payload = res;
+    }
+}
+
+async function hdl_get_msgs_page_rand(req_data, res_data)
+{
+    if (req_data.method !== 'GET') {
+        res_data.status_code = 405;
+        res_data.payload = { Error: `The method '${req_data.method}' is not allowed for path '${req_data.path}'.` };
+        return;
+    }  
+
+    const limit = parseInt(req_data.search_params.get('limit')) || 50;
+
+    if (limit < 1 || limit > PAGE_LIMIT) {
+        res_data.status_code = 400;
+        res_data.payload = { Error: `Invalid pagination param. Limit must be 1-100. Got ${limit} instead.` };
+        return;
+    }
+
+    const res = await db_get_msgs_page_rand(limit);
+
+    if (res.Error) {
+        res_data.status_code = 500;
+        res_data.payload = { Error: 'Unable to retrieve the msgs.' };
+        console.error('ERROR:', res.Error);
     } else {
         res_data.status_code = 200;
         res_data.payload = res;
@@ -209,6 +252,7 @@ export {
     hdl_get_home_page,
     hdl_get_asset,
     hdl_handle_msg,
-    hdl_get_all_msgs,
-    hdl_get_msgs_page
+    hdl_get_msgs_all,
+    hdl_get_msgs_page,
+    hdl_get_msgs_page_rand
 };

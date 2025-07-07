@@ -68,6 +68,11 @@ function show_feedback(type, msg)
         icon.textContent = '✓';
         title.textContent = 'Success';
         this.classList.add('vanish');
+    } else if (type === 'warn') { 
+        this.classList.add('feedback-warn');
+        icon.textContent = '!';
+        title.textContent = 'Warning';
+        this.classList.add('flex');
     } else if (type === 'error') {
         this.classList.add('feedback-error');
         icon.textContent = '!';
