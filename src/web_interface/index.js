@@ -4,26 +4,28 @@ const msg_stream = document.querySelector('#msg-stream');
 const msgs_container = msg_stream.querySelector('#msgs-container');
 const msg_form = document.querySelector('#msg-form');
 
-async function fill_stream(msgs_search_params, flags, displayed_msgs)
+const PAGE_LIMIT = 20;
+
+async function fill_stream(flags, displayed_msgs)
 {
     const feedback = msg_stream.querySelector('.feedback-card');
     feedback.hide();
 
-    if (flags.retrieved_all_msgs) {
-        feedback.show('info', 'No new msgs retrieved. All msgs have been already retrieved.');
-        return;
-    }
+    const search_params = {};
+    search_params.page  = flags.sort === 'asc' ? flags.page_asc : flags.page_desc;
+    search_params.sort  = flags.sort;
+    search_params.limit = PAGE_LIMIT;
 
-    msgs_search_params.page = msgs_search_params.asc ? flags.page_asc : flags.page_desc; 
+    const { status_code, payload } = await req('api/msg/page', search_params, 'GET', null);
     
-    const { status_code, payload } = await req(flags.rand ? 'api/msg/page-rand' : 'api/msg/page', msgs_search_params, 'GET', null);
-    
+    console.log(payload)
+
     if (status_code !== 200) {
         feedback.show('error', payload.Error);
         return;
     }
         
-    if (!flags.rand) console.assert(msgs_search_params.page === payload.page);
+    if (flags.sort !== 'rand') console.assert(search_params.page === payload.page);
     
     let new_msgs = 0;
 
@@ -53,15 +55,17 @@ async function fill_stream(msgs_search_params, flags, displayed_msgs)
         msgs_container.appendChild(msg_card);
     }
 
-    if (!flags.rand && new_msgs === 0 && !payload.has_next) {
-        feedback.show('info', 'No new msgs retrieved. All msgs have been already retrieved.');
-        flags.retrieved_all_msgs = true;
-    } else if (new_msgs === 0) {
-        feedback.show('warn', 'No new msgs retrieved. They where retrieved just msgs already present in the stream.');
+    if (!new_msgs)
+    {
+        if (payload.num_of_msgs === displayed_msgs.size) {
+            feedback.show('info', 'All msgs have been already retrieved.');
+        } else {
+            feedback.show('warn', 'No new msgs retrieved. They where retrieved just msgs already present in the stream.');
+        }
     }
 
-    if (msgs_search_params.asc && !flags.rand) flags.page_asc++;
-    if (!msgs_search_params.asc && !flags.rand) flags.page_desc++;
+    if (flags.sort === 'asc') flags.page_asc++;
+    else if (flags.sort === 'desc') flags.page_desc++;
 };
 
 async function handle_msg_submission(e)
@@ -100,62 +104,37 @@ async function handle_msg_submission(e)
      */
 
     const reload_msgs_btn = msg_stream.querySelector('#reload-msgs-btn');
-    // Controls
-    const asc_msgs_btn = msg_stream.querySelector('#asc-msgs-btn');
-    const desc_msgs_btn = msg_stream.querySelector('#desc-msgs-btn');
-    const rand_msgs_btn = msg_stream.querySelector('#rand-msgs-btn');    
     const controls = msg_stream.querySelectorAll('.control');
-
     const displayed_msgs = new Set();
 
     const flags = {
-        rand: false,
+        sort: 'asc',
         page_asc: 1,
         page_desc: 1,
-        retrieved_all_msgs: false,
     };
 
-    const msgs_search_params = {
-        page: 1,
-        limit: 3,
-        asc: false,
-    };
+    controls.forEach(ctrl => {
+        ctrl.addEventListener('click', function() {
+            flags.sort = this.value;
+            controls.forEach(_ctrl => _ctrl.classList.remove('selected'));
+            this.classList.add('selected');
+        })
+    });
 
     reload_msgs_btn.addEventListener('click', () => 
     {
         // Reset
         flags.page_asc = 1;
         flags.page_desc = 1;
-        flags.retrieved_all_msgs = false;
         displayed_msgs.clear();
         msgs_container.replaceChildren(); // Empty the stream
 
-        fill_stream(msgs_search_params, flags, displayed_msgs);
-    });
-
-    asc_msgs_btn.addEventListener('click', function() {
-        msgs_search_params.asc = true;
-        flags.rand = false;
-        controls.forEach(control => control.classList.remove('selected'));
-        this.classList.add('selected');
-    });
-
-    desc_msgs_btn.addEventListener('click', function() {
-        msgs_search_params.asc = false;
-        flags.rand = false;
-        controls.forEach(control => control.classList.remove('selected'));
-        this.classList.add('selected');
-    });
-    
-    rand_msgs_btn.addEventListener('click', function() {
-        flags.rand = true;
-        controls.forEach(control => control.classList.remove('selected'));
-        this.classList.add('selected');
+        fill_stream(flags, displayed_msgs);
     });
 
     msg_stream.querySelector('#load-more-msgs-btn').addEventListener('click', () => 
     {
-        fill_stream(msgs_search_params, flags, displayed_msgs);
+        fill_stream(flags, displayed_msgs);
     });
 
     /*
@@ -177,6 +156,6 @@ async function handle_msg_submission(e)
     });
 
     // fill_stream is asynchronous, but in this case doesn't make any difference
-    fill_stream(msgs_search_params, flags, displayed_msgs);
+    fill_stream(flags, displayed_msgs);
 })();
 

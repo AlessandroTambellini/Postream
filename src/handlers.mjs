@@ -7,7 +7,6 @@ import {
     db_get_msgs_all, 
     db_get_msgs_page, 
     db_get_msg_by_id,
-    db_get_msgs_page_rand
 } from "./database.mjs";
 
 const CLIENT_PATH = join(import.meta.dirname, 'web_interface');
@@ -94,7 +93,7 @@ async function hdl_get_asset(req_data, res_data)
     }
 }
 
-async function hdl_handle_msg(req_data, res_data)
+async function hdl_msg(req_data, res_data)
 {
     const allowed_methods = ['GET', 'POST'];
     if (!allowed_methods.includes(req_data.method)) {
@@ -193,21 +192,27 @@ async function hdl_get_msgs_page(req_data, res_data)
 
     const page = parseInt(req_data.search_params.get('page')) || 1;
     const limit = parseInt(req_data.search_params.get('limit')) || 50;
-    const asc = req_data.search_params.get('asc') === 'true' || false; // lol, the fact that it is a string made me debug a bit.
+    const sort = req_data.search_params.get('sort') || 'asc';
 
     if (page < 1) {
         res_data.status_code = 400;
-        res_data.payload = { Error: `Invalid pagination param. Page must be >= 1. Got ${page} instead.` };
+        res_data.payload = { Error: `Page must be >= 1. Got ${page} instead.` };
         return;
     }
     
     if (limit < 1 || limit > PAGE_LIMIT) {
         res_data.status_code = 400;
-        res_data.payload = { Error: `Invalid pagination param. Limit must be 1-100. Got ${limit} instead.` };
+        res_data.payload = { Error: `Limit must be 1-100. Got ${limit} instead.` };
+        return;
+    }
+    
+    if (sort !== 'asc' && sort !== 'desc' && sort !== 'rand') {
+        res_data.status_code = 400;
+        res_data.payload = { Error: `Invalid sorting option. Got '${sort}'.` };        
         return;
     }
 
-    const res = await db_get_msgs_page(page, limit, asc);
+    const res = await db_get_msgs_page(page, limit, sort);
 
     if (res.Error) {
         res_data.status_code = 500;
@@ -219,40 +224,11 @@ async function hdl_get_msgs_page(req_data, res_data)
     }
 }
 
-async function hdl_get_msgs_page_rand(req_data, res_data)
-{
-    if (req_data.method !== 'GET') {
-        res_data.status_code = 405;
-        res_data.payload = { Error: `The method '${req_data.method}' is not allowed for path '${req_data.path}'.` };
-        return;
-    }  
-
-    const limit = parseInt(req_data.search_params.get('limit')) || 50;
-
-    if (limit < 1 || limit > PAGE_LIMIT) {
-        res_data.status_code = 400;
-        res_data.payload = { Error: `Invalid pagination param. Limit must be 1-100. Got ${limit} instead.` };
-        return;
-    }
-
-    const res = await db_get_msgs_page_rand(limit);
-
-    if (res.Error) {
-        res_data.status_code = 500;
-        res_data.payload = { Error: 'Unable to retrieve the msgs.' };
-        console.error('ERROR:', res.Error);
-    } else {
-        res_data.status_code = 200;
-        res_data.payload = res;
-    }
-}
-
 export {
     hdl_pong,
     hdl_get_home_page,
     hdl_get_asset,
-    hdl_handle_msg,
+    hdl_msg,
     hdl_get_msgs_all,
     hdl_get_msgs_page,
-    hdl_get_msgs_page_rand
 };

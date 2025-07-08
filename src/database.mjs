@@ -24,7 +24,7 @@ db.exec(create_table);
 const insert_msg = db.prepare('INSERT INTO messages (content) VALUES (?)');
 const select_all_msgs = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC');
 const select_msgs_count = db.prepare('SELECT COUNT(*) as count FROM messages');
-const get_msg = db.prepare('SELECT * FROM messages WHERE id = ?');
+const select_msg_by_id = db.prepare('SELECT * FROM messages WHERE id = ?');
 const select_msgs_page_desc = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ? OFFSET ?');
 const select_msgs_page_asc = db.prepare('SELECT * FROM messages ORDER BY timestamp ASC LIMIT ? OFFSET ?');
 const select_msgs_page_rand = db.prepare('SELECT * FROM messages ORDER BY RANDOM() LIMIT ?');
@@ -55,34 +55,30 @@ async function db_get_msgs_all() {
     }
 }
 
-async function db_get_msgs_page(page = 1, limit = 50, asc = false) {
+async function db_get_msgs_page(page = 1, limit = 50, sort = 'asc') {
     try {
         const offset = (page - 1) * limit;    
-        const msgs = asc ? select_msgs_page_asc.all(limit, offset) : select_msgs_page_desc.all(limit, offset);
-        const { count: num_of_msgs } = select_msgs_count.get();
+        
+        let msgs;
+        if (sort === 'asc') msgs = select_msgs_page_asc.all(limit, offset);
+        else if (sort === 'desc') msgs = select_msgs_page_desc.all(limit, offset);
+        else msgs = select_msgs_page_rand.all(limit);
+
+        const { count } = select_msgs_count.get();
         
         return { 
             msgs, 
             page, 
-            has_next: page < Math.ceil(num_of_msgs / limit) // I assume the limit doesn't vary among requests
+            num_of_msgs: count
         };
     } catch (error) {
         return { Error: `Can't retrieve msgs page: ${error.message}.` };
     }
 }
 
-async function db_get_msgs_page_rand(limit = 50) {
-    try {
-        const msgs = select_msgs_page_rand.all(limit);
-        return { msgs }; // I return them inside an object for consistency and managelability on the client-side
-    } catch (error) {
-        return { Error: `Can't retrieve rand msgs page: ${error.message}.` };
-    }
-}
-
 async function db_get_msg_by_id(id) {
     try {
-        const msg = get_msg.get('id');
+        const msg = select_msg_by_id.get(id);
         return msg || { Error: `Msg with id ${id} not found.` };
     } catch (error) {
         return { Error: `Can't retrieve msg from db: ${error.message}.` };
@@ -98,7 +94,6 @@ export {
     db_store_msg,
     db_get_msgs_all,
     db_get_msgs_page,
-    db_get_msgs_page_rand,
     db_get_msg_by_id,
     db_close
 };
