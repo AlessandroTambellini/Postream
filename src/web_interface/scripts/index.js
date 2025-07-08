@@ -18,8 +18,6 @@ async function fill_stream(flags, displayed_msgs)
 
     const { status_code, payload } = await req('api/msg/page', search_params, 'GET', null);
     
-    console.log(payload)
-
     if (status_code !== 200) {
         feedback.show('error', payload.Error);
         return;
@@ -35,9 +33,6 @@ async function fill_stream(flags, displayed_msgs)
         displayed_msgs.add(msg_obj.id);
         new_msgs++;
 
-        const msg_id = document.createElement('p');
-        msg_id.textContent = msg_obj.id;
-
         const msg_txt = document.createElement('p');
         msg_txt.classList.add('msg-txt');
         msg_txt.textContent = msg_obj.content;
@@ -49,7 +44,6 @@ async function fill_stream(flags, displayed_msgs)
         const msg_card = document.createElement('article');
         msg_card.classList.add('msg-card');
         
-        msg_card.appendChild(msg_id);
         msg_card.appendChild(msg_txt);
         msg_card.appendChild(msg_date);
         msgs_container.appendChild(msg_card);
@@ -96,7 +90,7 @@ async function handle_msg_submission(e)
     textarea.value = null;
 }
 
-(async function main() 
+(function main() 
 {
     /*
      * 
@@ -109,6 +103,7 @@ async function handle_msg_submission(e)
 
     const flags = {
         sort: 'asc',
+        // Keep track of how many pages are retrieved in both ascending and descending order
         page_asc: 1,
         page_desc: 1,
     };
@@ -150,6 +145,7 @@ async function handle_msg_submission(e)
      */
 
     document.querySelectorAll('.feedback-card').forEach(card => {
+        // Attach properties to the feedback cards.
         card.show = show_feedback;
         card.hide = hide_feedback;
         card.querySelector('.close-btn').addEventListener('click', () => card.hide());

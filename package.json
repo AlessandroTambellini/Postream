@@ -1,4 +1,14 @@
 {
+  "name": "msg-stream",
+  "description": "Send a msg in the stream",
+  "main": "src/server.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "dev": "node --watch src/server.mjs"
+  },
+  "author": "Alessandro Tambellini",
+  "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^12.2.0"
   }

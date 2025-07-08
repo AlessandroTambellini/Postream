@@ -1,11 +1,17 @@
 import Database from 'better-sqlite3';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 
-const DB_PATH = join(import.meta.dirname, 'messages.db');
+const DB_PATH = join(import.meta.dirname, '..', 'data', 'messages.db');
+const db_dir = dirname(DB_PATH);
 
 const PAGE_LIMIT = 100;
 
 // INIT_DB
+if (!existsSync(db_dir)) {
+    mkdirSync(db_dir, { recursive: true });
+}
+
 const db = new Database(DB_PATH);
 
 db.pragma('journal_mode = WAL');
@@ -18,7 +24,15 @@ const create_table = `
     )
 `;
 
+const create_indexes = `
+    -- Index on timestamp for chronological queries (most common)
+    CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp);
+    
+    -- PRIMARY KEY automatically creates a unique index
+`;
+
 db.exec(create_table);
+db.exec(create_indexes);
 // end INIT_DB
 
 const insert_msg = db.prepare('INSERT INTO messages (content) VALUES (?)');
@@ -79,10 +93,15 @@ async function db_get_msgs_page(page = 1, limit = 50, sort = 'asc') {
 async function db_get_msg_by_id(id) {
     try {
         const msg = select_msg_by_id.get(id);
-        return msg || { Error: `Msg with id ${id} not found.` };
+        return msg || { Error: `Msg with id ${id} not found.`, status: 404 };
     } catch (error) {
-        return { Error: `Can't retrieve msg from db: ${error.message}.` };
+        return { Error: `Can't retrieve msg from db: ${error.message}.`, status: 500 };
     }
+}
+
+function count_msgs() {
+    const { count } = select_msgs_count.get();
+    return count;
 }
 
 function db_close() {
@@ -95,6 +114,7 @@ export {
     db_get_msgs_all,
     db_get_msgs_page,
     db_get_msg_by_id,
+    count_msgs,
     db_close
 };
 

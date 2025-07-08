@@ -118,10 +118,13 @@ _handle_msg.GET = async function (req_data, res_data)
 
     const res = await db_get_msg_by_id(id);
 
-    if (res.Error) res_data.status_code = 404; // TODO not necessarily is a 404. Might be a server error
-    else res_data.status_code = 200;
-
-    res_data.payload = res;
+    if (res.Error) {
+        res_data.status_code = res.status;
+        res_data.payload = res.Error;
+    } else {
+        res_data.status_code = 200;
+        res_data.payload = res;
+    }
 }
 
 _handle_msg.POST = async function (req_data, res_data)
@@ -152,7 +155,7 @@ _handle_msg.POST = async function (req_data, res_data)
     
     if (res.Error) {
         res_data.status_code = 500;
-        // I could write `res_data.payload = res.Error`, but I don't want to share the catched error msg
+        // I could write `res_data.payload = res.Error`, but I don't want to share this specific catched error msg
         // with the user because I don't think is useful.
         res_data.payload = { Error: 'Something went wrong while trying to store the msg.' };
         console.error('ERROR:', res.Error);

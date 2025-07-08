@@ -6,7 +6,7 @@ import {
     hdl_pong,
     hdl_get_home_page, 
     hdl_get_asset, 
-    hdl_msg, // TODO change this name
+    hdl_msg,
     hdl_get_msgs_all, 
     hdl_get_msgs_page, 
 } from './handlers.mjs';
@@ -75,8 +75,6 @@ server.on('request', (req, res) =>
             // 'headers': req.headers,
             'payload': decoded_buffer.join('')
         };
-
-        console.log(req_data)
 
         try {
             // Router
