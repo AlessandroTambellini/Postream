@@ -7,7 +7,7 @@ button img {
     display: block;
 }
 
-.primary-button {
+.primary-btn {
     border-radius: 15px;
     border-width: 1px;
     background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
@@ -20,7 +20,7 @@ button img {
     transform: translateY(0);
 }
 
-.primary-button:hover {
+.primary-btn:hover {
     background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
     transform: translateY(-1px);
     box-shadow: 
@@ -28,7 +28,7 @@ button img {
         0 6px 8px rgba(0, 0, 0, 0.12);
 }
 
-.primary-button:active {
+.primary-btn:active {
     transform: translateY(1px);
     box-shadow: 
         0 1px 0 #b8b8b8,

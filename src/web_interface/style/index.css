@@ -1,28 +1,3 @@
-@font-face { 
-    font-family: 'Libertinus Mono';
-    src:
-        local('Libertinus Mono'), 
-        url('../assets/LibertinusMono-Regular.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
-}
-
-:root {
-    --clr-txt: #343A40;
-    --clr-bkg: #F8F9FA;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    background-color: var(--clr-bkg);
-    font-family: 'Libertinus Mono', monospace;
-}
-
 main {
     width: fit-content;
     display: flex;
@@ -30,28 +5,28 @@ main {
     height: 100vh;
     max-height: 100vh;
     margin-inline: auto;
-    padding: 2vh 2vw;
+    padding-inline: 2vw;
+    padding-bottom: 2vh;
+
+    position: relative; /* Because #write-msg-btn has position absolute */
 }
 
-/* --- */
+#controls-nav {
+    display: flex;
+    justify-content: end;
+    gap: .5rem;
+    padding-top: 1.5vh;
+    padding-bottom: 1vh;
+    padding-inline: .5rem;
+}
 
 #msg-stream {
-    flex-grow: 2;
     overflow-y: scroll;
     scrollbar-width: none;
     /* The msg-card have some shadow and to avoid being covered
     I add a bit of padding to their container (msg-stream). */
     padding: .5rem;
     /* border: 1px solid purple; */
-}
-
-#msg-stream nav {
-    position: sticky;
-    top: 0;
-    display: flex;
-    justify-content: end;
-    gap: .5rem;
-    padding-block: 1.5vh;
 }
 
 .msg-card {
@@ -86,36 +61,23 @@ main {
     display: block;
 }
 
-/* --- */
+#write-msg-link {
+    width: fit-content;
+    border-radius: 100%;
+    /* TODO regulate padding and icon-size for mobile */
+    padding: 1em;
+    position: absolute;
+    /* 2vh is the padding of main and .5rem is the padding of #msg-stream */
+    bottom: calc(2vh + .5rem);
+    /* 2vw " " " */
+    right: calc(2vw + .5rem);
 
-#msg-form {
-    /* border: 1px solid green; */
-    margin-top: 1rem;
-    padding-inline: .5rem; /* to let the textarea have the same with of the msg-card */
-}
-
-#msg-textarea {
-    font-family: inherit;
-    padding: 1.2rem;
-    font-size: 1.2rem;
-    line-height: 1.4;
-    width: 100%;
-    border-radius: 8px;
-    resize: vertical;
-}
-
-#send-msg-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: .5rem;
-    font-size: 1.5rem;
-    padding: .9rem;
-    margin-top: .5rem;
-    margin-left: auto;
+    background-color: #e8e8e8;
 }
 
-#send-msg-btn .icon {
-    width: 2rem;
+#write-msg-link img {
+    width: 3rem;
 }
-

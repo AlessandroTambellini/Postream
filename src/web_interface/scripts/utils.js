@@ -91,8 +91,17 @@ function hide_feedback() {
     this.classList.add('none');
 }
 
+function setup_feedback_cards()
+{
+    document.querySelectorAll('.feedback-card').forEach(card => {
+        // Attach properties to the feedback cards.
+        card.show = show_feedback;
+        card.hide = hide_feedback;
+        card.querySelector('.close-btn').addEventListener('click', () => card.hide());
+    });
+}
+
 export {
     req,
-    show_feedback,
-    hide_feedback
+    setup_feedback_cards
 };

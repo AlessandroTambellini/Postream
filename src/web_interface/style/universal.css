@@ -1,0 +1,24 @@
+@font-face { 
+    font-family: 'Libertinus Mono';
+    src:
+        local('Libertinus Mono'), 
+        url('../assets/LibertinusMono-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+:root {
+    --clr-txt: #343A40;
+    --clr-bkg: #F8F9FA;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--clr-bkg);
+    font-family: 'Libertinus Mono', monospace;
+}

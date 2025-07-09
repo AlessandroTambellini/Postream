@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Send a msg in the stream">
-        
+    <meta name="description" content="Send a msg in the stream">        
     <link rel="icon" type="image/svg+xml" href="assets/paper-airplane.svg">
     
     <title>Msg Stream</title>
     
     <base href="http://localhost:3000/">
 
+    <link rel="stylesheet" href="style/universal.css">
     <link rel="stylesheet" href="style/index.css">
     <link rel="stylesheet" href="style/button.css">
     <link rel="stylesheet" href="style/feedback.css">
@@ -22,21 +22,22 @@
     <main>
         <h1 class="hidden">Msg Stream</h1>
         
+        <nav id="controls-nav">
+            <button id="reload-msgs-btn" class="secondary-btn" title="reload">
+                <img class="icon" src="assets/restart.svg" alt="Reload">
+            </button>
+            <button id="asc-msgs-btn" class="control secondary-btn selected" title="ascendant" value="asc">
+                ASC
+            </button>
+            <button id="desc-msgs-btn" class="control secondary-btn" title="descendant" value="desc">
+                DESC
+            </button>
+            <button id="rand-msgs-btn" class="control secondary-btn" title="random" value="rand">
+                <img class="icon" src="assets/shuffle.svg" alt="Shuffle">
+            </button>
+        </nav>
+
         <section id="msg-stream">
-            <nav>
-                <button id="reload-msgs-btn" class="secondary-btn" title="reload">
-                    <img class="icon" src="assets/restart.svg" alt="Reload">
-                </button>
-                <button id="asc-msgs-btn" class="control secondary-btn selected" title="ascendant" value="asc">
-                    ASC
-                </button>
-                <button id="desc-msgs-btn" class="control secondary-btn" title="descendant" value="desc">
-                    DESC
-                </button>
-                <button id="rand-msgs-btn" class="control secondary-btn" title="random" value="rand">
-                    <img class="icon" src="assets/shuffle.svg" alt="Shuffle">
-                </button>
-            </nav>
 
             <div id="msgs-container"></div>
             
@@ -49,29 +50,12 @@
                 <button class="close-btn" type="button">x</button>
             </div>
 
-            <button id="load-more-msgs-btn" class="primary-button">load more</button>
+            <button id="load-more-msgs-btn" class="primary-btn">load more</button>
         </section>
 
-        <form id="msg-form" action="api/msg" method="POST">
-            <textarea name="msg-textarea" id="msg-textarea" rows="5" placeholder="_"></textarea>
-            
-            <div class="feedback-card none">
-                <div class="feedback-icon"></div>
-                <div class="feedback-content">
-                    <p class="feedback-title"></p>
-                    <p class="feedback-text"></p>
-                </div>
-                <!-- This 'type="button"' is really important.
-                The default button type is submit. 
-                And both this button and send-msg-btn were fired on the submit event. -->
-                <button class="close-btn" type="button">x</button>
-            </div>
-
-            <button id="send-msg-btn" class="primary-button" type="submit">
-                Send 
-                <img class="icon" src="assets/paper-airplane.svg" alt="Paper Aiplane">
-            </button>
-        </form>
+        <a href="write-msg" id="write-msg-link" class="secondary-btn">
+            <img src="assets/pen.svg" class="icon" alt="Pen">
+        </a>
     </main>
 </body>
 </html>

@@ -24,13 +24,36 @@ async function hdl_get_home_page(req_data, res_data)
         return;
     }
 
+    const page_path = join(CLIENT_PATH, 'index.html');
+
     try {
-        res_data.payload = await readFile(join(CLIENT_PATH, 'index.html'), { encoding: 'utf8' });
+        res_data.payload = await readFile(page_path, { encoding: 'utf8' });
         res_data.content_type = 'text/html';
         res_data.status_code = 200;
     } catch (error) {
         res_data.status_code = 500;
-        res_data.payload = { Error: 'Unable to read HTML page from disk.' };
+        res_data.payload = { Error: `Unable to read '${page_path}' from disk.` };
+        console.error('ERROR:', error.message);
+    }
+}
+
+async function hdl_get_write_msg_page(req_data, res_data) 
+{
+    if (req_data.method !== 'GET') {
+        res_data.status_code = 405;
+        res_data.payload = { Error: `The method '${req_data.method}' is not allowed for path '${req_data.path}'.` };
+        return;
+    }
+    
+    const page_path = join(CLIENT_PATH, 'write-msg.html');
+
+    try {
+        res_data.payload = await readFile(page_path, { encoding: 'utf8' });
+        res_data.content_type = 'text/html';
+        res_data.status_code = 200;
+    } catch (error) {
+        res_data.status_code = 500;
+        res_data.payload = { Error: `Unable to read '${page_path}' from disk.` };
         console.error('ERROR:', error.message);
     }
 }
@@ -230,6 +253,7 @@ async function hdl_get_msgs_page(req_data, res_data)
 export {
     hdl_pong,
     hdl_get_home_page,
+    hdl_get_write_msg_page,
     hdl_get_asset,
     hdl_msg,
     hdl_get_msgs_all,

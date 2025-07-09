@@ -1,8 +1,7 @@
-import { req, show_feedback, hide_feedback } from "./utils.js";
+import { req, setup_feedback_cards } from "./utils.js";
 
 const msg_stream = document.querySelector('#msg-stream');
 const msgs_container = msg_stream.querySelector('#msgs-container');
-const msg_form = document.querySelector('#msg-form');
 
 const PAGE_LIMIT = 20;
 
@@ -62,34 +61,6 @@ async function fill_stream(flags, displayed_msgs)
     else if (flags.sort === 'desc') flags.page_desc++;
 };
 
-async function handle_msg_submission(e)
-{
-    e.preventDefault();
-
-    const feedback = msg_form.querySelector('.feedback-card');
-    const textarea = msg_form.querySelector('textarea');
-
-    feedback.hide();
-
-    if (textarea.value.trim().length === 0) {
-        feedback.show('error', 'The msg is empty.');
-        return;
-    }
-
-    const path = msg_form.attributes.action.value;
-    const method = msg_form.attributes.method.value;
-    const msg = textarea.value;
-
-    const { status_code, payload } = await req(path, null, method, { msg });
-
-    if (status_code === 200) 
-        feedback.show('success', payload.Success);
-    else 
-        feedback.show('error', payload.Error);
-    
-    textarea.value = null;
-}
-
 (function main() 
 {
     /*
@@ -97,8 +68,8 @@ async function handle_msg_submission(e)
      *  Msg Stream 
      */
 
-    const reload_msgs_btn = msg_stream.querySelector('#reload-msgs-btn');
-    const controls = msg_stream.querySelectorAll('.control');
+    const reload_msgs_btn = document.querySelector('#reload-msgs-btn');
+    const controls = document.querySelectorAll('.control');
     const displayed_msgs = new Set();
 
     const flags = {
@@ -134,22 +105,17 @@ async function handle_msg_submission(e)
 
     /*
      * 
-     *  Msg submission 
+     *  Msg Form 
      */
 
-    msg_form.addEventListener('submit', handle_msg_submission);
+
 
     /*
      * 
      *  Misc 
      */
 
-    document.querySelectorAll('.feedback-card').forEach(card => {
-        // Attach properties to the feedback cards.
-        card.show = show_feedback;
-        card.hide = hide_feedback;
-        card.querySelector('.close-btn').addEventListener('click', () => card.hide());
-    });
+    setup_feedback_cards();
 
     // fill_stream is asynchronous, but in this case doesn't make any difference
     fill_stream(flags, displayed_msgs);

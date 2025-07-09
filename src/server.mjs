@@ -5,6 +5,7 @@ import { debuglog as _debuglog } from 'node:util';
 import { 
     hdl_pong,
     hdl_get_home_page, 
+    hdl_get_write_msg_page,
     hdl_get_asset, 
     hdl_msg,
     hdl_get_msgs_all, 
@@ -86,6 +87,9 @@ server.on('request', (req, res) =>
             case '':
                 await hdl_get_home_page(req_data, res_data);
                 break;
+            case 'write-msg':
+                await hdl_get_write_msg_page(req_data, res_data);
+                break;
             case 'api/msg':
                 await hdl_msg(req_data, res_data);
                 break;
@@ -139,7 +143,7 @@ function shutdown_server(signal) {
 }
 
 server.on('listening', () => {
-    console.log(`[INFO] Server started on http://localhost:${PORT}`);
+    console.log(`INFO: Server started on http://localhost:${PORT}`);
 });
 
 server.on('error', (e) => {

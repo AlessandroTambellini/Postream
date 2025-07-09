@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Write Msg form">
+    <link rel="icon" type="image/svg+xml" href="assets/paper-airplane.svg">
+
+    <title>Write Msg</title>
+
+    <base href="http://localhost:3000/">
+
+    <link rel="stylesheet" href="style/universal.css">
+    <link rel="stylesheet" href="style/write-msg.css">
+    <link rel="stylesheet" href="style/button.css">
+    <link rel="stylesheet" href="style/feedback.css">
+    <link rel="stylesheet" href="style/state.css">
+
+    <script src="scripts/write-msg.js" type="module"></script>
+</head>
+<body>
+    <h1 class="hidden">Write Msg</h1>
+
+    <!-- this main has no meaning for now -->
+        <form id="msg-form" action="api/msg" method="POST">
+            <textarea name="msg-textarea" id="msg-textarea" rows="5" placeholder="_"></textarea>
+
+            <div class="feedback-card none">
+                <div class="feedback-icon"></div>
+                <div class="feedback-content">
+                    <p class="feedback-title"></p>
+                    <p class="feedback-text"></p>
+                </div>
+                <button class="close-btn" type="button">x</button>
+            </div>
+
+            <button id="send-msg-btn" class="primary-btn" type="submit">
+                Send 
+                <img class="icon" src="assets/paper-airplane.svg" alt="Paper Aiplane">
+            </button>
+        </form>
+</body>
+</html>
