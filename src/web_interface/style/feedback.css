@@ -1,13 +1,10 @@
 .feedback-card {    
-    /* width: fit-content; */
-    margin-block: 1rem;
-    padding: 16px 20px;
+    padding: 20px;
     border-radius: 8px;
     border-left: 4px solid;
-    background: white;
+    background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    align-items: flex-start;
-    gap: 12px;
+    /* For the 'x' button that has position absolute. */
     position: relative;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -18,50 +15,53 @@
 }
 
 .feedback-icon {
-    width: 20px;
-    height: 20px;
+    /* I use pixels because I don't want the icon to resize based on user-defined rem. */
+    font-size: 16px;
+    height: 25px;
+    aspect-ratio: 1;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
     font-weight: bold;
     color: white;
-    flex-shrink: 0;
-    margin-top: 1px;
 }
 
 .feedback-content {
-    flex: 1;
+    /* A bit of padding to keep the 'x' (close) a bit distant from the text. */
+    padding-left: .5em;
+    padding-right: 1em;
 }
 
 .feedback-title {
     font-weight: 600;
     font-size: 1.3rem;
-    margin-bottom: 4px;
+    margin-bottom: .2em;
 }
 
 .feedback-text {
     font-size: 1.1rem;
-    margin: 0;
     opacity: 0.8;
     max-width: 70ch;
+    white-space: pre-wrap; 
 }
 
 .close-btn {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 20px;
-    height: 20px;
+    top: 10px;
+    right: 10px;
     border: none;
     background: none;
     opacity: 0.5;
     font-size: 16px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
+
     transition: opacity 0.2s ease, background-color 0.2s ease;
 }
 

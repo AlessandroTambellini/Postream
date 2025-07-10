@@ -64,6 +64,10 @@ main {
     color: rgb(72, 72, 72);
 }
 
+#msg-feedback {
+    margin-top: .75rem;
+}
+
 #load-more-msgs-btn {
     font-size: 1.2rem;
     padding: .8rem;
