@@ -19,9 +19,9 @@
     <script src="scripts/index.js" type="module" defer></script>
 </head>
 <body>
+    <h1 class="hidden">Msg Stream</h1>
+    
     <main>
-        <h1 class="hidden">Msg Stream</h1>
-        
         <nav id="controls-nav">
             <button id="reload-msgs-btn" class="secondary-btn" title="reload">
                 <img class="icon" src="assets/restart.svg" alt="Reload">
@@ -37,10 +37,13 @@
             </button>
         </nav>
 
-        <section id="msg-stream">
-
-            <div id="msgs-container"></div>
+        <div id="msg-stream">
             
+            <!-- The purpose of msgs-container is to facilitate the manipulation of the msg nodes
+             via JS easily (msgs_container.replaceChildren(), msgs_container.appendChild(msg_card))
+             without worrying about possible other types of element. -->
+            <div id="msgs-container"></div>
+
             <div class="feedback-card none">
                 <div class="feedback-icon"></div>
                 <div class="feedback-content">
@@ -49,12 +52,12 @@
                 </div>
                 <button class="close-btn" type="button">x</button>
             </div>
-
+            
             <button id="load-more-msgs-btn" class="primary-btn">load more</button>
-        </section>
+        </div>
 
         <a href="write-msg" id="write-msg-link" class="secondary-btn">
-            <img src="assets/pen.svg" class="icon" alt="Pen">
+            <img src="assets/feather.svg" class="icon" alt="Feather">
         </a>
     </main>
 </body>

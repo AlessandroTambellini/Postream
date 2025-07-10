@@ -21,23 +21,22 @@
 <body>
     <h1 class="hidden">Write Msg</h1>
 
-    <!-- this main has no meaning for now -->
-        <form id="msg-form" action="api/msg" method="POST">
-            <textarea name="msg-textarea" id="msg-textarea" rows="5" placeholder="_"></textarea>
+    <form id="msg-form" action="api/msg" method="POST">
+        <textarea name="msg-textarea" id="msg-textarea" placeholder="_"></textarea>
 
-            <div class="feedback-card none">
-                <div class="feedback-icon"></div>
-                <div class="feedback-content">
-                    <p class="feedback-title"></p>
-                    <p class="feedback-text"></p>
-                </div>
-                <button class="close-btn" type="button">x</button>
+        <div class="feedback-card none">
+            <div class="feedback-icon"></div>
+            <div class="feedback-content">
+                <p class="feedback-title"></p>
+                <p class="feedback-text"></p>
             </div>
+            <button class="close-btn" type="button">x</button>
+        </div>
 
-            <button id="send-msg-btn" class="primary-btn" type="submit">
-                Send 
-                <img class="icon" src="assets/paper-airplane.svg" alt="Paper Aiplane">
-            </button>
-        </form>
+        <button id="send-msg-btn" class="primary-btn" type="submit">
+            Send 
+            <img class="icon" src="assets/paper-airplane.svg" alt="Paper Aiplane">
+        </button>
+    </form>
 </body>
 </html>

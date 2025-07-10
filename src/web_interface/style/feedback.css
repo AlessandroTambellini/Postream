@@ -1,4 +1,5 @@
 .feedback-card {    
+    /* width: fit-content; */
     margin-block: 1rem;
     padding: 16px 20px;
     border-radius: 8px;
@@ -44,6 +45,7 @@
     font-size: 1.1rem;
     margin: 0;
     opacity: 0.8;
+    max-width: 70ch;
 }
 
 .close-btn {

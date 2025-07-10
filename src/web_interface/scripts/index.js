@@ -1,13 +1,13 @@
 import { req, setup_feedback_cards } from "./utils.js";
 
 const msg_stream = document.querySelector('#msg-stream');
-const msgs_container = msg_stream.querySelector('#msgs-container');
+const msgs_container = document.querySelector('#msgs-container');
 
 const PAGE_LIMIT = 20;
 
 async function fill_stream(flags, displayed_msgs)
 {
-    const feedback = msg_stream.querySelector('.feedback-card');
+    const feedback = document.querySelector('.feedback-card');
     feedback.hide();
 
     const search_params = {};
@@ -33,7 +33,6 @@ async function fill_stream(flags, displayed_msgs)
         new_msgs++;
 
         const msg_txt = document.createElement('p');
-        msg_txt.classList.add('msg-txt');
         msg_txt.textContent = msg_obj.content;
 
         const msg_date = document.createElement('time');
@@ -51,7 +50,7 @@ async function fill_stream(flags, displayed_msgs)
     if (!new_msgs)
     {
         if (payload.num_of_msgs === displayed_msgs.size) {
-            feedback.show('info', 'All msgs have been already retrieved.');
+            feedback.show('info', 'There aren\'t new messages.');
         } else {
             feedback.show('warn', 'No new msgs retrieved. They where retrieved just msgs already present in the stream.');
         }
@@ -63,11 +62,6 @@ async function fill_stream(flags, displayed_msgs)
 
 (function main() 
 {
-    /*
-     * 
-     *  Msg Stream 
-     */
-
     const reload_msgs_btn = document.querySelector('#reload-msgs-btn');
     const controls = document.querySelectorAll('.control');
     const displayed_msgs = new Set();
@@ -98,21 +92,14 @@ async function fill_stream(flags, displayed_msgs)
         fill_stream(flags, displayed_msgs);
     });
 
-    msg_stream.querySelector('#load-more-msgs-btn').addEventListener('click', () => 
+    document.querySelector('#load-more-msgs-btn').addEventListener('click', () => 
     {
         fill_stream(flags, displayed_msgs);
     });
 
     /*
      * 
-     *  Msg Form 
-     */
-
-
-
-    /*
-     * 
-     *  Misc 
+     *  Calls
      */
 
     setup_feedback_cards();
