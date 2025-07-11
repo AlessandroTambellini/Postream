@@ -125,7 +125,7 @@ function write_res(res, res_data)
     res.writeHead(res_data.status_code, {
         'Content-Length': Buffer.byteLength(payload),
         'Content-Type': res_data.content_type,
-        'X-Content-Type-Options': 'nosniff',
+        // 'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'SAMEORIGIN',
     });
 
