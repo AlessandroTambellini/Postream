@@ -2,7 +2,7 @@
     font-family: 'Libertinus Mono';
     src:
         local('Libertinus Mono'), 
-        url('../assets/LibertinusMono-Regular.ttf') format('truetype');
+        url('../../asset/LibertinusMono-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
 }

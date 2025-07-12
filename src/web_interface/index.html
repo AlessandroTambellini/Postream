@@ -4,19 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Send a msg in the stream">        
-    <link rel="icon" type="image/svg+xml" href="assets/paper-airplane.svg">
+    <link rel="icon" type="image/svg+xml" href="asset/paper-airplane.svg">
     
-    <title>Msg Stream</title>
+    <title>Letter Stream</title>
     
     <base href="http://localhost:3000/">
 
-    <link rel="stylesheet" href="style/universal.css">
     <link rel="stylesheet" href="style/index.css">
-    <link rel="stylesheet" href="style/button.css">
-    <link rel="stylesheet" href="style/feedback.css">
-    <link rel="stylesheet" href="style/state.css">
+    <link rel="stylesheet" href="style/component/button.css">
+    <link rel="stylesheet" href="style/component/feedback-card.css">
+    <link rel="stylesheet" href="style/component/msg-card.css">
 
-    <script src="scripts/index.js" type="module" defer></script>
+    <script src="script/index.js" type="module" defer></script>
 </head>
 <body>
     <h1 class="hidden">Msg Stream</h1>
@@ -24,7 +23,7 @@
     <main>
         <nav id="controls-nav">
             <button id="reload-msgs-btn" class="secondary-btn" title="reload">
-                <img class="icon" src="assets/restart.svg" alt="Reload">
+                <img class="icon" src="asset/restart.svg" alt="Reload">
             </button>
             <button id="asc-msgs-btn" class="control secondary-btn selected" title="ascendant" value="asc">
                 ASC
@@ -33,7 +32,7 @@
                 DESC
             </button>
             <button id="rand-msgs-btn" class="control secondary-btn" title="random" value="rand">
-                <img class="icon" src="assets/shuffle.svg" alt="Shuffle">
+                RAND
             </button>
         </nav>
 
@@ -42,7 +41,9 @@
             <!-- The purpose of msgs-container is to facilitate the manipulation of the msg nodes
              via JS easily (msgs_container.replaceChildren(), msgs_container.appendChild(msg_card))
              without worrying about possible other types of element. -->
-            <div id="msgs-container"></div>
+            <div id="msgs-container">
+                {{ msg_cards }}
+            </div>
 
             <div id="msg-feedback" class="feedback-card none">
                 <div class="feedback-icon"></div>
@@ -56,8 +57,8 @@
             <button id="load-more-msgs-btn" class="primary-btn">load more</button>
         </div>
 
-        <a href="write-msg" id="write-msg-link" class="secondary-btn">
-            <img src="assets/feather.svg" class="icon" alt="Feather">
+        <a href="write-letter" id="write-letter-link" class="secondary-btn" title="Write a message">
+            <img src="asset/feather.svg" class="icon" alt="Feather">
         </a>
     </main>
 </body>

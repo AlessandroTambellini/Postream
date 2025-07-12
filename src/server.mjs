@@ -5,7 +5,9 @@ import { debuglog as _debuglog } from 'node:util';
 import { 
     hdl_pong,
     hdl_get_home_page, 
+    hdl_get_read_msg_page,
     hdl_get_write_msg_page,
+    hdl_get_write_reply_page,
     hdl_get_asset, 
     hdl_msg,
     hdl_get_msgs_all, 
@@ -22,6 +24,29 @@ const decoder = new StringDecoder('utf8');
 
 const server = createServer();
 
+const res_obj = 
+{
+    status_code: 500,
+    content_type: 'application/json',
+    payload: {},
+
+    error: function(status_code, err_msg, log = undefined) {
+        this.status_code = status_code;
+        this.payload = { Error: err_msg };
+        // It may happen that I set the content-type to something else to return some data and then an error occurs,
+        // so I reset the content-type to 'application/json' before reporting the error
+        this.content_type = 'application/json';
+        // Sometimes I want the log to the server to be different from what is reported to the user as an error
+        if (log) console.error('ERROR:', log);
+    },
+
+    success: function(status_code, payload, content_type = 'application/json') {
+        this.status_code = status_code;
+        this.payload = payload;
+        this.content_type = content_type;
+    }
+};
+
 server.on('request', (req, res) => 
 { 
     // Allowed chars: a-z, A-Z, 0-9, -, ., _, ~, :, /, ?, #, [, ], @, !, $, &, ', (, ), *, +, ,, ;, =
@@ -36,12 +61,6 @@ server.on('request', (req, res) =>
     let buffer_size = 0;
     let f_abort = false;
 
-    const res_data = {
-        status_code: 500,
-        content_type: 'application/json',
-        payload: {}
-    };
-
     req.on('data', buffer => 
     {
         if (f_abort) return;
@@ -51,10 +70,10 @@ server.on('request', (req, res) =>
         {
             const msg = trimmed_path === 'api/msg' ? 'Msg too big' : 'Content too large';
             
-            res_data.status_code = 413;
-            res_data.payload = { Error: `${msg}. Exceeded ${MAX_BUFFER_SIZE} bytes.` };
+            res_obj.status_code = 413;
+            res_obj.payload = { Error: `${msg}. Exceeded ${MAX_BUFFER_SIZE} bytes.` };
             
-            write_res(res, res_data);
+            write_res(res, res_obj);
 
             f_abort = true;
             return;
@@ -82,49 +101,51 @@ server.on('request', (req, res) =>
             switch (req_data.path) 
             {
             case 'ping':
-                hdl_pong(res_data)
+                hdl_pong(res_obj)
                 break;
             case '':
-                await hdl_get_home_page(req_data, res_data);
+                await hdl_get_home_page(req_data, res_obj);
                 break;
-            case 'write-msg':
-                await hdl_get_write_msg_page(req_data, res_data);
+            case 'read-letter':
+                await hdl_get_read_msg_page(req_data, res_obj);
+                break;
+            case 'write-letter':
+                await hdl_get_write_msg_page(req_data, res_obj);
+                break;
+            case 'write-reply':
+                await hdl_get_write_reply_page(req_data, res_obj);
                 break;
             case 'api/msg':
-                await hdl_msg(req_data, res_data);
+                await hdl_msg(req_data, res_obj);
                 break;
             case 'api/msg/page':
-                await hdl_get_msgs_page(req_data, res_data);
+                await hdl_get_msgs_page(req_data, res_obj);
                 break;
             case 'api/msg/get-all':
-                await hdl_get_msgs_all(req_data, res_data);
+                await hdl_get_msgs_all(req_data, res_obj);
                 break;
             default:
-                await hdl_get_asset(req_data, res_data);
+                await hdl_get_asset(req_data, res_obj);
             }
 
         } catch (error) {
-            res_data.status_code = 500;
-            // res_data.content_type may have been changed already to something else (e.g. text/html) based on where the error occured.
-            // So, I reset it to 'application/json'.
-            res_data.content_type = 'application/json';
-            res_data.payload = { Error: 'Un unknown error has occured in the server.' };
+            res_obj.error(500, 'An unexpected error has occured in the server.', 'application/json');
             console.error(error);
             console.error('req_data:', req_data);
         }
 
-        write_res(res, res_data);
+        write_res(res, res_obj);
     });
 });
 
-function write_res(res, res_data) 
+function write_res(res, res_obj) 
 {
-    const payload = res_data.content_type === 'application/json' ? JSON.stringify(res_data.payload) : res_data.payload;
+    const payload = res_obj.content_type === 'application/json' ? JSON.stringify(res_obj.payload) : res_obj.payload;
 
     res.strictContentLength = true;
-    res.writeHead(res_data.status_code, {
+    res.writeHead(res_obj.status_code, {
         'Content-Length': Buffer.byteLength(payload),
-        'Content-Type': res_data.content_type,
+        'Content-Type': res_obj.content_type,
         // 'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'SAMEORIGIN',
     });

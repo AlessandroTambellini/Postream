@@ -1,0 +1,13 @@
+@import 'misc/universal.css';
+
+body {
+    /* I prefer to adjust the position of the components from the parent,
+    rather than from the component itself. I think it reduces confusion
+    and set the styling of the component just for the visual aspect
+    and not for its position in the page. */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-block: 1em;
+}
+

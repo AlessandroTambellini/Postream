@@ -1,11 +1,12 @@
-import { req, setup_feedback_cards } from "./utils.js";
+import letter_to_HTML from "./utils/template.js";
+import setup_feedback_cards from "./utils/feedback.js";
+import req from "./utils/req.js";
 
-const msg_stream = document.querySelector('#msg-stream');
 const msgs_container = document.querySelector('#msgs-container');
 
 const PAGE_LIMIT = 20;
 
-async function fill_stream(flags, displayed_msgs)
+async function fill_stream(flags, displayed_msgs, f_reload = false)
 {
     const feedback = document.querySelector('.feedback-card');
     feedback.hide();
@@ -16,14 +17,16 @@ async function fill_stream(flags, displayed_msgs)
     search_params.limit = PAGE_LIMIT;
 
     const { status_code, payload } = await req('api/msg/page', search_params, 'GET', null);
-    
+           
     if (status_code !== 200) {
         feedback.show('error', payload.Error);
         return;
     }
-        
+    
     if (flags.sort !== 'rand') console.assert(search_params.page === payload.page);
     
+    if (f_reload) msgs_container.replaceChildren(); // Empty the stream
+
     let new_msgs = 0;
 
     for (const msg_obj of payload.msgs)
@@ -32,19 +35,7 @@ async function fill_stream(flags, displayed_msgs)
         displayed_msgs.add(msg_obj.id);
         new_msgs++;
 
-        const msg_txt = document.createElement('p');
-        msg_txt.textContent = msg_obj.content;
-
-        const msg_date = document.createElement('time');
-        msg_date.dateTime = msg_obj.timestamp;
-        msg_date.textContent = new Date(msg_obj.timestamp).toLocaleString()
-        
-        const msg_card = document.createElement('article');
-        msg_card.classList.add('msg-card');
-        
-        msg_card.appendChild(msg_txt);
-        msg_card.appendChild(msg_date);
-        msgs_container.appendChild(msg_card);
+        msgs_container.innerHTML += letter_to_HTML(msg_obj.id, msg_obj.content, msg_obj.timestamp, true, true);
     }
 
     if (!new_msgs)
@@ -87,9 +78,8 @@ async function fill_stream(flags, displayed_msgs)
         flags.page_asc = 1;
         flags.page_desc = 1;
         displayed_msgs.clear();
-        msgs_container.replaceChildren(); // Empty the stream
 
-        fill_stream(flags, displayed_msgs);
+        fill_stream(flags, displayed_msgs, true);
     });
 
     document.querySelector('#load-more-msgs-btn').addEventListener('click', () => 
@@ -103,8 +93,5 @@ async function fill_stream(flags, displayed_msgs)
      */
 
     setup_feedback_cards();
-
-    // fill_stream is asynchronous, but in this case doesn't make any difference
-    fill_stream(flags, displayed_msgs);
 })();
 

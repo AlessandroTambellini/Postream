@@ -1,9 +1,11 @@
+@import 'misc/universal.css';
+@import 'misc/state.css';
+
 main {
     display: flex;
     flex-direction: column;
     height: 100vh;
     max-height: 100vh;
-    /* padding-bottom: 2vh; */
     max-width: 1400px;
     margin: auto;
     position: relative;
@@ -32,36 +34,8 @@ main {
     padding: .5rem;
 }
 
-.msg-card {
-    padding: 1.2rem;
-    background: #f5f5f5;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.msg-card:last-child {
-    margin-bottom: 0;
-}
-
-.msg-card p {
-    color: var(--clr-txt);
-    font-size: 1.2rem;
-    line-height: 1.4;
-    max-width: 70ch;
-    width: 100%;
-    /* Keep extra whitespaces and newlines.
-    A side-effect of this property is that if the text is selected,
-    the selection overflows a bit the card. */
-    white-space: pre-wrap; 
-}
-
-.msg-card time {
-    display: block;
-    text-align: right;
-    padding-top: 1em;
-    color: rgb(72, 72, 72);
+#msgs-container .msg-card {
+    margin-bottom: 1vh;
 }
 
 #msg-feedback {
@@ -76,7 +50,7 @@ main {
     display: block;
 }
 
-#write-msg-link {
+#write-letter-link {
     --icon-width: 2rem;
 
     padding: calc(var(--icon-width) / 2.5);
@@ -93,12 +67,12 @@ main {
     background-color: #e8e8e8;
 }
 
-#write-msg-link img {
+#write-letter-link img {
     width: var(--icon-width);
 }
 
 @media (min-width: 500px) {
-    #write-msg-link img {
+    #write-letter-link img {
         --icon-width: 2.5rem;
     }  
 }

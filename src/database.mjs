@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
-import { join, dirname } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { join, dirname } from 'node:path';
+import { existsSync, mkdirSync } from 'node:fs';
 
 const DB_PATH = join(import.meta.dirname, '..', 'data', 'messages.db');
 const db_dir = dirname(DB_PATH);
@@ -92,8 +92,8 @@ async function db_get_msgs_page(page = 1, limit = 50, sort = 'asc') {
 
 async function db_get_msg_by_id(id) {
     try {
-        const msg = select_msg_by_id.get(id);
-        return msg || { Error: `Msg with id ${id} not found.`, status: 404 };
+        const msg_obj = select_msg_by_id.get(id);
+        return msg_obj || { Error: `Msg with id '${id}' not found.`, status: 404 };
     } catch (error) {
         return { Error: `Can't retrieve msg from db: ${error.message}.`, status: 500 };
     }
