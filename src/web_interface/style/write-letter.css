@@ -5,7 +5,10 @@
 form {
     margin: auto;
     padding: 1em;
-    height: 100vh;
+    /* I don't want to 'impose' an height.
+    It starst with the default height ruled by the browser and
+    then the user is free to regulate it however he wants. */
+    /* height: 100vh; */
 }
 
 .feedback-card {

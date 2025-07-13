@@ -17,10 +17,6 @@ body {
     margin-bottom: 1em;
 }
 
-#reply-form {
-    flex-grow: 2;
-}
-
 .feedback-card {
     margin-block: 5px;
 }
