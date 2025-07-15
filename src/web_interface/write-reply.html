@@ -11,7 +11,7 @@
     <base href="http://localhost:3000/">
 
     <link rel="stylesheet" href="style/write-reply.css">
-    <link rel="stylesheet" href="style/component/msg-card.css">
+    <link rel="stylesheet" href="style/component/letter-card.css">
     <link rel="stylesheet" href="style/component/feedback-card.css">
     <link rel="stylesheet" href="style/component/button.css">
 
@@ -19,7 +19,7 @@
 </head>
 <body>
     
-    {{ msg_card }}
+    {{ letter_card }}
 
     <form id="reply-form" action="api/reply" method="POST">
         <textarea name="reply-textarea" placeholder="_"></textarea>
@@ -33,7 +33,7 @@
             <button class="close-btn" type="button">x</button>
         </div>
     
-        <button id="send-reply-btn" class="primary-btn" type="submit">
+        <button class="primary-btn" type="submit">
             Reply 
         </button>
     </form>

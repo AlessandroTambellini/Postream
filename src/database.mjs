@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { join, dirname } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 
-const DB_PATH = join(import.meta.dirname, '..', 'data', 'messages.db');
+const DB_PATH = join(import.meta.dirname, '..', 'data', 'letters.db');
 const db_dir = dirname(DB_PATH);
 
 const PAGE_LIMIT = 100;
@@ -17,90 +17,94 @@ const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 
 const create_table = `
-    CREATE TABLE IF NOT EXISTS messages (
+    CREATE TABLE IF NOT EXISTS letters (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        content TEXT NOT NULL,
+        message TEXT NOT NULL,
+        email VARCHAR(255),
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )
 `;
 
 const create_indexes = `
-    -- Index on timestamp for chronological queries (most common)
-    CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp);
-    
-    -- PRIMARY KEY automatically creates a unique index
+    -- Index on timestamp for chronological queries (ASC and DESC)
+    CREATE INDEX IF NOT EXISTS idx_letters_timestamp ON letters(timestamp);
 `;
 
 db.exec(create_table);
 db.exec(create_indexes);
 // end INIT_DB
 
-const insert_msg = db.prepare('INSERT INTO messages (content) VALUES (?)');
-const select_all_msgs = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC');
-const select_msgs_count = db.prepare('SELECT COUNT(*) as count FROM messages');
-const select_msg_by_id = db.prepare('SELECT * FROM messages WHERE id = ?');
-const select_msgs_page_desc = db.prepare('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ? OFFSET ?');
-const select_msgs_page_asc = db.prepare('SELECT * FROM messages ORDER BY timestamp ASC LIMIT ? OFFSET ?');
-const select_msgs_page_rand = db.prepare('SELECT * FROM messages ORDER BY RANDOM() LIMIT ?');
+const select_letter_by_id = db.prepare('SELECT * FROM letters WHERE id = ?');
+const insert_letter = db.prepare('INSERT INTO letters (message, email) VALUES (?, ?)');
+const delete_letter_by_id = db.prepare('DELETE FROM letters WHERE id = ?');
+const select_all_letters = db.prepare('SELECT * FROM letters ORDER BY timestamp DESC');
+const select_letters_page_desc = db.prepare('SELECT * FROM letters ORDER BY timestamp DESC LIMIT ? OFFSET ?');
+const select_letters_page_asc = db.prepare('SELECT * FROM letters ORDER BY timestamp ASC LIMIT ? OFFSET ?');
+const select_letters_page_rand = db.prepare('SELECT * FROM letters ORDER BY RANDOM() LIMIT ?');
+const select_letters_count = db.prepare('SELECT COUNT(*) as count FROM letters');
 
-async function db_store_msg(msg) {
+async function db_store_letter(letter_obj) {
     try {
-        const res = insert_msg.run(msg);
-        return { 
-            'Success': 'Msg stored.',
-            // 'id': res.lastInsertRowid
-        };
+        const res = insert_letter.run(letter_obj.message, letter_obj.email);
+        return { id: res.lastInsertRowid };
     } catch (error) {
-        return { Error: `Can't store msg: ${error.message}.` };
+        return { Error: `Can't store letter: ${error.message}` };
+    }
+}
+
+async function db_get_letter_by_id(id) {
+    try {
+        const letter = select_letter_by_id.get(id);
+        return letter || { Error: `Letter with id '${id}' not found`, status: 404 };
+    } catch (error) {
+        return { Error: `Can't retrieve letter from db: ${error.message}`, status: 500 };
+    }
+}
+
+async function db_delete_letter_by_id(id) {
+    try {
+        const res = delete_letter_by_id.run(id);
+        return res.changes > 0 ? { id } : { Error: `Letter with id '${id}' not found'`, status: 404 }; 
+    } catch (error) {
+        return { Error: `Can't delete letter with id '${id}': ${error.message}`, status: 500 };
     }
 }
 
 // I leave this function for testing
-async function db_get_msgs_all() {
+async function db_get_all_letters() {
     try {
-        const { count: num_of_msgs } = select_msgs_count.get();
-        if (num_of_msgs > 1000) {
-            console.warn(`WARN: Retrieving ${num_of_msgs} messages at once. Consider using pagination.`);
+        const num_of_letters = count_letters();
+        if (num_of_letters > 1000) {
+            console.warn(`WARN: Retrieving ${num_of_letters} letters at once. Consider using pagination.`);
         }
 
-        return select_all_msgs.all();
+        return select_all_letters.all();
     } catch (error) {
-        return { Error: `Can't retrieve messages from database: ${error.message}.` };
+        return { Error: `Can't retrieve letters from database: ${error.message}` };
     }
 }
 
-async function db_get_msgs_page(page = 1, limit = 50, sort = 'asc') {
+async function db_get_letters_page(page = 1, limit = 50, sort = 'asc') {
     try {
         const offset = (page - 1) * limit;    
         
-        let msgs;
-        if (sort === 'asc') msgs = select_msgs_page_asc.all(limit, offset);
-        else if (sort === 'desc') msgs = select_msgs_page_desc.all(limit, offset);
-        else msgs = select_msgs_page_rand.all(limit);
-
-        const { count } = select_msgs_count.get();
+        let letters;
+        if (sort === 'asc') letters = select_letters_page_asc.all(limit, offset);
+        else if (sort === 'desc') letters = select_letters_page_desc.all(limit, offset);
+        else letters = select_letters_page_rand.all(limit);
         
         return { 
-            msgs, 
+            letters, 
             page, 
-            num_of_msgs: count
+            num_of_letters: count_letters()
         };
     } catch (error) {
-        return { Error: `Can't retrieve msgs page: ${error.message}.` };
+        return { Error: `Can't retrieve letters page: ${error.message}` };
     }
 }
 
-async function db_get_msg_by_id(id) {
-    try {
-        const msg_obj = select_msg_by_id.get(id);
-        return msg_obj || { Error: `Msg with id '${id}' not found.`, status: 404 };
-    } catch (error) {
-        return { Error: `Can't retrieve msg from db: ${error.message}.`, status: 500 };
-    }
-}
-
-function count_msgs() {
-    const { count } = select_msgs_count.get();
+function count_letters() {
+    const { count } = select_letters_count.get();
     return count;
 }
 
@@ -110,11 +114,12 @@ function db_close() {
 
 export {
     PAGE_LIMIT,
-    db_store_msg,
-    db_get_msgs_all,
-    db_get_msgs_page,
-    db_get_msg_by_id,
-    count_msgs,
+    db_get_letter_by_id,
+    db_store_letter,
+    db_delete_letter_by_id,
+    db_get_all_letters,
+    db_get_letters_page,
+    count_letters,
     db_close
 };
 

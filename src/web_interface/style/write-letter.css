@@ -11,6 +11,16 @@ form {
     /* height: 100vh; */
 }
 
+form label[for=recv-email] {
+    margin-top: 8px;
+}
+
+form #recv-email {
+    padding: var(--ta-padding);
+    font-size: inherit;
+    font-family: inherit;
+}
+
 .feedback-card {
     margin-block: 5px;
 }

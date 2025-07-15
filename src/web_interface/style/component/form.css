@@ -18,7 +18,6 @@ form {
 }
 
 form > textarea {
-    flex-grow: 2;
     font-family: inherit;
     padding: var(--ta-padding);
     font-size: inherit;

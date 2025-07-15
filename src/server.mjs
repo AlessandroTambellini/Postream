@@ -5,13 +5,13 @@ import { debuglog as _debuglog } from 'node:util';
 import { 
     hdl_pong,
     hdl_get_home_page, 
-    hdl_get_read_msg_page,
-    hdl_get_write_msg_page,
+    hdl_get_read_letter_page,
+    hdl_get_write_letter_page,
     hdl_get_write_reply_page,
     hdl_get_asset, 
-    hdl_msg,
-    hdl_get_msgs_all, 
-    hdl_get_msgs_page, 
+    hdl_letter,
+    hdl_get_letters_all, 
+    hdl_get_letters_page, 
 } from './handlers.mjs';
 
 import { db_close } from './database.mjs';
@@ -30,17 +30,17 @@ const res_obj =
     content_type: 'application/json',
     payload: {},
 
-    error: function(status_code, err_msg, log = undefined) {
+    error: function(status_code, user_err_msg, server_log = undefined) {
         this.status_code = status_code;
-        this.payload = { Error: err_msg };
+        this.payload = { Error: `${user_err_msg}.` };
         // It may happen that I set the content-type to something else to return some data and then an error occurs,
         // so I reset the content-type to 'application/json' before reporting the error
         this.content_type = 'application/json';
         // Sometimes I want the log to the server to be different from what is reported to the user as an error
-        if (log) console.error('ERROR:', log);
+        if (server_log) console.error(`ERROR: ${server_log}.`);
     },
 
-    success: function(status_code, payload, content_type = 'application/json') {
+    success: function(status_code, payload = {}, content_type = 'application/json') {
         this.status_code = status_code;
         this.payload = payload;
         this.content_type = content_type;
@@ -68,10 +68,10 @@ server.on('request', (req, res) =>
         buffer_size += buffer.length;
         if (buffer_size > MAX_BUFFER_SIZE)
         {
-            const msg = trimmed_path === 'api/msg' ? 'Msg too big' : 'Content too large';
+            const err_msg = trimmed_path === 'api/letter' ? 'Letter too big' : 'Content too large';
             
             res_obj.status_code = 413;
-            res_obj.payload = { Error: `${msg}. Exceeded ${MAX_BUFFER_SIZE} bytes.` };
+            res_obj.payload = { Error: `${err_msg}. Exceeded ${MAX_BUFFER_SIZE} bytes.` };
             
             write_res(res, res_obj);
 
@@ -107,22 +107,22 @@ server.on('request', (req, res) =>
                 await hdl_get_home_page(req_data, res_obj);
                 break;
             case 'read-letter':
-                await hdl_get_read_msg_page(req_data, res_obj);
+                await hdl_get_read_letter_page(req_data, res_obj);
                 break;
             case 'write-letter':
-                await hdl_get_write_msg_page(req_data, res_obj);
+                await hdl_get_write_letter_page(req_data, res_obj);
                 break;
             case 'write-reply':
                 await hdl_get_write_reply_page(req_data, res_obj);
                 break;
-            case 'api/msg':
-                await hdl_msg(req_data, res_obj);
+            case 'api/letter':
+                await hdl_letter(req_data, res_obj);
                 break;
-            case 'api/msg/page':
-                await hdl_get_msgs_page(req_data, res_obj);
+            case 'api/letter/page':
+                await hdl_get_letters_page(req_data, res_obj);
                 break;
-            case 'api/msg/get-all':
-                await hdl_get_msgs_all(req_data, res_obj);
+            case 'api/letter/get-all':
+                await hdl_get_letters_all(req_data, res_obj);
                 break;
             default:
                 await hdl_get_asset(req_data, res_obj);

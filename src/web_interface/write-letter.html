@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Write Msg form">
+    <meta name="description" content="Write Letter form">
     <link rel="icon" type="image/svg+xml" href="asset/paper-airplane.svg">
 
-    <title>Write Msg</title>
+    <title>Write Letter</title>
 
     <base href="http://localhost:3000/">
 
@@ -19,8 +19,11 @@
 <body>
     <h1 class="hidden">Write Letter</h1>
 
-    <form action="api/msg" method="POST">
-        <textarea name="msg-textarea" placeholder="_"></textarea>
+    <form action="api/letter" method="POST">
+        <textarea name="letter-textarea" placeholder="_"></textarea>
+
+        <label for="recv-email">Email where to receive replies:</label>
+        <input type="email" name="recv-email" id="recv-email" placeholder="name@provider">
         
         <div class="feedback-card none">
             <div class="feedback-icon"></div>
@@ -31,7 +34,7 @@
             <button class="close-btn" type="button">x</button>
         </div>
     
-        <button id="send-msg-btn" class="primary-btn" type="submit">
+        <button class="primary-btn" type="submit">
             Upload 
         </button>
     </form>

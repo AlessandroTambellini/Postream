@@ -1,5 +1,5 @@
-# Msg Stream
-Share a message.
+# Letter Stream
+Share a letter.
 
 ## Setup
 ```bash

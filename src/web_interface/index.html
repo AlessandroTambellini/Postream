@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Send a msg in the stream">        
+    <meta name="description" content="Send a letter in the stream">        
     <link rel="icon" type="image/svg+xml" href="asset/paper-airplane.svg">
     
     <title>Letter Stream</title>
@@ -13,39 +13,37 @@
     <link rel="stylesheet" href="style/index.css">
     <link rel="stylesheet" href="style/component/button.css">
     <link rel="stylesheet" href="style/component/feedback-card.css">
-    <link rel="stylesheet" href="style/component/msg-card.css">
+    <link rel="stylesheet" href="style/component/letter-card.css">
 
     <script src="script/index.js" type="module" defer></script>
 </head>
 <body>
-    <h1 class="hidden">Msg Stream</h1>
+    <h1 class="hidden">Letter Stream</h1>
     
     <main>
         <nav id="controls-nav">
-            <button id="reload-msgs-btn" class="secondary-btn" title="reload">
+            <button id="reload-letters-btn" class="secondary-btn" title="reload">
                 <img class="icon" src="asset/restart.svg" alt="Reload">
             </button>
-            <button id="asc-msgs-btn" class="control secondary-btn selected" title="ascendant" value="asc">
+            <button class="control secondary-btn selected" title="ascendant" value="asc">
                 ASC
             </button>
-            <button id="desc-msgs-btn" class="control secondary-btn" title="descendant" value="desc">
+            <button class="control secondary-btn" title="descendant" value="desc">
                 DESC
             </button>
-            <button id="rand-msgs-btn" class="control secondary-btn" title="random" value="rand">
+            <button class="control secondary-btn" title="random" value="rand">
                 RAND
             </button>
         </nav>
 
-        <div id="msg-stream">
+        <div id="letter-stream">
             
-            <!-- The purpose of msgs-container is to facilitate the manipulation of the msg nodes
-             via JS easily (msgs_container.replaceChildren(), msgs_container.appendChild(msg_card))
-             without worrying about possible other types of element. -->
-            <div id="msgs-container">
-                {{ msg_cards }}
+            <!-- The container around the letters is just handy for the manipulations via JS -->
+            <div id="letters-container">
+                {{ letter_cards }}
             </div>
 
-            <div id="msg-feedback" class="feedback-card none">
+            <div class="feedback-card none">
                 <div class="feedback-icon"></div>
                 <div class="feedback-content">
                     <p class="feedback-title"></p>
@@ -54,10 +52,10 @@
                 <button class="close-btn" type="button">x</button>
             </div>
             
-            <button id="load-more-msgs-btn" class="primary-btn">load more</button>
+            <button id="load-more-letters-btn" class="primary-btn">load more</button>
         </div>
 
-        <a href="write-letter" id="write-letter-link" class="secondary-btn" title="Write a message">
+        <a href="write-letter" id="write-letter-link" class="secondary-btn" title="Write a letter">
             <img src="asset/feather.svg" class="icon" alt="Feather">
         </a>
     </main>

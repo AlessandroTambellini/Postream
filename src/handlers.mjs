@@ -3,12 +3,13 @@ import { join } from "node:path";
 
 import { 
     PAGE_LIMIT,
-    db_store_msg, 
-    db_get_msgs_all, 
-    db_get_msgs_page, 
-    db_get_msg_by_id,
+    db_get_letter_by_id,
+    db_store_letter, 
+    db_delete_letter_by_id,
+    db_get_all_letters, 
+    db_get_letters_page, 
 } from "./database.mjs";
-import letter_to_HTML from "./web_interface/script/utils/template.js";
+import make_HTML_letter_card from "./web_interface/script/utils/template.js";
 
 const CLIENT_PATH = join(import.meta.dirname, 'web_interface');
 
@@ -19,267 +20,310 @@ function hdl_pong(res_obj) {
 async function hdl_get_home_page(req_data, res_obj) 
 {
     if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'.`)
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`)
         return;
     }
 
     const page_path = join(CLIENT_PATH, 'index.html');
 
+    let index_page;
     try {
-        let index_page = await readFile(page_path, { encoding: 'utf8' });
-        
-        const db_res = await db_get_msgs_page(1, 20, 'asc');
-        if (db_res.Error) {
-            res_obj.error(500, 'Unable to retrieve the messages.', db_res.Error);
-            return;
-        }
-
-        const msg_cards = [];
-        for (const msg_obj of db_res.msgs)
-        {
-            const msg_HTML = letter_to_HTML(msg_obj.id, msg_obj.content, msg_obj.timestamp, true, true);
-            msg_cards.push(msg_HTML);
-        }
-
-        index_page = index_page.replace('{{ msg_cards }}', msg_cards.join(''));
-
-        res_obj.success(200, index_page, 'text/html');
-        
+        index_page = await readFile(page_path, { encoding: 'utf8' });        
     } catch (error) {
-        res_obj.error(500, `Unable to read '${page_path}' from disk.`, error.message);
+        res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
     }
+
+    const db_res = await db_get_letters_page(1, 20, 'asc');
+    if (db_res.Error) {
+        res_obj.error(500, 'Un unknown error has occured while trying to retrieve a letters page from db', db_res.Error);
+        return;
+    }
+
+    const letter_cards = [];
+    for (const letter of db_res.letters)
+    {
+        const letter_card = make_HTML_letter_card(letter.id, letter.message, letter.timestamp, true, true);
+        letter_cards.push(letter_card);
+    }
+
+    index_page = index_page.replace('{{ letter_cards }}', letter_cards.join(''));
+
+    res_obj.success(200, index_page, 'text/html');
 }
 
-async function hdl_get_read_msg_page(req_data, res_obj)
+async function hdl_get_read_letter_page(req_data, res_obj)
 {
     if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'.`)
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`)
         return;
     }    
 
-    const msg_id = req_data.search_params.get('id');
-    if (!msg_id) {
-        res_obj.error(400, 'Missing msg id.');
+    const letter_id = req_data.search_params.get('id');
+    if (!letter_id) {
+        res_obj.error(400, 'Missing required letter id');
         return;
     }
 
     const page_path = join(CLIENT_PATH, 'read-letter.html');
 
+    let letter_page;
     try {
-        let msg_page = await readFile(page_path, { encoding: 'utf8' });
-                
-        const db_res = await db_get_msg_by_id(msg_id);
-        if (db_res.Error) {
-            if (db_res.status === 404) {
-                res_obj.error(db_res.status, db_res.Error);
-            } else {
-                res_obj.error(db_res.status, `Unable to read msg with id '${msg_id}' from disk.`, db_res.Error);
-            }
-            return;
-        }
-
-        const msg_obj = db_res;
-        const msg_HTML = letter_to_HTML(msg_obj.id, msg_obj.content, msg_obj.timestamp, true);
-
-        msg_page = msg_page.replace('{{ msg_card }}', msg_HTML);
-
-        res_obj.success(200, msg_page, 'text/html');
-
+        letter_page = await readFile(page_path, { encoding: 'utf8' });
     } catch (error) {
-        res_obj.error(500, `Unable to read '${page_path}' from disk.`, error.message);
+        res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
     }
+
+    const db_res = await db_get_letter_by_id(letter_id);
+    if (db_res.Error) {
+        if (db_res.status === 404) {
+            res_obj.error(db_res.status, db_res.Error);
+        } else {
+            res_obj.error(db_res.status, `Un unknown error has occured while trying to read letter with id '${letter_id}' from db`, db_res.Error);
+        }
+        return;
+    }
+
+    const letter = db_res;
+    const letter_card = make_HTML_letter_card(letter.id, letter.message, letter.timestamp, true);
+
+    letter_page = letter_page.replace('{{ letter_card }}', letter_card);
+
+    res_obj.success(200, letter_page, 'text/html');
 }
 
-async function hdl_get_write_msg_page(req_data, res_obj) 
+async function hdl_get_write_letter_page(req_data, res_obj) 
 {
     if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'.`)
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
         return;
     }
 
     const page_path = join(CLIENT_PATH, 'write-letter.html');
 
+    let write_letter_page;
     try {
-        const HTML_page = await readFile(page_path, { encoding: 'utf8' });
-        res_obj.success(200, HTML_page, 'text/html');
+        write_letter_page = await readFile(page_path, { encoding: 'utf8' });
     } catch (error) {
-        res_obj.error(500, `Unable to read '${page_path}' from disk.`, error.message);
+        res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
     }
+
+    res_obj.success(200, write_letter_page, 'text/html');
 }
 
 async function hdl_get_write_reply_page(req_data, res_obj) 
 {
     if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'.`)
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`)
         return;
     }
 
-    const msg_id = req_data.search_params.get('id');
-    if (!msg_id) {
-        res_obj.error(400, 'Missing msg id.');
+    const letter_id = req_data.search_params.get('id');
+    if (!letter_id) {
+        res_obj.error(400, 'Missing required letter id');
         return;
     }
 
     const page_path = join(CLIENT_PATH, 'write-reply.html');
 
+    let write_reply_page;
     try {
-        let reply_page = await readFile(page_path, { encoding: 'utf8' });
-
-        const db_res = await db_get_msg_by_id(msg_id);
-        if (db_res.Error) {
-            if (res.status === 404)
-                res_obj.error(res.status, res.Error);
-            else
-                res_obj.error(res.status, `Unable to read msg with id '${msg_id}' from disk.`, res.Error);
-            return;
-        }
-
-        const msg_obj = db_res;
-        const msg_HTML = letter_to_HTML(msg_obj.id, msg_obj.content, msg_obj.timestamp, false);
-        
-        reply_page = reply_page.replace('{{ msg_card }}', msg_HTML);
-        
-        res_obj.success(200, reply_page, 'text/html');
-
+        write_reply_page = await readFile(page_path, { encoding: 'utf8' });
     } catch (error) {
-        res_obj.error(500, `Unable to read '${page_path}' from disk.`, error.message);
+        res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
     }
+
+    const db_res = await db_get_letter_by_id(letter_id);
+    if (db_res.Error) {
+        if (res.status === 404) {
+            res_obj.error(res.status, res.Error);
+        } else {
+            res_obj.error(res.status, `Un unknown error has occured while trying to read letter with id '${letter_id}' from db`, res.Error);
+        }
+        return;
+    }
+
+    const letter = db_res;
+    const letter_card = make_HTML_letter_card(letter.id, letter.message, letter.timestamp, false);
+    
+    write_reply_page = write_reply_page.replace('{{ letter_card }}', letter_card);
+    
+    res_obj.success(200, write_reply_page, 'text/html');
+
 }
 
 async function hdl_get_asset(req_data, res_obj) 
 {
     if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'.`)
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
         return;
     }
 
     const asset_path = req_data.path;
 
-    try {
-        let f_binary = false;
-        let content_type = 'text/plain';
+    let f_binary = false;
+    let content_type = 'text/plain';
 
-        const file_ext_idx = asset_path.lastIndexOf('.');
-        if (file_ext_idx < 1 || file_ext_idx === asset_path.length-1) {
-            content_type = 'text/plain';
-        } else {
-            const file_ext = asset_path.substring(file_ext_idx + 1);
-            switch (file_ext) {
-                case 'css':
-                    content_type = 'text/css';
-                    break;
-                case 'svg':
-                    content_type = 'image/svg+xml';
-                    break;
-                case 'js':
-                    content_type = 'text/javascript';
-                    break;
-                case 'json':
-                    content_type = 'application/json';
-                    break;
-                case 'ttf':
-                    content_type = 'font/ttf';
-                    f_binary = true;
-                    break;
-                default:
-                    console.warn(`WARN: unknown file extension: '${file_ext}'. Pathname: '${asset_path}'.`);
-                    break;
-            }
-        }   
+    const file_ext_idx = asset_path.lastIndexOf('.');
+    if (file_ext_idx < 1 || file_ext_idx === asset_path.length-1) {
+        content_type = 'text/plain';
+    } else {
+        const file_ext = asset_path.substring(file_ext_idx + 1);
+        switch (file_ext) {
+            case 'css':
+                content_type = 'text/css';
+                break;
+            case 'svg':
+                content_type = 'image/svg+xml';
+                break;
+            case 'js':
+                content_type = 'text/javascript';
+                break;
+            case 'json':
+                content_type = 'application/json';
+                break;
+            case 'ttf':
+                content_type = 'font/ttf';
+                f_binary = true;
+                break;
+            default:
+                // This is a message for me
+                console.warn(`WARN: unknown file extension: '${file_ext}'. Pathname: '${asset_path}'.`);
+                break;
+        }
+    }  
 
-        const HTML_page = await readFile(join(CLIENT_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
-        res_obj.success(200, HTML_page, content_type);
-
+    let asset;
+    try { 
+        asset = await readFile(join(CLIENT_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
     } catch (error) {
-        if (error.code === 'ENOENT')
-            res_obj.error(404, `The asset '${asset_path}' does not exist.`);
-        else
-            res_obj.error(500, `Un unknown error has occured while trying to read '${asset_path}' from disk.`, error.message);
+        if (error.code === 'ENOENT') {
+            res_obj.error(404, `The asset '${asset_path}' does not exist`);
+        } else {
+            res_obj.error(500, `Un unknown error has occured while trying to read '${asset_path}' from disk`, error.message);
+        }
     }
+
+    res_obj.success(200, asset, content_type);
 }
 
-async function hdl_msg(req_data, res_obj)
+async function hdl_letter(req_data, res_obj)
 {
-    const allowed_methods = ['GET', 'POST'];
+    const allowed_methods = ['GET', 'POST', 'DELETE'];
     if (!allowed_methods.includes(req_data.method)) {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'.`);
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
         return;
     }
 
-    await _handle_msg[req_data.method](req_data, res_obj);
+    await _handle_letter[req_data.method](req_data, res_obj);
 }
 
-const _handle_msg = {};
+const _handle_letter = {};
 
-_handle_msg.GET = async function (req_data, res_obj)
+_handle_letter.GET = async function(req_data, res_obj)
 {
-    const msg_id = req_data.search_params.get('id');
-    if (!msg_id) {
-        res_obj.error(400, 'Missing msg id.');
+    const letter_id = req_data.search_params.get('id');
+    if (!letter_id) {
+        res_obj.error(400, 'Missing required letter id');
         return;
     }
 
-    const res = await db_get_msg_by_id(msg_id);
+    const res = await db_get_letter_by_id(letter_id);
     if (res.Error) {
-        if (res.status === 404)
+        if (res.status === 404) {
             res_obj.error(res.status, res.Error);
-        else
-            res_obj.error(res.status, `Unable to read msg with id '${msg_id}' from disk.`, res.Error);
+        } else {
+            res_obj.error(res.status, `Un unknown error has occured while trying to read the letter with id '${letter_id}' from db`, res.Error);
+        }
         return;
     }
 
     res_obj.success(200, res);
 }
 
-_handle_msg.POST = async function (req_data, res_obj)
+_handle_letter.POST = async function(req_data, res_obj)
 {
-    let msg_obj;
+    let letter_obj;
     try {
-        msg_obj = JSON.parse(req_data.payload);
+        letter_obj = JSON.parse(req_data.payload);
     } catch (error) {
-        res_obj.error(400, `The payload doesn't have a valid JSON format. Catched error: '${error.message}'.`);
+        res_obj.error(400, `The payload doesn't have a valid JSON format. Catched error: '${error.message}'`);
         return;
     }
     
-    // checking with just '(!msg_obj.msg)' wouldb't be correct.
-    if (msg_obj.msg === undefined) {
-        res_obj.error(400, `Missing required msg field in the payload. Received: ${req_data.payload}.`);
-        return;
-    }
-    
-    const msg = msg_obj.msg;
-    if (msg.length === 0) {
-        res_obj.error(400, `The msg can't be empty.`);
+    // checking with just '(!letter_obj.message)' wouldb't be correct.
+    if (letter_obj.message === undefined) {
+        res_obj.error(400, `Missing required message field in the payload. Received: ${req_data.payload}`);
         return;
     }
 
-    const res = await db_store_msg(msg);
+    if (letter_obj.email === undefined) {
+        res_obj.error(400, `Missing required email field in the payload. Received: ${req_data.payload}`);
+        return;
+    }
+
+    if (letter_obj.message.length === 0) {
+        res_obj.error(400, `The message of the letter can't be empty`);
+        return;
+    }
     
-    if (res.Error)
-        res_obj.error(500, 'Something went wrong while trying to store the msg.', res.Error);
-    else
+    /* Should I validate the email? */
+    if (letter_obj.email.length === 0) {
+        res_obj.error(400, `The email address is invalid`);
+        return;
+    }
+
+    const res = await db_store_letter(letter_obj);
+    
+    if (res.Error) {
+        res_obj.error(500, 'Un unknown error has occured while trying to store the letter', res.Error);
+    } else {
         res_obj.success(200, res);
+    }
 }
 
-async function hdl_get_msgs_all(req_data, res_obj)
+// The DELETE functionality isn't implemented on the web-interface side yet.
+// I have to think about it.
+_handle_letter.DELETE = async function(req_data, res_obj)
 {
-    if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'.`)
+    const letter_id = req_data.search_params.get('id');
+    if (!letter_id) {
+        res_obj.error(400, 'Missing required letter id');
         return;
     } 
 
-    const res = await db_get_msgs_all();
+    const res = await db_delete_letter_by_id(letter_id);
+    if (res.Error) {
+        if (res.status === 404) {
+            res_obj.error(res.status, res.Error);
+        } else {
+            res_obj.error(res.status, `Un unknown error has occured while trying to delete the letter with id '${letter_id}' from db`, res.Error);
+        }
+        return;
+    }
 
-    if (res.Error)
-        res_obj.error(500, 'Unable to retrieve the messages.', res.Error);
-    else 
-        res_obj.success(200, res);
+    res_obj.success(200, res);
 }
 
-async function hdl_get_msgs_page(req_data, res_obj)
+async function hdl_get_letters_all(req_data, res_obj)
 {
     if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'.`)
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
+        return;
+    } 
+
+    const res = await db_get_all_letters();
+
+    if (res.Error) {
+        res_obj.error(500, 'Un unknown error has occured while trying to retrieve the letters from db', res.Error);
+    } else {
+        res_obj.success(200, res);
+    }
+}
+
+async function hdl_get_letters_page(req_data, res_obj)
+{
+    if (req_data.method !== 'GET') {
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
         return;
     } 
 
@@ -288,36 +332,37 @@ async function hdl_get_msgs_page(req_data, res_obj)
     const sort = req_data.search_params.get('sort') || 'asc';
 
     if (page < 1) {
-        res_obj.error(400, `Page must be >= 1. Got ${page} instead.`);
+        res_obj.error(400, `Page must be >= 1. Got ${page} instead`);
         return;
     }
     
     if (limit < 1 || limit > PAGE_LIMIT) {
-        res_obj.error(400, `Limit must be 1-100. Got ${limit} instead.`);
+        res_obj.error(400, `Limit must be 1-100. Got ${limit} instead`);
         return;
     }
     
     if (sort !== 'asc' && sort !== 'desc' && sort !== 'rand') {
-        res_obj.error(400, `Invalid sorting option. Got '${sort}'.`);
+        res_obj.error(400, `Invalid sorting option. Got '${sort}'. Valid options are: asc, desc, rand`);
         return;
     }
 
-    const res = await db_get_msgs_page(page, limit, sort);
+    const res = await db_get_letters_page(page, limit, sort);
 
-    if (res.Error)
-        res_obj.error(500, 'Unable to retrieve the messages.', res.Error);
-    else 
+    if (res.Error) {
+        res_obj.error(500, 'Un unknown error has occured while trying to retrieve a letters page from db', res.Error);
+    } else {
         res_obj.success(200, res);
+    }
 }
 
 export {
     hdl_pong,
     hdl_get_home_page,
-    hdl_get_read_msg_page,
-    hdl_get_write_msg_page,
+    hdl_get_read_letter_page,
+    hdl_get_write_letter_page,
     hdl_get_write_reply_page,
     hdl_get_asset,
-    hdl_msg,
-    hdl_get_msgs_all,
-    hdl_get_msgs_page,
+    hdl_letter,
+    hdl_get_letters_all,
+    hdl_get_letters_page,
 };

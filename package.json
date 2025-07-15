@@ -1,6 +1,6 @@
 {
-  "name": "msg-stream",
-  "description": "Send a msg in the stream",
+  "name": "letter-stream",
+  "description": "Send a letter in the stream",
   "main": "src/server.mjs",
   "type": "module",
   "scripts": {

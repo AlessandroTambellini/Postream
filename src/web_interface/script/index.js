@@ -1,12 +1,12 @@
-import letter_to_HTML from "./utils/template.js";
+import make_HTML_letter_card from "./utils/template.js";
 import setup_feedback_cards from "./utils/feedback.js";
 import req from "./utils/req.js";
 
-const msgs_container = document.querySelector('#msgs-container');
+const letters_container = document.querySelector('#letters-container');
 
 const PAGE_LIMIT = 20;
 
-async function fill_stream(flags, displayed_msgs, f_reload = false)
+async function fill_stream(flags, displayed_letters, f_reload = false)
 {
     const feedback = document.querySelector('.feedback-card');
     feedback.hide();
@@ -16,7 +16,7 @@ async function fill_stream(flags, displayed_msgs, f_reload = false)
     search_params.sort  = flags.sort;
     search_params.limit = PAGE_LIMIT;
 
-    const { status_code, payload } = await req('api/msg/page', search_params, 'GET', null);
+    const { status_code, payload } = await req('api/letter/page', search_params, 'GET', null);
            
     if (status_code !== 200) {
         feedback.show('error', payload.Error);
@@ -25,25 +25,25 @@ async function fill_stream(flags, displayed_msgs, f_reload = false)
     
     if (flags.sort !== 'rand') console.assert(search_params.page === payload.page);
     
-    if (f_reload) msgs_container.replaceChildren(); // Empty the stream
+    if (f_reload) letters_container.replaceChildren(); // Empty the stream
 
-    let new_msgs = 0;
+    let new_letters = 0;
 
-    for (const msg_obj of payload.msgs)
+    for (const letter of payload.letters)
     {
-        if (displayed_msgs.has(msg_obj.id)) continue;
-        displayed_msgs.add(msg_obj.id);
-        new_msgs++;
+        if (displayed_letters.has(letter.id)) continue;
+        displayed_letters.add(letter.id);
+        new_letters++;
 
-        msgs_container.innerHTML += letter_to_HTML(msg_obj.id, msg_obj.content, msg_obj.timestamp, true, true);
+        letters_container.innerHTML += make_HTML_letter_card(letter.id, letter.message, letter.timestamp, true, true);
     }
 
-    if (!new_msgs)
+    if (!new_letters)
     {
-        if (payload.num_of_msgs === displayed_msgs.size) {
-            feedback.show('info', 'There aren\'t new messages.');
+        if (payload.num_of_letters === displayed_letters.size) {
+            feedback.show('info', 'There aren\'t new letters.');
         } else {
-            feedback.show('warn', 'No new msgs retrieved. They where retrieved just msgs already present in the stream.');
+            feedback.show('warn', 'No new letters retrieved. They where retrieved just letters already present in the stream.');
         }
     }
 
@@ -51,16 +51,30 @@ async function fill_stream(flags, displayed_msgs, f_reload = false)
     else if (flags.sort === 'desc') flags.page_desc++;
 };
 
+/* For now I implemented this function to keep track of the letters rendered from the server on first loading of the page.
+I may 'share' flags and displayed_letters between web-interface and server, 
+but not for now that I have really few, little things.  */
+function identify_displayed_letters(flags, displayed_letters)
+{
+    for (const letter of letters_container.children)
+    {
+        const id = Number(letter.querySelector('a').href.split('id=')[1]);
+        displayed_letters.add(id);
+    }
+
+    flags.page_asc++; // Because the letters are retrieved in ascending order on first paint
+}
+
 (function main() 
 {
-    const reload_msgs_btn = document.querySelector('#reload-msgs-btn');
+    const reload_letters_btn = document.querySelector('#reload-letters-btn');
     const controls = document.querySelectorAll('.control');
-    const displayed_msgs = new Set();
+    const displayed_letters = new Set();
 
     const flags = {
         sort: 'asc',
         // Keep track of how many pages are retrieved in both ascending and descending order
-        page_asc: 1,
+        page_asc: 1, 
         page_desc: 1,
     };
 
@@ -72,19 +86,19 @@ async function fill_stream(flags, displayed_msgs, f_reload = false)
         })
     });
 
-    reload_msgs_btn.addEventListener('click', () => 
+    reload_letters_btn.addEventListener('click', () => 
     {
         // Reset
         flags.page_asc = 1;
         flags.page_desc = 1;
-        displayed_msgs.clear();
+        displayed_letters.clear();
 
-        fill_stream(flags, displayed_msgs, true);
+        fill_stream(flags, displayed_letters, true);
     });
 
-    document.querySelector('#load-more-msgs-btn').addEventListener('click', () => 
+    document.querySelector('#load-more-letters-btn').addEventListener('click', () => 
     {
-        fill_stream(flags, displayed_msgs);
+        fill_stream(flags, displayed_letters);
     });
 
     /*
@@ -93,5 +107,6 @@ async function fill_stream(flags, displayed_msgs, f_reload = false)
      */
 
     setup_feedback_cards();
+    identify_displayed_letters(flags, displayed_letters);
 })();
 

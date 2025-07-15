@@ -19,7 +19,7 @@ main {
     padding-bottom: 1vh;
 }
 
-#msg-stream {
+#letter-stream {
     overflow-y: scroll;
     scrollbar-width: none;
     width: 100%;
@@ -28,21 +28,21 @@ main {
     align-items: center;
 }
 
-#msgs-container {
-    /* The msg-card have some shadow and to avoid being covered
-    I add a bit of padding to their container (msg-stream). */
+#letters-container {
+    /* The letter-card have some shadow and to avoid being covered
+    I add a bit of padding to their container (letter-stream). */
     padding: .5rem;
 }
 
-#msgs-container .msg-card {
+#letters-container .letter-card {
     margin-bottom: 1vh;
 }
 
-#msg-feedback {
+.feedback-card {
     margin-top: .75rem;
 }
 
-#load-more-msgs-btn {
+#load-more-letters-btn {
     font-size: 1.2rem;
     padding: .8rem;
     margin-top: .75rem;
