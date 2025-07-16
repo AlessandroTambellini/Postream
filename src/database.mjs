@@ -34,7 +34,7 @@ db.exec(create_table);
 db.exec(create_indexes);
 // end INIT_DB
 
-const select_letter_by_id = db.prepare('SELECT id, message, timestamp FROM letters WHERE id = ?');
+const select_letter_by_id = db.prepare('SELECT * FROM letters WHERE id = ?');
 const insert_letter = db.prepare('INSERT INTO letters (message, email) VALUES (?, ?)');
 const delete_letter_by_id = db.prepare('DELETE FROM letters WHERE id = ?');
 const select_all_letters = db.prepare('SELECT id, message, timestamp FROM letters ORDER BY timestamp DESC');
@@ -52,9 +52,10 @@ async function db_store_letter(letter_obj) {
     }
 }
 
-async function db_get_letter_by_id(id) {
+async function db_get_letter_by_id(id, hide_email = true) {
     try {
         const letter = select_letter_by_id.get(id);
+        if (hide_email) delete letter.email;
         return letter || { Error: `Letter with id '${id}' not found`, status: 404 };
     } catch (error) {
         return { Error: `Can't retrieve letter from db: ${error.message}`, status: 500 };

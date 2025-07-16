@@ -119,7 +119,7 @@ async function hdl_get_write_reply_page(req_data, res_obj)
 
     const letter_id = req_data.search_params.get('id');
     if (!letter_id) {
-        res_obj.error(400, 'Missing required letter id');
+        res_obj.error(400, 'Missing or invalid letter id');
         return;
     }
 
@@ -132,6 +132,7 @@ async function hdl_get_write_reply_page(req_data, res_obj)
         res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
     }
 
+    // Should I pass the id as a number?
     const db_res = await db_get_letter_by_id(letter_id);
     if (db_res.Error) {
         if (res.status === 404) {
@@ -285,7 +286,7 @@ _handle_letter.POST = async function(req_data, res_obj)
 // I have to think about it.
 _handle_letter.DELETE = async function(req_data, res_obj)
 {
-    return res_obj.success(501, 'Functionality not implemented yet');
+    return res_obj.success(501, 'Functionality not available yet');
     
     const letter_id = req_data.search_params.get('id');
     if (!letter_id) {
@@ -304,6 +305,58 @@ _handle_letter.DELETE = async function(req_data, res_obj)
     }
 
     res_obj.success(200, res);
+}
+
+async function hdl_reply(req_data, res_obj)
+{
+    const allowed_methods = ['POST'];
+    if (!allowed_methods.includes(req_data.method)) {
+        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
+        return;
+    }
+
+    await _handle_reply[req_data.method](req_data, res_obj);
+}
+
+const _handle_reply = {};
+
+_handle_reply.POST = async function(req_data, res_obj)
+{
+    const letter_id = req_data.search_params.get('id');
+    if (!letter_id) {
+        res_obj.error(400, 'Missing required letter id');
+        return;
+    }
+
+    const db_res = await db_get_letter_by_id(letter_id, false);
+    if (db_res.Error) {
+        if (db_res.status === 404) {
+            res_obj.error(db_res.status, db_res.Error);
+        } else {
+            res_obj.error(db_res.status, `Un unknown error has occured while trying to read the letter with id '${letter_id}' from db`, db_res.Error);
+        }
+        return;
+    }
+
+    let reply;
+    try {
+        /* Even though I expect the paylod to be parsed to a string (given that the payload is always a string), 
+        I parse it anyway, because on the web-interface a stringified empty string become '""' and
+        the test below (if (reply.length === 0)) would fail (because the length of the string is 2).
+        I may avoid sending the payload on the client-side if it's empty, but I want anyway the validations
+        to happen on the server-side because I want the latter to be client-agnostic. */
+        reply = JSON.parse(req_data.payload);
+    } catch (error) {
+        res_obj.error(400, `The payload doesn't have a valid JSON format. Catched error: '${error.message}'`);
+        return;
+    }
+
+    if (reply.length === 0) {
+        res_obj.error(400, 'The reply can\'t be empty');
+        return;
+    }
+
+    return res_obj.success(200, { Success: 'Reply sent successfully' });
 }
 
 async function hdl_get_letters_all(req_data, res_obj)
@@ -365,6 +418,7 @@ export {
     hdl_get_write_reply_page,
     hdl_get_asset,
     hdl_letter,
+    hdl_reply,
     hdl_get_letters_all,
     hdl_get_letters_page,
 };

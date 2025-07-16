@@ -2,8 +2,8 @@ import setup_feedback_cards from "./utils/feedback.js";
 import req from "./utils/req.js";
 
 const letter_form = document.querySelector('form');
-const feedback = letter_form.querySelector('.feedback-card');
 const textarea = letter_form.querySelector('textarea');
+const feedback = letter_form.querySelector('.feedback-card');
 const email_input = letter_form.querySelector('input');
 
 (function main()
@@ -26,8 +26,9 @@ async function handle_letter_submission(e)
 
     const { status_code, payload } = await req(path, null, method, { message, email });
 
-    if (status_code === 200) 
+    if (status_code === 200) {
         feedback.show('success', payload.Success);
-    else 
+    } else {
         feedback.show('error', payload.Error);
+    }
 }

@@ -1,4 +1,4 @@
-async function req(path, search_params, method, payload) 
+async function req(path, search_params, method, payload = null) 
 {
     let url = path;
     if (search_params) {
@@ -15,8 +15,10 @@ async function req(path, search_params, method, payload)
         }
     };
 
-    if (method !== 'GET' && method !== 'HEAD') {
-        // I expect a payload to be there
+    if (payload !== null) {
+        /* 'if (!payload)' wouldn't be correct.
+        An empty string is a valid payload, but it would be evaluated to false by the latter check
+        (and therefore not sent). */
         options.body = JSON.stringify(payload);
     }
 

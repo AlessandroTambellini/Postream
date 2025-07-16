@@ -10,6 +10,7 @@ import {
     hdl_get_write_reply_page,
     hdl_get_asset, 
     hdl_letter,
+    hdl_reply,
     hdl_get_letters_all, 
     hdl_get_letters_page, 
 } from './handlers.mjs';
@@ -90,7 +91,7 @@ server.on('request', (req, res) =>
 
         const req_data = {
             'path': trimmed_path,
-            'search_params': new URLSearchParams(url_obj.searchParams),
+            'search_params': url_obj.searchParams,
             'method': req.method,
             // 'headers': req.headers,
             'payload': decoded_buffer.join('')
@@ -117,6 +118,9 @@ server.on('request', (req, res) =>
                 break;
             case 'api/letter':
                 await hdl_letter(req_data, res_obj);
+                break;
+            case 'api/reply':
+                await hdl_reply(req_data, res_obj);
                 break;
             case 'api/letter/page':
                 await hdl_get_letters_page(req_data, res_obj);
