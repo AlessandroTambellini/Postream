@@ -17,7 +17,7 @@ async function fill_stream(flags, displayed_letters, f_reload = false)
     search_params.limit = PAGE_LIMIT;
 
     const { status_code, payload } = await req('api/letter/page', search_params, 'GET', null);
-           
+
     if (status_code !== 200) {
         feedback.show('error', payload.Error);
         return;
@@ -35,7 +35,7 @@ async function fill_stream(flags, displayed_letters, f_reload = false)
         displayed_letters.add(letter.id);
         new_letters++;
 
-        letters_container.innerHTML += make_HTML_letter_card(letter.id, letter.message, letter.timestamp, true, true);
+        letters_container.innerHTML += make_HTML_letter_card(letter, true, true);
     }
 
     if (!new_letters)

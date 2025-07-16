@@ -1,5 +1,7 @@
-function make_HTML_letter_card(id, message, timestamp, f_reply = false, f_cut_message = false)
+function make_HTML_letter_card(letter, f_reply = false, f_cut_message = false)
 {
+    const { id, message, timestamp } = letter;
+
     let message_HTML = `<p>{{ message }}{{ read_entirely_link }}</p>`;
     if (f_cut_message && message.length > 70*10)
     {

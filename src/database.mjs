@@ -34,13 +34,13 @@ db.exec(create_table);
 db.exec(create_indexes);
 // end INIT_DB
 
-const select_letter_by_id = db.prepare('SELECT * FROM letters WHERE id = ?');
+const select_letter_by_id = db.prepare('SELECT id, message, timestamp FROM letters WHERE id = ?');
 const insert_letter = db.prepare('INSERT INTO letters (message, email) VALUES (?, ?)');
 const delete_letter_by_id = db.prepare('DELETE FROM letters WHERE id = ?');
-const select_all_letters = db.prepare('SELECT * FROM letters ORDER BY timestamp DESC');
-const select_letters_page_desc = db.prepare('SELECT * FROM letters ORDER BY timestamp DESC LIMIT ? OFFSET ?');
-const select_letters_page_asc = db.prepare('SELECT * FROM letters ORDER BY timestamp ASC LIMIT ? OFFSET ?');
-const select_letters_page_rand = db.prepare('SELECT * FROM letters ORDER BY RANDOM() LIMIT ?');
+const select_all_letters = db.prepare('SELECT id, message, timestamp FROM letters ORDER BY timestamp DESC');
+const select_letters_page_desc = db.prepare('SELECT id, message, timestamp FROM letters ORDER BY timestamp DESC LIMIT ? OFFSET ?');
+const select_letters_page_asc = db.prepare('SELECT id, message, timestamp FROM letters ORDER BY timestamp ASC LIMIT ? OFFSET ?');
+const select_letters_page_rand = db.prepare('SELECT id, message, timestamp FROM letters ORDER BY RANDOM() LIMIT ?');
 const select_letters_count = db.prepare('SELECT COUNT(*) as count FROM letters');
 
 async function db_store_letter(letter_obj) {

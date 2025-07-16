@@ -11,7 +11,7 @@ import {
 } from "./database.mjs";
 import make_HTML_letter_card from "./web_interface/script/utils/template.js";
 
-const CLIENT_PATH = join(import.meta.dirname, 'web_interface');
+const WEB_INTERFACE_PATH = join(import.meta.dirname, 'web_interface');
 
 function hdl_pong(res_obj) {
     res_obj.success(200, 'pong');
@@ -24,7 +24,7 @@ async function hdl_get_home_page(req_data, res_obj)
         return;
     }
 
-    const page_path = join(CLIENT_PATH, 'index.html');
+    const page_path = join(WEB_INTERFACE_PATH, 'index.html');
 
     let index_page;
     try {
@@ -42,7 +42,7 @@ async function hdl_get_home_page(req_data, res_obj)
     const letter_cards = [];
     for (const letter of db_res.letters)
     {
-        const letter_card = make_HTML_letter_card(letter.id, letter.message, letter.timestamp, true, true);
+        const letter_card = make_HTML_letter_card(letter, true, true);
         letter_cards.push(letter_card);
     }
 
@@ -64,7 +64,7 @@ async function hdl_get_read_letter_page(req_data, res_obj)
         return;
     }
 
-    const page_path = join(CLIENT_PATH, 'read-letter.html');
+    const page_path = join(WEB_INTERFACE_PATH, 'read-letter.html');
 
     let letter_page;
     try {
@@ -84,7 +84,7 @@ async function hdl_get_read_letter_page(req_data, res_obj)
     }
 
     const letter = db_res;
-    const letter_card = make_HTML_letter_card(letter.id, letter.message, letter.timestamp, true);
+    const letter_card = make_HTML_letter_card(letter, true);
 
     letter_page = letter_page.replace('{{ letter_card }}', letter_card);
 
@@ -98,7 +98,7 @@ async function hdl_get_write_letter_page(req_data, res_obj)
         return;
     }
 
-    const page_path = join(CLIENT_PATH, 'write-letter.html');
+    const page_path = join(WEB_INTERFACE_PATH, 'write-letter.html');
 
     let write_letter_page;
     try {
@@ -123,7 +123,7 @@ async function hdl_get_write_reply_page(req_data, res_obj)
         return;
     }
 
-    const page_path = join(CLIENT_PATH, 'write-reply.html');
+    const page_path = join(WEB_INTERFACE_PATH, 'write-reply.html');
 
     let write_reply_page;
     try {
@@ -143,7 +143,7 @@ async function hdl_get_write_reply_page(req_data, res_obj)
     }
 
     const letter = db_res;
-    const letter_card = make_HTML_letter_card(letter.id, letter.message, letter.timestamp, false);
+    const letter_card = make_HTML_letter_card(letter, false);
     
     write_reply_page = write_reply_page.replace('{{ letter_card }}', letter_card);
     
@@ -194,7 +194,7 @@ async function hdl_get_asset(req_data, res_obj)
 
     let asset;
     try { 
-        asset = await readFile(join(CLIENT_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
+        asset = await readFile(join(WEB_INTERFACE_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
     } catch (error) {
         if (error.code === 'ENOENT') {
             res_obj.error(404, `The asset '${asset_path}' does not exist`);
@@ -285,6 +285,8 @@ _handle_letter.POST = async function(req_data, res_obj)
 // I have to think about it.
 _handle_letter.DELETE = async function(req_data, res_obj)
 {
+    return res_obj.success(501, 'Functionality not implemented yet');
+    
     const letter_id = req_data.search_params.get('id');
     if (!letter_id) {
         res_obj.error(400, 'Missing required letter id');
