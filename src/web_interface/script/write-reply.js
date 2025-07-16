@@ -28,11 +28,11 @@ async function handle_reply_submission(e)
 
     const { status_code, payload } = await req(path, letter_id, method, reply);
 
-    if (status_code === 200) {
-        // payload.Success may be undefined
-        feedback.show('success', payload.Success);
-    } else {
+    if (status_code > 299 || payload.Error) {
         feedback.show('error', payload.Error);
     }
+        
+    // payload.Success may be undefined
+    feedback.show('success', payload.Success);
 }
 

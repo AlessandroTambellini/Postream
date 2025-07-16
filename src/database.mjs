@@ -52,23 +52,28 @@ async function db_store_letter(letter_obj) {
     }
 }
 
-async function db_get_letter_by_id(id, hide_email = true) {
-    try {
-        const letter = select_letter_by_id.get(id);
-        if (hide_email) delete letter.email;
-        return letter || { Error: `Letter with id '${id}' not found`, status: 404 };
-    } catch (error) {
-        return { Error: `Can't retrieve letter from db: ${error.message}`, status: 500 };
+async function db_get_letter_by_id(id, hide_email = true) 
+{
+    const int_id = Number(id);
+    if (!Number.isInteger(int_id)) {
+        return { Error: `Invalid id: '${id}' is not a valid integer`, status_code: 400 };
     }
+    
+    const letter = select_letter_by_id.get(int_id); // It isn't necessary to pass an integer
+    // because SQLite automatically converts it but, given I already calculated it...
+    if (letter && hide_email) delete letter.email;
+    return letter || { Error: `Letter with id '${int_id}' not found`, status_code: 404 };
 }
 
-async function db_delete_letter_by_id(id) {
-    try {
-        const res = delete_letter_by_id.run(id);
-        return res.changes > 0 ? { id } : { Error: `Letter with id '${id}' not found'`, status: 404 }; 
-    } catch (error) {
-        return { Error: `Can't delete letter with id '${id}': ${error.message}`, status: 500 };
+async function db_delete_letter_by_id(id) 
+{
+    const int_id = Number(id);
+    if (!Number.isInteger(int_id)) {
+        return { Error: `Invalid id: '${id}' is not a valid integer`, status_code: 400 };
     }
+
+    const res = delete_letter_by_id.run(id);
+    return res.changes > 0 ? { id } : { Error: `Letter with id '${id}' not found'`, status_code: 404 }; 
 }
 
 // I leave this function for testing

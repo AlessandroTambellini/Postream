@@ -133,7 +133,7 @@ server.on('request', (req, res) =>
             }
 
         } catch (error) {
-            res_obj.error(500, 'An unexpected error has occured in the server.', 'application/json');
+            res_obj.error(500, 'An unexpected error has occured in the server', 'application/json');
             console.error(error);
             console.error('req_data:', req_data);
         }

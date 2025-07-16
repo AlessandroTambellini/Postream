@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, extname } from "node:path";
 
 import { 
     PAGE_LIMIT,
@@ -31,6 +31,7 @@ async function hdl_get_home_page(req_data, res_obj)
         index_page = await readFile(page_path, { encoding: 'utf8' });        
     } catch (error) {
         res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
+        return;
     }
 
     const db_res = await db_get_letters_page(1, 20, 'asc');
@@ -71,15 +72,12 @@ async function hdl_get_read_letter_page(req_data, res_obj)
         letter_page = await readFile(page_path, { encoding: 'utf8' });
     } catch (error) {
         res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
+        return;
     }
 
     const db_res = await db_get_letter_by_id(letter_id);
     if (db_res.Error) {
-        if (db_res.status === 404) {
-            res_obj.error(db_res.status, db_res.Error);
-        } else {
-            res_obj.error(db_res.status, `Un unknown error has occured while trying to read letter with id '${letter_id}' from db`, db_res.Error);
-        }
+        res_obj.error(db_res.status_code, db_res.Error);
         return;
     }
 
@@ -105,6 +103,7 @@ async function hdl_get_write_letter_page(req_data, res_obj)
         write_letter_page = await readFile(page_path, { encoding: 'utf8' });
     } catch (error) {
         res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
+        return;
     }
 
     res_obj.success(200, write_letter_page, 'text/html');
@@ -130,16 +129,12 @@ async function hdl_get_write_reply_page(req_data, res_obj)
         write_reply_page = await readFile(page_path, { encoding: 'utf8' });
     } catch (error) {
         res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
+        return;
     }
 
-    // Should I pass the id as a number?
     const db_res = await db_get_letter_by_id(letter_id);
     if (db_res.Error) {
-        if (res.status === 404) {
-            res_obj.error(res.status, res.Error);
-        } else {
-            res_obj.error(res.status, `Un unknown error has occured while trying to read letter with id '${letter_id}' from db`, res.Error);
-        }
+        res_obj.error(db_res.status_code, db_res.Error);
         return;
     }
 
@@ -162,46 +157,44 @@ async function hdl_get_asset(req_data, res_obj)
     const asset_path = req_data.path;
 
     let f_binary = false;
-    let content_type = 'text/plain';
+    let content_type;
 
-    const file_ext_idx = asset_path.lastIndexOf('.');
-    if (file_ext_idx < 1 || file_ext_idx === asset_path.length-1) {
-        content_type = 'text/plain';
-    } else {
-        const file_ext = asset_path.substring(file_ext_idx + 1);
-        switch (file_ext) {
-            case 'css':
-                content_type = 'text/css';
-                break;
-            case 'svg':
-                content_type = 'image/svg+xml';
-                break;
-            case 'js':
-                content_type = 'text/javascript';
-                break;
-            case 'json':
-                content_type = 'application/json';
-                break;
-            case 'ttf':
-                content_type = 'font/ttf';
-                f_binary = true;
-                break;
-            default:
-                // This is a message for me
-                console.warn(`WARN: unknown file extension: '${file_ext}'. Pathname: '${asset_path}'.`);
-                break;
-        }
-    }  
+    const file_ext = extname(asset_path);
+    
+    switch (file_ext) {
+        case '.css':
+            content_type = 'text/css';
+            break;
+        case '.svg':
+            content_type = 'image/svg+xml';
+            break;
+        case '.js':
+            content_type = 'text/javascript';
+            break;
+        case '.json':
+            content_type = 'application/json';
+            break;
+        case '.ttf':
+            content_type = 'font/ttf';
+            f_binary = true;
+            break;
+        default:
+            content_type = 'text/plain';
+            // First, I check if the extension is defined, because not necessarily the request was made to get an asset.
+            if (file_ext) console.warn(`WARN: unknown file extension: '${file_ext}'. Pathname: '${asset_path}'.`);
+            break;
+    }
 
     let asset;
     try { 
         asset = await readFile(join(WEB_INTERFACE_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
     } catch (error) {
         if (error.code === 'ENOENT') {
-            res_obj.error(404, `The asset '${asset_path}' does not exist`);
+            res_obj.error(404, `The path '${asset_path}' does not exist`);
         } else {
             res_obj.error(500, `Un unknown error has occured while trying to read '${asset_path}' from disk`, error.message);
         }
+        return;
     }
 
     res_obj.success(200, asset, content_type);
@@ -228,17 +221,13 @@ _handle_letter.GET = async function(req_data, res_obj)
         return;
     }
 
-    const res = await db_get_letter_by_id(letter_id);
-    if (res.Error) {
-        if (res.status === 404) {
-            res_obj.error(res.status, res.Error);
-        } else {
-            res_obj.error(res.status, `Un unknown error has occured while trying to read the letter with id '${letter_id}' from db`, res.Error);
-        }
+    const db_res = await db_get_letter_by_id(letter_id);
+    if (db_res.Error) {
+        res_obj.error(db_res.status_code, db_res.Error);
         return;
     }
 
-    res_obj.success(200, res);
+    res_obj.success(200, db_res);
 }
 
 _handle_letter.POST = async function(req_data, res_obj)
@@ -278,7 +267,7 @@ _handle_letter.POST = async function(req_data, res_obj)
     if (res.Error) {
         res_obj.error(500, 'Un unknown error has occured while trying to store the letter', res.Error);
     } else {
-        res_obj.success(200, res);
+        res_obj.success(200, { Success: 'Letter uploaded successfully.' });
     }
 }
 
@@ -294,17 +283,13 @@ _handle_letter.DELETE = async function(req_data, res_obj)
         return;
     } 
 
-    const res = await db_delete_letter_by_id(letter_id);
-    if (res.Error) {
-        if (res.status === 404) {
-            res_obj.error(res.status, res.Error);
-        } else {
-            res_obj.error(res.status, `Un unknown error has occured while trying to delete the letter with id '${letter_id}' from db`, res.Error);
-        }
+    const db_res = await db_delete_letter_by_id(letter_id);
+    if (db_res.Error) {
+        res_obj.error(db_res.status_code, db_res.Error);
         return;
     }
 
-    res_obj.success(200, res);
+    res_obj.success(200, db_res);
 }
 
 async function hdl_reply(req_data, res_obj)
@@ -330,11 +315,7 @@ _handle_reply.POST = async function(req_data, res_obj)
 
     const db_res = await db_get_letter_by_id(letter_id, false);
     if (db_res.Error) {
-        if (db_res.status === 404) {
-            res_obj.error(db_res.status, db_res.Error);
-        } else {
-            res_obj.error(db_res.status, `Un unknown error has occured while trying to read the letter with id '${letter_id}' from db`, db_res.Error);
-        }
+        res_obj.error(db_res.status_code, db_res.Error);
         return;
     }
 

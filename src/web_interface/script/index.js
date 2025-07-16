@@ -18,7 +18,10 @@ async function fill_stream(flags, displayed_letters, f_reload = false)
 
     const { status_code, payload } = await req('api/letter/page', search_params, 'GET', null);
 
-    if (status_code !== 200) {
+    /* I check both the status_code and the error msg because one doesn't imply the other.
+    payload.Error may be set because something went wrong in the req() function on the client-size
+    even if the response from the server was positive. */
+    if (status_code > 299 || payload.Error) {
         feedback.show('error', payload.Error);
         return;
     }

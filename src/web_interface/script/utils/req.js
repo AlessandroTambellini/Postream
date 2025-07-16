@@ -5,54 +5,49 @@ async function req(path, search_params, method, payload = null)
         const params = new URLSearchParams(search_params).toString();
         url += `?${params}`;
     }
-
-    method = method.toUpperCase();
+    
+    method =  method.toUpperCase();
     
     const options = {
-        method: method,
+        method,
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
     };
 
-    if (payload !== null) {
-        /* 'if (!payload)' wouldn't be correct.
-        An empty string is a valid payload, but it would be evaluated to false by the latter check
-        (and therefore not sent). */
+    if (method !== 'GET' && method !== 'HEAD') {
+        // If the payload is present or not, I send it anyway.
         options.body = JSON.stringify(payload);
     }
 
+    const res_obj = {
+        status_code: 0,
+        payload: []
+    };
+
+    let server_res;
     try {
-        const res_obj = {
-            status_code: 0,
-            payload: []
-        };
-
-        const res = await fetch(url, options);
-
-        let payload;
-        try {
-            const text = await res.text();
-            if (text) {
-                payload = JSON.parse(text);
-            }
-        } catch (error) {
-            console.error('ERROR:', error.message);
-            return res_obj;
-        }
-
-        res_obj.payload = payload;
-        res_obj.status_code = res.status;
-
-        return res_obj;
-        
+        server_res = await fetch(url, options);   
+        res_obj.status_code = server_res.status;   
     } catch (error) {
         console.error('ERROR:', error.message);
-        return {
-            status_code: 0,
-            payload: []
-        };
+        res_obj.payload = { Error: error.message };
+        return res_obj;
     }
+    
+    try {
+        // const text = await server_res.text();
+        // if (text) {
+        //     res_obj.payload = JSON.parse(text);
+        // }
+        res_obj.payload = await server_res.json();
+    } catch (error) {
+        console.error('ERROR:', error.message);
+        res_obj.payload = { Error: error.message };
+        return res_obj;
+    }
+
+    return res_obj;
 }
 
 export default req;

@@ -26,9 +26,10 @@ async function handle_letter_submission(e)
 
     const { status_code, payload } = await req(path, null, method, { message, email });
 
-    if (status_code === 200) {
-        feedback.show('success', payload.Success);
-    } else {
+    if (status_code > 299 || payload.Error) {
         feedback.show('error', payload.Error);
+        return;
     }
+     
+    feedback.show('success', payload.Success);
 }
