@@ -30,7 +30,7 @@ main {
 
 #letters-container {
     /* The letter-card have some shadow and to avoid being covered
-    I add a bit of padding to their container (letter-stream). */
+    I add a bit of padding to their container. */
     padding: .5rem;
 }
 

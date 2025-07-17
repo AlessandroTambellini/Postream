@@ -22,3 +22,7 @@ body {
     background-color: var(--clr-bkg);
     font-family: 'Libertinus Mono', monospace;
 }
+
+a, button, textarea, input {
+    font-family: inherit;
+}

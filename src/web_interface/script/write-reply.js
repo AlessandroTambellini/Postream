@@ -17,9 +17,6 @@ async function handle_reply_submission(e)
     e.preventDefault();
     feedback.hide();
 
-    // console.log('form logic not implemented yet.');
-    // feedback.show('warn', 'form logic not implemented yet.');
-    
     const path = reply_form.attributes.action.value;
     const method = reply_form.attributes.method.value;
     
@@ -29,7 +26,8 @@ async function handle_reply_submission(e)
     const { status_code, payload } = await req(path, letter_id, method, reply);
 
     if (status_code > 299 || payload.Error) {
-        feedback.show('error', payload.Error);
+        feedback.show(status_code === 501 ? 'warn' : 'error', payload.Error);
+        return;
     }
         
     // payload.Success may be undefined

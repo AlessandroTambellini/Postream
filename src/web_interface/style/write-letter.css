@@ -18,7 +18,6 @@ form label[for=recv-email] {
 form #recv-email {
     padding: var(--ta-padding);
     font-size: inherit;
-    font-family: inherit;
 }
 
 .feedback-card {

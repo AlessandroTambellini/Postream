@@ -4,7 +4,7 @@
     border-left: 4px solid;
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* For the 'x' button that has position absolute. */
+    /* For the close button ('x') that has position absolute. */
     position: relative;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -28,7 +28,7 @@
 }
 
 .feedback-content {
-    /* A bit of padding to keep the 'x' (close) a bit distant from the text. */
+    /* A bit of padding to keep the close button a bit distant from the text. */
     padding-left: .5em;
     padding-right: 1em;
 }

@@ -256,9 +256,10 @@ _handle_letter.POST = async function(req_data, res_obj)
         return;
     }
     
-    /* Should I validate the email? */
+    /* TODO verify the email */
+
     if (letter_obj.email.length === 0) {
-        res_obj.error(400, `The email address is invalid`);
+        res_obj.error(400, `The email address can't be empty`);
         return;
     }
 
@@ -271,11 +272,11 @@ _handle_letter.POST = async function(req_data, res_obj)
     }
 }
 
-// The DELETE functionality isn't implemented on the web-interface side yet.
-// I have to think about it.
+// The DELETE functionality isn't implemented.
+// Deleting letters implies that there is an auth system.
 _handle_letter.DELETE = async function(req_data, res_obj)
 {
-    return res_obj.success(501, 'Functionality not available yet');
+    return res_obj.success(501, 'Functionality not available');
     
     const letter_id = req_data.search_params.get('id');
     if (!letter_id) {
@@ -319,6 +320,8 @@ _handle_reply.POST = async function(req_data, res_obj)
         return;
     }
 
+    const email = db_res.email;
+
     let reply;
     try {
         /* Even though I expect the paylod to be parsed to a string (given that the payload is always a string), 
@@ -337,7 +340,11 @@ _handle_reply.POST = async function(req_data, res_obj)
         return;
     }
 
-    return res_obj.success(200, { Success: 'Reply sent successfully' });
+    // console.log('email:', email);
+    // console.log('Your letter: ', `http://localhost:3000/read-letter?id=${db_res.id}`)
+    // console.log('reply:', reply);
+
+    return res_obj.error(501, 'Service not implemented');
 }
 
 async function hdl_get_letters_all(req_data, res_obj)

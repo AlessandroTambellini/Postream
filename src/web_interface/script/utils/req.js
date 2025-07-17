@@ -36,10 +36,6 @@ async function req(path, search_params, method, payload = null)
     }
     
     try {
-        // const text = await server_res.text();
-        // if (text) {
-        //     res_obj.payload = JSON.parse(text);
-        // }
         res_obj.payload = await server_res.json();
     } catch (error) {
         console.error('ERROR:', error.message);

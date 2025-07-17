@@ -1,8 +1,8 @@
-/* I create these state because sometimes in JS you may write e.g. 'div.style.display = "flex"',
+/* I created these states because sometimes in JS you may write e.g. 'div.style.display = "flex"',
 but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
 that has higher priority compared to the CSS classes. 
 And so, sometimes elements are shown/hidden and you don't understand why 
-(especially if the codebase isn't small).
+(especially if the codebase is big).
 Therefore, I modify the state only via CSS classes. */
 
 .block {
