@@ -1,5 +1,4 @@
 import { createServer } from 'node:http';
-import { StringDecoder } from 'node:string_decoder';
 import { debuglog as _debuglog } from 'node:util';
 
 import { 
@@ -21,35 +20,35 @@ const PORT = 3000;
 const MAX_BUFFER_SIZE = 128 * 1024; // 128KB
 
 const debuglog = _debuglog('server');
-const decoder = new StringDecoder('utf8');
 
 const server = createServer();
 
-const res_obj = 
-{
-    status_code: 500,
-    content_type: 'application/json',
-    payload: {},
-
-    error: function(status_code, user_err_msg, server_log = undefined) {
-        this.status_code = status_code;
-        this.payload = { Error: `${user_err_msg}.` };
-        // It may happen that I set the content-type to something else to return some data and then an error occurs,
-        // so I reset the content-type to 'application/json' before reporting the error
-        this.content_type = 'application/json';
-        // Sometimes I want the log to the server to be different from what is reported to the user as an error
-        if (server_log) console.error(`ERROR: ${server_log}.`);
-    },
-
-    success: function(status_code, payload = {}, content_type = 'application/json') {
-        this.status_code = status_code;
-        this.payload = payload;
-        this.content_type = content_type;
-    }
-};
-
 server.on('request', (req, res) => 
 { 
+    // It can't be global because of possible conflicts among concurrent requests
+    const res_obj = 
+    {
+        status_code: 500,
+        content_type: 'application/json',
+        payload: {},
+
+        error: function(status_code, user_err_msg, server_log = undefined) {
+            this.status_code = status_code;
+            this.payload = { Error: `${user_err_msg}.` };
+            // It may happen that I set the content-type to something else to return some data and then an error occurs,
+            // so I reset the content-type to 'application/json' before reporting the error
+            this.content_type = 'application/json';
+            // Sometimes I want the log to the server to be different from what is reported to the user as an error
+            if (server_log) console.error(`ERROR: ${server_log}.`);
+        },
+
+        success: function(status_code, payload = {}, content_type = 'application/json') {
+            this.status_code = status_code;
+            this.payload = payload;
+            this.content_type = content_type;
+        }
+    };
+
     // Allowed chars: a-z, A-Z, 0-9, -, ., _, ~, :, /, ?, #, [, ], @, !, $, &, ', (, ), *, +, ,, ;, =
     const url_str = req.url.replace(/[^a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]/g, '');
     const url_obj = new URL(url_str, 'http://localhost:' + PORT);
@@ -57,11 +56,11 @@ server.on('request', (req, res) =>
     const trimmed_path = url_obj.pathname.replace(/^\/+|\/+$/g, '');
 
     debuglog(`${req.method} /${trimmed_path}`);
-
-    const decoded_buffer = [];
+    
+    const body = [];
     let buffer_size = 0;
     let f_abort = false;
-
+    
     req.on('data', buffer => 
     {
         if (f_abort) return;
@@ -80,21 +79,19 @@ server.on('request', (req, res) =>
             return;
         }
 
-        decoded_buffer.push(decoder.write(buffer));
+        body.push(buffer);
     });
 
     req.on('end', async () => 
     {
         if (f_abort) return;
 
-        decoded_buffer.push(decoder.end());
-
         const req_data = {
             'path': trimmed_path,
             'search_params': url_obj.searchParams,
             'method': req.method,
             // 'headers': req.headers,
-            'payload': decoded_buffer.join('')
+            'payload': Buffer.concat(body).toString()
         };
 
         try {
@@ -131,40 +128,53 @@ server.on('request', (req, res) =>
             default:
                 await hdl_get_asset(req_data, res_obj);
             }
+            
+            write_res(res, res_obj);
 
         } catch (error) {
-            res_obj.error(500, 'An unexpected error has occured in the server', 'application/json');
-            console.error(error);
-            console.error('req_data:', req_data);
+            console.error('ERROR: Unexpected error in request handler:', error);
+            if (!res.headersSent) {
+                res_obj.error(500, 'An unexpected error has occurred while processing the request');
+                write_res(res, res_obj);
+            }
         }
+    });
 
-        write_res(res, res_obj);
+    req.on('error', err => {
+        console.error('ERROR: Request error:', err);
+        if (!res.headersSent) {
+            res_obj.error(400, 'Bad request');
+            write_res(res, res_obj);
+        }
+    });
+
+    res.on('error', err => {
+        console.error('ERROR: Response error:', err);
     });
 });
 
 function write_res(res, res_obj) 
 {
-    const payload = res_obj.content_type === 'application/json' ? JSON.stringify(res_obj.payload) : res_obj.payload;
+    try {
+        const payload = res_obj.content_type === 'application/json' ? JSON.stringify(res_obj.payload) : res_obj.payload;
+        
+        res.strictContentLength = true;
+        res.writeHead(res_obj.status_code, {
+            'Content-Length': Buffer.byteLength(payload),
+            'Content-Type': res_obj.content_type,
+            // 'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'SAMEORIGIN',
+        });
+        
+        res.end(payload);
 
-    res.strictContentLength = true;
-    res.writeHead(res_obj.status_code, {
-        'Content-Length': Buffer.byteLength(payload),
-        'Content-Type': res_obj.content_type,
-        // 'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'SAMEORIGIN',
-    });
-
-    res.end(payload);
-}
-
-function shutdown_server(signal) {
-    console.log(`\nINFO: Shutting down. Signal ${signal}.`);
-    server.close(() => {
-        console.log('INFO: The server has been shut down.');
-        db_close();
-        console.log('INFO: Database connection closed.');
-        process.exit(128 + signal);
-    });
+    } catch (error) {
+        console.error('ERROR: Failed to write response:', error);
+        if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+        }
+    }
 }
 
 server.on('listening', () => {
@@ -186,5 +196,15 @@ server.on('error', (e) => {
 process.on('SIGHUP', () => shutdown_server(1));
 process.on('SIGINT', () => shutdown_server(2));
 process.on('SIGTERM', () => shutdown_server(15));
+
+function shutdown_server(signal) {
+    console.log(`\nINFO: Shutting down. Signal ${signal}.`);
+    server.close(() => {
+        console.log('INFO: The server has been shut down.');
+        db_close();
+        console.log('INFO: Database connection closed.');
+        process.exit(128 + signal);
+    });
+}
 
 server.listen(PORT);
