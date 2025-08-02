@@ -1,4 +1,7 @@
 node_modules
 test.*
-notes
+notes.md
 data
+.env
+certificate.pem
+private-key.pem
