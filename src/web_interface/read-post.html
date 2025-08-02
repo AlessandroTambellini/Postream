@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Read the entire post">        
+    
+    <title>Read Post</title>
+        
+    <link rel="icon" type="image/svg+xml" href="assets/mailbox.svg">
+    <link rel="stylesheet" href="style/read-post.css">
+</head>
+<body>
+    <h1 class="hidden">Read Post</h1>
+
+    <nav class="top-nav">
+        {{ nav-links }}
+    </nav>
+    
+    <main>
+        {{ post-card }}
+        
+        <div id="replies-container">
+            {{ replies }}
+        </div>
+    </main>
+</body>
+</html>

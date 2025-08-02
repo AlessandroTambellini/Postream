@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Login</title>
+    
+    <link rel="icon" type="image/svg+xml" href="assets/mailbox.svg">
+    <link rel="stylesheet" href="style/login.css">
+
+    <script type="module" src="scripts/login.js"></script>
+</head>
+<body>
+    <h1 class="hidden">Login</h1>
+
+    <nav class="top-nav">
+        <a href="index">Index</a>
+        <a href="create-account">Create Account</a>
+    </nav>
+
+    <form action="api/token">
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" placeholder="·····">
+
+        <div class="feedback-card none">
+            <div class="feedback-icon"></div>
+            <div class="feedback-content">
+                <p class="feedback-title"></p>
+                <p class="feedback-text"></p>
+            </div>
+            <button class="close-btn" type="button">x</button>
+        </div>
+
+        <button class="primary-btn" type="submit">
+            Login
+        </button>
+    </form>
+</body>
+</html>

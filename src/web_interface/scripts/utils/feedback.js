@@ -32,7 +32,6 @@ function show_feedback(type, msg)
     this.querySelector('.feedback-text').textContent = msg;
 }
 
-// Feedback prop
 function hide_feedback() {
     this.className = 'feedback-card';
     this.classList.add('none');
@@ -48,4 +47,14 @@ function setup_feedback_cards()
     });
 }
 
-export default setup_feedback_cards;
+/* This function is to make sense of the possible errors coming from the server 
+that to the user wouldn't make much sense. 
+That errors returned from the server are useful when playing around with the API, not on the website. */
+function err_msg(status_code, entity, action) 
+{
+    if (status_code === 500) return 'Un unknown error has occured in the server. Please, try again later.';
+    else if (status_code === 401) return `You aren't authenticated. Please, login before trying to ${action} a ${entity}.`;
+    else return `Invalid ${entity}`;
+}
+
+export { setup_feedback_cards, err_msg };

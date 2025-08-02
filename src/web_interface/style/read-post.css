@@ -1,6 +1,4 @@
 @import './_universal.css';
-@import './components/form.css';
-@import './components/buttons.css';
 @import './components/cards.css';
 
 main {
@@ -12,10 +10,6 @@ main {
     gap: 1em;
 }
 
-button[type=submit] {
-    margin-left: auto;
-}
-
-.feedback-card {
-    margin-block: 5px;
+.reply-card {
+    margin-top: 1em;
 }

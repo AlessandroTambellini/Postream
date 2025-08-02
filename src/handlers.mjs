@@ -2,158 +2,360 @@ import { readFile } from "node:fs/promises";
 import { join, extname } from "node:path";
 
 import { 
-    PAGE_LIMIT,
-    db_get_letter_by_id,
-    db_store_letter, 
-    db_delete_letter_by_id,
-    db_get_all_letters, 
-    db_get_letters_page, 
+    PAGE_LIMIT, 
+    db_op, 
+    validate_token 
 } from "./database.mjs";
-import make_HTML_letter_card from "./web_interface/script/utils/template.js";
+
+import { 
+    JSON_to_obj,
+    hash_password,
+    read_HTML_page,
+    generate_password,
+    log_error,
+} from './utils.mjs';
+
+import { 
+    post_card, 
+    write_post_link, 
+    nav_links, 
+    reply_card, 
+    fallback_page,
+    fallback_info_msg, 
+} from "./templates.js";
 
 const WEB_INTERFACE_PATH = join(import.meta.dirname, 'web_interface');
 
-function hdl_pong(res_obj) {
-    res_obj.success(200, 'pong');
+const MSG_INVALID_METHOD = (method, path) => {
+    return `The method '${method}' isn't allowed for path '${path}'`;
+};
+const MSG_INVALID_SEARCH_PARAM = (header_name) => {
+    return `Missing or invalid '${header_name}' search param`;
+};
+const MSG_INVALID_COOKIE = (cookie_name) => {
+    return `Missing or invalid '${cookie_name}' cookie`;
+};
+const MSG_INVALID_PAYLOAD_FORMAT = (error_msg) => {
+    return `The payload doesn't have a valid format: ${error_msg}`;
+};
+const MSG_INVALID_PAYLOAD_FIELD = (field_name) => {
+    return `Missing or invalid '${field_name}' field`;
+};
+const MSG_NOT_FOUND = (entity, field) => {
+    return `No ${entity} for the specified '${field}'`;
+};
+const MSG_UNKNOWN_DB_ERROR = (action, entity) => {
+    return `Un unknown database error has occured while trying to ${action} the ${entity}`;
+};
+
+/*
+ * 
+ *  Pages 
+ */
+
+const page = {};
+
+page.index = route_page_method('index');
+page.login = route_page_method('login');
+page['create-account'] = route_page_method('create-account');
+page.profile = route_page_method('profile');
+page['write-post'] = route_page_method('write-post');
+page['write-reply'] = route_page_method('write-reply');
+page['read-post'] = route_page_method('read-post');
+page.logout  = route_page_method('logout');
+page['delete-account'] = route_page_method('delete-account');
+
+function route_page_method(page) {
+    return async function(req_data, res_obj) {
+        if (req_data.method === 'GET') {
+            await this[page].GET(req_data, res_obj);
+        } else {
+            res_obj.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
+        }
+    }
 }
 
-async function hdl_get_home_page(req_data, res_obj) 
+// Auth required to enable SOME functionalities of the page
+page.index.GET = async function(req_data, res_obj) 
 {
-    if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`)
-        return;
-    }
-
-    const page_path = join(WEB_INTERFACE_PATH, 'index.html');
-
-    let index_page;
-    try {
-        index_page = await readFile(page_path, { encoding: 'utf8' });        
-    } catch (error) {
-        res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
-        return;
-    }
-
-    const db_res = await db_get_letters_page(1, 20, 'asc');
-    if (db_res.Error) {
-        res_obj.error(500, 'Un unknown error has occured while trying to retrieve a letters page from db', db_res.Error);
-        return;
-    }
-
-    const letter_cards = [];
-    for (const letter of db_res.letters)
+    let { page: index_page, fs_error } = await read_HTML_page('index');
+    
+    if (fs_error) 
     {
-        const letter_card = make_HTML_letter_card(letter, true, true);
-        letter_cards.push(letter_card);
-    }
-
-    index_page = index_page.replace('{{ letter_cards }}', letter_cards.join(''));
-
-    res_obj.success(200, index_page, 'text/html');
-}
-
-async function hdl_get_read_letter_page(req_data, res_obj)
-{
-    if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`)
-        return;
-    }    
-
-    const letter_id = req_data.search_params.get('id');
-    if (!letter_id) {
-        res_obj.error(400, 'Missing required letter id');
+        res_obj.page(500, fallback_page(500));
         return;
     }
 
-    const page_path = join(WEB_INTERFACE_PATH, 'read-letter.html');
+    const { user_id, status_code } = auth_user(req_data.cookies);
 
-    let letter_page;
-    try {
-        letter_page = await readFile(page_path, { encoding: 'utf8' });
-    } catch (error) {
-        res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
+    if (status_code === 500)
+    {
+        res_obj.page(status_code, fallback_page(status_code));
         return;
     }
 
-    const db_res = await db_get_letter_by_id(letter_id);
-    if (db_res.Error) {
-        res_obj.error(db_res.status_code, db_res.Error);
-        return;
+    if (user_id) { // User is authenticated
+        index_page = index_page
+            .replace('{{ nav-links }}', nav_links(true))
+            .replace('{{ write-post-link }}', write_post_link());
+    } else {
+        index_page = index_page
+            .replace('{{ nav-links }}', nav_links(false))
+            .replace('{{ write-post-link }}', '');
     }
 
-    const letter = db_res;
-    const letter_card = make_HTML_letter_card(letter, true);
+    const { posts, db_error } = db_op.select_posts_page(1, 20, 'desc');
 
-    letter_page = letter_page.replace('{{ letter_card }}', letter_card);
-
-    res_obj.success(200, letter_page, 'text/html');
-}
-
-async function hdl_get_write_letter_page(req_data, res_obj) 
-{
-    if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
-        return;
+    if (db_error) 
+        index_page = index_page.replace('{{ post-cards }}', fallback_info_msg('Sorry, unable to retrieve the posts :)'));
+    else 
+    {
+        const post_cards = [];
+        posts.forEach(post => {
+            post_cards.push(post_card(post, 2, true));
+        });
+        index_page = index_page.replace('{{ post-cards }}', post_cards.join(''));
     }
-
-    const page_path = join(WEB_INTERFACE_PATH, 'write-letter.html');
-
-    let write_letter_page;
-    try {
-        write_letter_page = await readFile(page_path, { encoding: 'utf8' });
-    } catch (error) {
-        res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
-        return;
-    }
-
-    res_obj.success(200, write_letter_page, 'text/html');
-}
-
-async function hdl_get_write_reply_page(req_data, res_obj) 
-{
-    if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`)
-        return;
-    }
-
-    const letter_id = req_data.search_params.get('id');
-    if (!letter_id) {
-        res_obj.error(400, 'Missing or invalid letter id');
-        return;
-    }
-
-    const page_path = join(WEB_INTERFACE_PATH, 'write-reply.html');
-
-    let write_reply_page;
-    try {
-        write_reply_page = await readFile(page_path, { encoding: 'utf8' });
-    } catch (error) {
-        res_obj.error(500, `Unable to read '${page_path}' from disk`, error.message);
-        return;
-    }
-
-    const db_res = await db_get_letter_by_id(letter_id);
-    if (db_res.Error) {
-        res_obj.error(db_res.status_code, db_res.Error);
-        return;
-    }
-
-    const letter = db_res;
-    const letter_card = make_HTML_letter_card(letter, false);
     
-    write_reply_page = write_reply_page.replace('{{ letter_card }}', letter_card);
-    
-    res_obj.success(200, write_reply_page, 'text/html');
+    res_obj.page(200, index_page);
+};
 
-}
-
-async function hdl_get_asset(req_data, res_obj) 
+page['create-account'].GET = async function(req_data, res_obj)
 {
-    if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
+    let { page: signup_page, fs_error } = await read_HTML_page('create-account');
+   
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
         return;
     }
 
+    res_obj.page(200, signup_page);
+};
+
+page.login.GET = async function(req_data, res_obj)
+{
+    let { page: login_page, fs_error } = await read_HTML_page('login');
+    
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    res_obj.page(200, login_page);
+};
+
+// Auth required to access the page
+page.profile.GET = async function(req_data, res_obj)
+{
+    const { user_id, status_code } = auth_user(req_data.cookies);
+
+    if (!user_id)
+    {
+        res_obj.page(status_code, fallback_page(status_code));
+        return;
+    }
+
+    let { page: profile_page, fs_error } = await read_HTML_page('profile');
+    
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    const { posts, db_error } = db_op.select_user_posts(user_id);
+
+    if (db_error)
+        profile_page = profile_page.replace('{{ post-cards }}', 
+            fallback_info_msg('Sorry, unable to retrieve the posts :('));
+    else
+    {
+        const post_cards = [];
+        posts.forEach(post => {
+            post_cards.push(post_card(post, 1, true));
+        });
+        profile_page = profile_page.replace('{{ post-cards }}', 
+            post_cards.length > 0 ? post_cards.join('') : fallback_info_msg('You didn\'t create any post yet.'));
+    }
+
+    res_obj.page(200, profile_page);
+};
+
+// Auth required to access the page
+page['write-post'].GET = async function(req_data, res_obj) 
+{
+    const { user_id, status_code } = auth_user(req_data.cookies);
+
+    if (!user_id)
+    {
+        res_obj.page(status_code, fallback_page(status_code));
+        return;
+    }
+
+    const { page: write_post_page, fs_error } = await read_HTML_page('write-post');
+    
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    res_obj.page(200, write_post_page);
+};
+
+// Auth required to access the page
+page['write-reply'].GET = async function(req_data, res_obj) 
+{
+    const { user_id, status_code } = auth_user(req_data.cookies);
+
+    if (!user_id)
+    {
+        res_obj.page(status_code, fallback_page(status_code));
+        return;
+    }
+
+    let { page: write_reply_page, fs_error } = await read_HTML_page('write-reply');
+    
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    const post_id = req_data.search_params.get('id');
+    
+    const { post, db_error } = db_op.select_post(post_id);
+    
+    if (db_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    if (!post) {
+        write_reply_page = write_reply_page.replace('{{ post-card }}', fallback_info_msg(`There is no post with id '${post_id}'`));
+    } else {
+        write_reply_page = write_reply_page.replace('{{ post-card }}', post_card(post, 0, false));
+    }
+
+    res_obj.page(200, write_reply_page);
+};
+
+page['read-post'].GET = async function(req_data, res_obj)
+{
+    let { page: post_page, fs_error } = await read_HTML_page('read-post');
+    
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    const post_id = req_data.search_params.get('id');
+    const { post, db_error } = db_op.select_post(post_id);
+
+    if (db_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    const { user_id, status_code } = auth_user(req_data.cookies);
+
+    if (!post) {
+        post_page = post_page.replace('{{ post-card }}', fallback_info_msg(`There is no post with id '${post_id}'`));
+    } else {
+        post_page = post_page.replace('{{ post-card }}', post_card(post, user_id ? 2 : 0, false));
+    }
+
+    /*
+     * If, who is reading the post is also its the author, load the replies. */
+
+    if (user_id) post_page = post_page.replace('{{ nav-links }}', `<a href="index">Index</a><a href="profile">Profile</a>`);
+    else post_page = post_page.replace('{{ nav-links }}', `<a href="index">Index</a>`);
+
+    if (user_id && post.user_id === user_id)
+    {
+        // load replies
+        const { replies, db_error } = db_op.select_post_replies(post_id);
+
+        if (db_error)
+            post_page = post_page.replace('{{ replies }}', 
+                fallback_info_msg('Sorry, unable to retrieve the replies :('));
+        else
+        {
+            const reply_cards = [];
+            replies.forEach(reply => {
+                reply_cards.push(reply_card(reply));
+            });
+
+            post_page = post_page.replace('{{ replies }}',
+                reply_cards.length > 0 ? reply_cards.join('') : fallback_info_msg('There aren\'t replies.'));
+        }
+    }
+    else
+        post_page = post_page.replace('{{ replies }}', '');
+
+    res_obj.page(200, post_page);
+};  
+
+// Auth required to access the page
+page.logout.GET = async function(req_data, res_obj)
+{
+    const { user_id, status_code } = auth_user(req_data.cookies);
+
+    if (!user_id)
+    {
+        res_obj.page(status_code, fallback_page(status_code));
+        return;
+    }
+
+    const { page: logout_page, fs_error } = await read_HTML_page('logout');
+    
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    res_obj.page(200, logout_page);
+};
+
+// Auth required to access the page
+page['delete-account'].GET = async function(req_data, res_obj)
+{
+    const { user_id, status_code } = auth_user(req_data.cookies);
+
+    if (!user_id)
+    {
+        res_obj.page(status_code, fallback_page(status_code));
+        return;
+    }  
+
+    const { page: delete_account_page, fs_error } = await read_HTML_page('delete-account');
+
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    res_obj.page(200, delete_account_page);
+};
+
+/*
+ * 
+ *  Miscellaneous 
+ */
+
+function not_found(path, res_obj) {
+    res_obj.error(404, `The path '${path}' doesn't exist`);
+}
+
+async function get_asset(req_data, res_obj) 
+{
     const asset_path = req_data.path;
 
     let f_binary = false;
@@ -169,6 +371,7 @@ async function hdl_get_asset(req_data, res_obj)
             content_type = 'image/svg+xml';
             break;
         case '.js':
+        case '.mjs':
             content_type = 'text/javascript';
             break;
         case '.json':
@@ -180,196 +383,416 @@ async function hdl_get_asset(req_data, res_obj)
             break;
         default:
             content_type = 'text/plain';
-            // First, I check if the extension is defined, because not necessarily the request was made to get an asset.
-            if (file_ext) console.warn(`WARN: unknown file extension: '${file_ext}'. Pathname: '${asset_path}'.`);
+            // First, I check if the extension is defined, because not necessarily the request was made to get an asset 
+            // (I simply route to it as last chance).
+            if (file_ext) console.warn(`WARN: unknown file extension: '${file_ext}'. Path: '${asset_path}'.`);
             break;
     }
 
-    let asset;
     try { 
-        asset = await readFile(join(WEB_INTERFACE_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
+        const asset = await readFile(join(WEB_INTERFACE_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
+        
+        // I solved an unsolved computer science problem. 
+        // Frameworks like Vue and React force you to put assets in a specific folder if I remember correctly.
+        if (req_data.method !== 'GET') {
+            res_obj.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
+        } else {
+            res_obj.success(200, asset, content_type);
+        }
+
     } catch (error) {
         if (error.code === 'ENOENT') {
-            res_obj.error(404, `The path '${asset_path}' does not exist`);
+            not_found(asset_path, res_obj);
+        } else if (error.code === 'EISDIR') {
+            res_obj.error(400, `'${asset_path}' is a directory`);
         } else {
-            res_obj.error(500, `Un unknown error has occured while trying to read '${asset_path}' from disk`, error.message);
+            log_error(error);
+            res_obj.error(500, `Un unknown error has occured while trying to read '${asset_path}' from disk`);
         }
-        return;
     }
-
-    res_obj.success(200, asset, content_type);
 }
 
-async function hdl_letter(req_data, res_obj)
+function auth_user(cookies)
 {
-    const allowed_methods = ['GET', 'POST', 'DELETE'];
-    if (!allowed_methods.includes(req_data.method)) {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
-        return;
+    let status_code = 200, auth_error = null;
+
+    if (!cookies || !cookies.password_hash) {
+        auth_error = MSG_INVALID_COOKIE('password_hash');
+        status_code = 401;
+        return { user_id: null, status_code, auth_error };
+    }  
+
+    const { user_id, db_error } = validate_token(cookies.password_hash);
+
+    if (db_error) {
+        status_code = 500;
+        auth_error = MSG_UNKNOWN_DB_ERROR('validate', 'token');
+    }
+    else if (!user_id) {
+        status_code = 401;
+        auth_error = `Invalid 'password_hash'. It may be expired`;
     }
 
-    await _handle_letter[req_data.method](req_data, res_obj);
+    return { user_id, status_code, auth_error };
+} 
+
+/*
+ * 
+ *  APIs 
+ */
+
+const API = {};
+
+API.user  = route_API_method('user');
+API.token = route_API_method('token');
+API.post  = route_API_method('post');
+API.reply = route_API_method('reply');
+API['posts/page']    = route_API_method('posts/page');
+API['posts/all'] = route_API_method('posts/all');
+
+function route_API_method(api) {
+    return function(req_data, res_obj) {
+        if (this[api][req_data.method]) {
+            this[api][req_data.method](req_data, res_obj);
+        } else {
+            res_obj.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
+        }
+    }
 }
 
-const _handle_letter = {};
+/*
+ *  
+ *  APIs - User
+ */
 
-_handle_letter.GET = async function(req_data, res_obj)
+API.user.POST = function(req_data, res_obj) 
 {
-    const letter_id = req_data.search_params.get('id');
-    if (!letter_id) {
-        res_obj.error(400, 'Missing required letter id');
-        return;
-    }
+    const password = generate_password();
+    /* I might check if an user with the generated password already exists,
+    but, given the probability of generating two times the same password
+    in my life time is 0, I don't do it. */
+    const password_hash = hash_password(password);
 
-    const db_res = await db_get_letter_by_id(letter_id);
-    if (db_res.Error) {
-        res_obj.error(db_res.status_code, db_res.Error);
-        return;
-    }
+    const user_id = db_op.insert_user(password_hash);
 
-    res_obj.success(200, db_res);
-}
-
-_handle_letter.POST = async function(req_data, res_obj)
-{
-    let letter_obj;
-    try {
-        letter_obj = JSON.parse(req_data.payload);
-    } catch (error) {
-        res_obj.error(400, `The payload doesn't have a valid JSON format. Catched error: '${error.message}'`);
-        return;
-    }
-    
-    // checking with just '(!letter_obj.message)' wouldb't be correct.
-    if (letter_obj.message === undefined) {
-        res_obj.error(400, `Missing required message field in the payload. Received: ${req_data.payload}`);
-        return;
-    }
-
-    if (letter_obj.email === undefined) {
-        res_obj.error(400, `Missing required email field in the payload. Received: ${req_data.payload}`);
-        return;
-    }
-
-    if (letter_obj.message.length === 0) {
-        res_obj.error(400, `The message of the letter can't be empty`);
-        return;
-    }
-    
-    /* TODO verify the email */
-
-    if (letter_obj.email.length === 0) {
-        res_obj.error(400, `The email address can't be empty`);
-        return;
-    }
-
-    const res = await db_store_letter(letter_obj);
-    
-    if (res.Error) {
-        res_obj.error(500, 'Un unknown error has occured while trying to store the letter', res.Error);
+    if (!user_id) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'user'));
     } else {
-        res_obj.success(200, { Success: 'Letter uploaded successfully.' });
+        res_obj.success(200, { password });
     }
-}
+};
 
-// The DELETE functionality isn't implemented.
-// Deleting letters implies that there is an auth system.
-_handle_letter.DELETE = async function(req_data, res_obj)
+API.user.DELETE = function(req_data, res_obj) 
 {
-    return res_obj.success(501, 'Functionality not available');
+    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
     
-    const letter_id = req_data.search_params.get('id');
-    if (!letter_id) {
-        res_obj.error(400, 'Missing required letter id');
-        return;
-    } 
-
-    const db_res = await db_delete_letter_by_id(letter_id);
-    if (db_res.Error) {
-        res_obj.error(db_res.status_code, db_res.Error);
+    if (auth_error)
+    {
+        res_obj.error(status_code, auth_error);
         return;
     }
 
-    res_obj.success(200, db_res);
-}
+    const { is_user_deleted, db_error } = db_op.delete_user(user_id);
 
-async function hdl_reply(req_data, res_obj)
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'user'));
+        return;
+    }
+
+    if (!is_user_deleted) {
+        res_obj.error(404, MSG_NOT_FOUND('user', 'user_id'));
+        return;
+    }
+
+    res_obj.success(200);
+};
+
+/*
+ *  
+ *  APIs - Token
+ */
+
+API.token.GET = function(req_data, res_obj)
 {
-    const allowed_methods = ['POST'];
-    if (!allowed_methods.includes(req_data.method)) {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
+    const password = req_data.search_params.get('password');
+    
+    if (!password) {
+        res_obj.error(400, MSG_INVALID_SEARCH_PARAM('password'));
         return;
     }
 
-    await _handle_reply[req_data.method](req_data, res_obj);
-}
+    const password_hash = hash_password(password);
 
-const _handle_reply = {};
+    const { token, db_error } = db_op.select_token(password_hash);
 
-_handle_reply.POST = async function(req_data, res_obj)
-{
-    const letter_id = req_data.search_params.get('id');
-    if (!letter_id) {
-        res_obj.error(400, 'Missing required letter id');
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('validate', 'token'));
         return;
     }
 
-    const db_res = await db_get_letter_by_id(letter_id, false);
-    if (db_res.Error) {
-        res_obj.error(db_res.status_code, db_res.Error);
-        return;
-    }
-
-    const email = db_res.email;
-
-    let reply;
-    try {
-        /* Even though I expect the paylod to be parsed to a string (given that the payload is always a string), 
-        I parse it anyway, because on the web-interface a stringified empty string become '""' and
-        the test below (if (reply.length === 0)) would fail (because the length of the string is 2).
-        I may avoid sending the payload on the client-side if it's empty, but I want anyway the validations
-        to happen on the server-side because I want the latter to be client-agnostic. */
-        reply = JSON.parse(req_data.payload);
-    } catch (error) {
-        res_obj.error(400, `The payload doesn't have a valid JSON format. Catched error: '${error.message}'`);
-        return;
-    }
-
-    if (reply.length === 0) {
-        res_obj.error(400, 'The reply can\'t be empty');
-        return;
-    }
-
-    // console.log('email:', email);
-    // console.log('Your letter: ', `http://localhost:3000/read-letter?id=${db_res.id}`)
-    // console.log('reply:', reply);
-
-    return res_obj.error(501, 'Service not implemented');
-}
-
-async function hdl_get_letters_all(req_data, res_obj)
-{
-    if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
-        return;
-    } 
-
-    const res = await db_get_all_letters();
-
-    if (res.Error) {
-        res_obj.error(500, 'Un unknown error has occured while trying to retrieve the letters from db', res.Error);
+    if (token) {
+        res_obj.success(200, token);
     } else {
-        res_obj.success(200, res);
+        res_obj.error(404, MSG_NOT_FOUND('token', 'password'));
     }
-}
+};
 
-async function hdl_get_letters_page(req_data, res_obj)
+API.token.POST = function(req_data, res_obj)
 {
-    if (req_data.method !== 'GET') {
-        res_obj.error(405, `The method '${req_data.method}' is not allowed for path '${req_data.path}'`);
+    const { obj: payload, JSON_error } = JSON_to_obj(req_data.payload);
+
+    if (JSON_error) {
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FORMAT(JSON_error));
+        return; 
+    }
+
+    const password = payload.password;
+
+    if (!password || typeof password !== 'string') {
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('password'));
+        return; 
+    }
+
+    const password_hash = hash_password(password);
+
+    const { user, db_error } = db_op.select_user(password_hash);
+    
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('select', 'user'));
         return;
+    }
+
+    if (!user) {
+        res_obj.error(404, MSG_NOT_FOUND('user', 'password'));
+        return; 
+    }
+
+    const { token, db_error: token_db_error } = db_op.select_token(password_hash);
+
+    if (token_db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('validate', 'token'));
+        return;
+    }
+
+    if (token) {
+        res_obj.error(400, 'A token for that user already exists');
+        return; 
     } 
 
+    const token_id = db_op.insert_token(user.id, password_hash);
+    
+    if (!token_id) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'token'));
+    } else {
+        res_obj.success(200, { password_hash });
+    }
+};
+
+API.token.PUT = function(req_data, res_obj)
+{
+    const { obj, JSON_error } = JSON_to_obj(req_data.payload);
+
+    if (JSON_error) {
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FORMAT(JSON_error));
+        return; 
+    }
+
+    const password = obj.password;
+
+    if (!password || typeof password !== 'string') {
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('password'));
+        return; 
+    }
+
+    const password_hash = hash_password(password);
+
+    const { token, db_error } = db_op.select_token(password_hash);
+    
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('select', 'token'));
+        return;
+    }
+    
+    if (!token) {
+        res_obj.error(404, MSG_NOT_FOUND('token', 'password'));
+        return;
+    }
+
+    let expires_at = new Date();
+    expires_at.setHours(expires_at.getHours() + 24);
+    expires_at = expires_at.toISOString();
+
+    const { is_token_updated, db_error: token_db_error } = db_op.update_token(expires_at, password_hash);
+
+    if (token_db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('update', 'token'));
+        return;
+    }
+    
+    if (!is_token_updated) {
+        res_obj.error(404, MSG_NOT_FOUND('token', 'password_hash'));
+        return;
+    }
+
+    res_obj.success(200, { password_hash });
+};
+
+/*
+ *  
+ *  APIs - Post
+ */
+
+API.post.GET = function(req_data, res_obj)
+{
+    const post_id = req_data.search_params.get('id');
+    
+    if (!post_id) {
+        res_obj.error(400, MSG_INVALID_SEARCH_PARAM('id'));
+        return;
+    }
+
+    const { post, db_error } = db_op.select_post(post_id);
+
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('select', 'post'));
+        return;
+    }
+
+    if (!post) {
+        res_obj.error(404, MSG_NOT_FOUND('post', 'id'));
+        return; 
+    }
+
+    res_obj.success(200, post);
+};
+
+API.post.POST = function(req_data, res_obj)
+{
+    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    
+    if (auth_error)
+    {
+        res_obj.error(status_code, auth_error);
+        return;
+    }
+    
+    const { obj: post, JSON_error } = JSON_to_obj(req_data.payload);
+
+    if (JSON_error) {
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FORMAT(JSON_error));
+        return; 
+    }
+
+    const { content } = post;
+
+    if (!content || typeof content !== 'string') { 
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
+        return; 
+    }
+
+    const post_id = db_op.insert_post(user_id, content);
+    
+    if (!post_id) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'post'))
+    } else {
+        res_obj.success(200, { post_id });
+    }
+};
+
+API.post.DELETE = function(req_data, res_obj)
+{    
+    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    
+    if (auth_error)
+    {
+        res_obj.error(status_code, auth_error);
+        return;
+    }
+
+    const post_id = req_data.search_params.get('id');
+    
+    if (!post_id) {
+        res_obj.error(400, MSG_INVALID_SEARCH_PARAM('id'));
+        return;
+    }
+
+    const { is_post_deleted, db_error } = db_op.delete_post(post_id, user_id);
+    
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'post'));
+        return;
+    }
+
+    if (!is_post_deleted) {
+        res_obj.error(404,  `Either the post for the specified 'id' doesn't exist, or you aren't the owner of that post`);
+        return;
+    }
+
+    res_obj.success(200);
+};
+
+/*
+ *  
+ *  APIs - Reply
+ */
+
+API.reply.POST = function(req_data, res_obj)
+{
+    const { status_code, auth_error } = auth_user(req_data.cookies);
+    
+    if (auth_error)
+    {
+        res_obj.error(status_code, auth_error);
+        return;
+    }
+
+    const { obj: reply_obj, JSON_error } = JSON_to_obj(req_data.payload);
+
+    if (JSON_error) {
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FORMAT(JSON_error));
+        return; 
+    }
+
+    const { post_id, content } = reply_obj;
+
+    if (!post_id) {
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('post_id'));
+        return;
+    }
+
+    if (!content || typeof content !== 'string') {
+        res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
+        return;
+    }
+
+    const { post, db_error } = db_op.select_post(post_id);
+
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('select', 'post'));
+        return;
+    }
+
+    if (!post) {
+        res_obj.error(404, MSG_NOT_FOUND('post', 'id'));
+        return; 
+    }
+
+    const reply_id = db_op.insert_reply(post_id, content);
+
+    if (!reply_id) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'reply'));
+    } else {
+        res_obj.success(200, { reply_id });
+    }
+};
+
+/*
+ * 
+ *  Miscellaneous 
+ */ 
+
+API['posts/page'].GET = function(req_data, res_obj)
+{
     const page = parseInt(req_data.search_params.get('page')) || 1;
     const limit = parseInt(req_data.search_params.get('limit')) || 50;
     const sort = req_data.search_params.get('sort') || 'asc';
@@ -389,24 +812,35 @@ async function hdl_get_letters_page(req_data, res_obj)
         return;
     }
 
-    const res = await db_get_letters_page(page, limit, sort);
+    const res = db_op.select_posts_page(page, limit, sort);
 
-    if (res.Error) {
-        res_obj.error(500, 'Un unknown error has occured while trying to retrieve a letters page from db', res.Error);
+    if (res.db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('get', 'posts'));
     } else {
         res_obj.success(200, res);
     }
-}
+};
+
+API['posts/all'].GET = function(req_data, res_obj)
+{
+    const { posts, db_error } = db_op.select_all_posts();
+
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('select', 'posts'));
+        return;
+    }
+
+    res_obj.success(200, posts);
+};
+
+/*
+ * 
+ * 
+ */
 
 export {
-    hdl_pong,
-    hdl_get_home_page,
-    hdl_get_read_letter_page,
-    hdl_get_write_letter_page,
-    hdl_get_write_reply_page,
-    hdl_get_asset,
-    hdl_letter,
-    hdl_reply,
-    hdl_get_letters_all,
-    hdl_get_letters_page,
+    page,
+    API,
+    not_found,
+    get_asset,
 };

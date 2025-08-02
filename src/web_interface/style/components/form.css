@@ -1,14 +1,15 @@
 form {
-    --ta-padding: 1.2rem;
+    --input-padding: 1.2rem;
     --ta-border-width: 1px;
     --ta-font-size: 1.2rem;
 
     font-size: var(--ta-font-size);
+
     /* I use this prop to set the width of the inner textarea.
     I don't set it from the textarea itself, 
     because the width would be shrinked down given 'margin: auto'
     (also flex has the same effect). */
-    max-width: calc(70ch + 2*var(--ta-padding) + 2*var(--ta-border-width));
+    max-width: calc(70ch + 2*var(--input-padding) + 2*var(--ta-border-width));
     width: 100%;
 
     /* For some reason if I don't put flex, 
@@ -17,8 +18,16 @@ form {
     flex-direction: column;
 }
 
+form > input {
+    padding: var(--input-padding);
+    font-size: inherit;
+    line-height: 1.4;
+    width: 100%;
+    height: 100%;
+}
+
 form > textarea {
-    padding: var(--ta-padding);
+    padding: var(--input-padding);
     font-size: inherit;
     line-height: 1.4;
     width: 100%;
@@ -28,8 +37,9 @@ form > textarea {
 
 form > button[type=submit] {
     display: block;
-    font-size: 1.5rem;
-    padding: .9rem;
     margin-top: .5rem;
-    margin-left: auto;
+    font-size: 1.2rem;
+    /* .66em == .8rem given font-size = 1.2rem */
+    padding-block: .66em; 
+    padding-inline: 1.2em;
 }

@@ -6,6 +6,10 @@ button img {
     display: block;
 }
 
+/* For the styling of the button I don't set font-size and padding, because
+they are not intrinsic to the styling and I prefer to customize them based on the context.
+The same is true for margin and display that have an influence on the layout outside the button itself. */
+
 .primary-btn {
     border-radius: 12px;
     border-width: 1px;

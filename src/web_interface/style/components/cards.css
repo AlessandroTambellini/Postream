@@ -1,12 +1,65 @@
+/*
+ *
+ *  Post/Reply Cards
+ */
+
+.post-card,
+.reply-card {
+    padding: 1.2rem;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.post-card {
+    background: #f5f5f5;
+}
+
+.reply-card {
+    background: #fcfcfc;
+}
+
+.post-card p,
+.reply-card p {
+    color: var(--clr-txt);
+    font-size: 1.2rem;
+    line-height: 1.4;
+    max-width: 70ch;
+    width: 100%;
+
+    /* Keep extra whitespaces and newlines.
+    A side-effect of this property is that if the text is selected,
+    the selection overflows a bit the card. */
+    white-space: pre-wrap; 
+}
+
+.post-card time,
+.reply-card time {
+    display: block;
+    text-align: right;
+    padding-top: 1em;
+    color: rgb(72, 72, 72);
+}
+
+.post-card a {
+    display: inline-block;
+    margin-top: .5em;
+}
+
+/*
+ *
+ *  Feedback Cards
+ */
+
 .feedback-card {    
     padding: 20px;
     border-radius: 8px;
     border-left: 4px solid;
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
     /* For the close button ('x') that has position absolute. */
     position: relative;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .feedback-card:hover {

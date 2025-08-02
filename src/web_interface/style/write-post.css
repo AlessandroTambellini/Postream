@@ -3,13 +3,9 @@
 @import './components/buttons.css';
 @import './components/cards.css';
 
-main {
-    margin: .5em;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1em;
+form {
+    margin: auto;
+    padding: .5em;
 }
 
 button[type=submit] {
@@ -19,3 +15,4 @@ button[type=submit] {
 .feedback-card {
     margin-block: 5px;
 }
+
