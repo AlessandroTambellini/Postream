@@ -18,7 +18,6 @@ import {
 import { 
     post_card, 
     write_post_link, 
-    nav_links, 
     reply_card, 
     fallback_page,
     fallback_info_msg, 
@@ -96,11 +95,11 @@ page.index.GET = async function(req_data, res_obj)
 
     if (user_id) { // User is authenticated
         index_page = index_page
-            .replace('{{ nav-links }}', nav_links(true))
+            .replace('{{ nav-links }}', `<a href="profile">Profile</a><a href="logout">Logout</a>`)
             .replace('{{ write-post-link }}', write_post_link());
     } else {
         index_page = index_page
-            .replace('{{ nav-links }}', nav_links(false))
+            .replace('{{ nav-links }}', `<a href="login">Login</a><a href="create-account">Create Account</a>`)
             .replace('{{ write-post-link }}', '');
     }
 

@@ -30,22 +30,6 @@ function post_card(post, reply_link_type = false, cut_post_content = false)
     `;
 }
 
-// Meh, I don't know. I use this function just for the index page.
-function nav_links(logged_in) {
-    if (logged_in)
-    {
-        return `
-            <a href="profile">Profile</a>
-            <a href="logout">Logout</a>
-        `;
-    } else {
-        return `
-            <a href="login">Login</a>
-            <a href="create-account">Create Account</a>        
-        `;
-    }
-}
-
 function write_post_link() {
     return `
         <nav id="write-post-link-wrapper">
@@ -119,7 +103,6 @@ function fallback_info_msg(msg)
 export {
     reply_card,
     post_card,
-    nav_links,
     write_post_link,
     fallback_page,
     fallback_info_msg,
