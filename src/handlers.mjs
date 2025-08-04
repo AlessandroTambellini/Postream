@@ -360,33 +360,30 @@ async function get_asset(req_data, res_obj)
     let f_binary = false;
     let content_type;
 
-    const file_ext = extname(asset_path);
+    const file_ext = extname(asset_path).replace('.', '');
     
-    switch (file_ext) {
-        case '.css':
-            content_type = 'text/css';
-            break;
-        case '.svg':
-            content_type = 'image/svg+xml';
-            break;
-        case '.js':
-        case '.mjs':
-            content_type = 'text/javascript';
-            break;
-        case '.json':
-            content_type = 'application/json';
-            break;
-        case '.ttf':
-            content_type = 'font/ttf';
-            f_binary = true;
-            break;
-        default:
+    const extensions = {
+        css: 'text/css',
+        svg: 'image/svg+xml',
+        js: 'text/javascript',
+        mjs: 'text/javascript',
+        json: 'application/json',
+        ttf: 'font/ttf',
+    };
+
+    if (extensions[file_ext]) {
+        content_type = extensions[file_ext];
+    } else {
             content_type = 'text/plain';
-            // First, I check if the extension is defined, because not necessarily the request was made to get an asset 
-            // (I simply route to it as last chance).
-            if (file_ext) console.warn(`WARN: unknown file extension: '${file_ext}'. Path: '${asset_path}'.`);
-            break;
+        /* Not necessarily the request was made to get an asset.
+        So, before logging the warning for 'unknown extension', I first check if the extension is even defined at all.
+        That's because 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path. */
+        if (file_ext)
+            console.warn(`WARN: Unknown file extension '${file_ext}'. File path: '${asset_path}'.`);
     }
+
+    if (content_type === 'font/ttf') 
+        f_binary = true;
 
     try { 
         const asset = await readFile(join(WEB_INTERFACE_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
