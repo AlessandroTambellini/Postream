@@ -9,26 +9,29 @@
     
     <link rel="icon" type="image/svg+xml" href="assets/mailbox.svg">
     <link rel="stylesheet" href="style/profile.css">
+
+    <script async src="scripts/profile.js"></script>
 </head>
 <body>
+    <h1 class="hidden">Profile</h1>
 
     <nav class="top-nav">
         <a href="index">Index</a>
+        <a href="notifications">Notifications</a>
         <a href="logout">Logout</a>
         <a href="delete-account">Delete Account</a>
     </nav>
 
     <main>
-
-        <!-- Possible filtering nav here -->
+        <div id="profile-img-container">
+            <div id="profile-img"></div>
+        </div>
 
         <div id="post-stream">
+            <h2>Posts</h2>
             <div id="posts-container">
                 {{ post-cards }}
             </div>
-
-            <!-- Perhaps I add the feature to load more of them
-            like in index page. -->
         </div>
     
         <nav id="write-post-link-wrapper">

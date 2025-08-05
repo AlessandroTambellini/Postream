@@ -17,8 +17,9 @@ import {
 
 import { 
     post_card, 
-    write_post_link, 
     reply_card, 
+    notification_card,
+    write_post_link, 
     fallback_page,
     fallback_info_msg, 
 } from "./templates.js";
@@ -58,6 +59,7 @@ page.index = route_page_method('index');
 page.login = route_page_method('login');
 page['create-account'] = route_page_method('create-account');
 page.profile = route_page_method('profile');
+page.notifications = route_page_method('notifications');
 page['write-post'] = route_page_method('write-post');
 page['write-reply'] = route_page_method('write-reply');
 page['read-post'] = route_page_method('read-post');
@@ -95,7 +97,7 @@ page.index.GET = async function(req_data, res_obj)
 
     if (user_id) { // User is authenticated
         index_page = index_page
-            .replace('{{ nav-links }}', `<a href="profile">Profile</a><a href="logout">Logout</a>`)
+            .replace('{{ nav-links }}', `<a href="profile">Profile</a><a href="notifications">Notifications</a><a href="logout">Logout</a>`)
             .replace('{{ write-post-link }}', write_post_link());
     } else {
         index_page = index_page
@@ -175,11 +177,48 @@ page.profile.GET = async function(req_data, res_obj)
         posts.forEach(post => {
             post_cards.push(post_card(post, 1, true));
         });
+
         profile_page = profile_page.replace('{{ post-cards }}', 
             post_cards.length > 0 ? post_cards.join('') : fallback_info_msg('You didn\'t create any post yet.'));
     }
 
     res_obj.page(200, profile_page);
+};
+
+page.notifications.GET = async function(req_data, res_obj)
+{
+    const { user_id, status_code } = auth_user(req_data.cookies);
+
+    if (!user_id)
+    {
+        res_obj.page(status_code, fallback_page(status_code));
+        return;
+    }
+
+    let { page: notifications_page, fs_error } = await read_HTML_page('notifications');
+
+    if (fs_error) {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    const { notifications, db_error } = db_op.select_user_notifications(user_id);
+
+    if (db_error)
+        notifications_page = notifications_page.replace('{{ notifications }}', 
+            fallback_info_msg('Sorry, unable to retrieve the posts :('));
+    else
+    {
+        const notification_cards = [];
+        notifications.forEach(notification => {
+            notification_cards.push(notification_card(notification));
+        });
+
+        notifications_page = notifications_page.replace('{{ notifications }}', 
+            notification_cards.length > 0 ? notification_cards.join('') : fallback_info_msg('You don\'t have any notification :)'));
+    }
+
+    res_obj.page(200, notifications_page);
 };
 
 // Auth required to access the page
@@ -374,7 +413,7 @@ async function get_asset(req_data, res_obj)
     if (extensions[file_ext]) {
         content_type = extensions[file_ext];
     } else {
-            content_type = 'text/plain';
+        content_type = 'text/plain';
         /* Not necessarily the request was made to get an asset.
         So, before logging the warning for 'unknown extension', I first check if the extension is even defined at all.
         That's because 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path. */
@@ -439,11 +478,12 @@ function auth_user(cookies)
 
 const API = {};
 
-API.user  = route_API_method('user');
+API.user = route_API_method('user');
 API.token = route_API_method('token');
-API.post  = route_API_method('post');
+API.post = route_API_method('post');
 API.reply = route_API_method('reply');
-API['posts/page']    = route_API_method('posts/page');
+API['user/notifications'] = route_API_method('user/notifications');
+API['posts/page'] = route_API_method('posts/page');
 API['posts/all'] = route_API_method('posts/all');
 
 function route_API_method(api) {
@@ -482,8 +522,7 @@ API.user.DELETE = function(req_data, res_obj)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
     
-    if (auth_error)
-    {
+    if (auth_error) {
         res_obj.error(status_code, auth_error);
         return;
     }
@@ -679,14 +718,18 @@ API.post.POST = function(req_data, res_obj)
         return; 
     }
 
-    const { content } = post;
+    let { content, created_at } = post;
 
     if (!content || typeof content !== 'string') { 
         res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
         return; 
     }
 
-    const post_id = db_op.insert_post(user_id, content);
+    if (!created_at || typeof created_at !== 'string') {
+        created_at = new Date().toISOString();
+    }
+
+    const post_id = db_op.insert_post(user_id, content, created_at);
     
     if (!post_id) {
         res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'post'))
@@ -749,7 +792,7 @@ API.reply.POST = function(req_data, res_obj)
         return; 
     }
 
-    const { post_id, content } = reply_obj;
+    let { post_id, content, created_at } = reply_obj;
 
     if (!post_id) {
         res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('post_id'));
@@ -759,6 +802,10 @@ API.reply.POST = function(req_data, res_obj)
     if (!content || typeof content !== 'string') {
         res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
         return;
+    }
+
+    if (!created_at || typeof created_at !== 'string') {
+        created_at = new Date().toISOString();
     }
 
     const { post, db_error } = db_op.select_post(post_id);
@@ -773,13 +820,53 @@ API.reply.POST = function(req_data, res_obj)
         return; 
     }
 
-    const reply_id = db_op.insert_reply(post_id, content);
+    const reply_id = db_op.insert_reply(post_id, content, created_at);
 
     if (!reply_id) {
         res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'reply'));
-    } else {
-        res_obj.success(200, { reply_id });
+        return;
     }
+
+    const notification_id = db_op.insert_notification(post.user_id, post.id, post.content.substring(0, 70), reply_id, created_at);
+
+    if (!notification_id) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'notification'));
+        return;
+    }
+
+    res_obj.success(200, { reply_id });
+};
+
+API['user/notifications'].DELETE = function(req_data, res_obj)
+{
+    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    
+    if (auth_error)
+    {
+        res_obj.error(status_code, auth_error);
+        return;
+    }  
+
+    const notification_id = req_data.search_params.get('id');
+    
+    if (!notification_id) {
+        res_obj.error(400, MSG_INVALID_SEARCH_PARAM('id'));
+        return;
+    }
+
+    const { is_notification_deleted, db_error } = db_op.delete_notification(notification_id, user_id);
+    
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'notification'));
+        return;
+    }
+
+    if (!is_notification_deleted) {
+        res_obj.error(404,  `Either the notification for the specified 'id' doesn't exist, or you aren't the owner of that notification`);
+        return;
+    }
+
+    res_obj.success(200);
 };
 
 /*

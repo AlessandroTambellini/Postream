@@ -4,22 +4,28 @@
  */
 
 .post-card,
-.reply-card {
+.reply-card,
+.notification-card {
     padding: 1.2rem;
     border: 1px solid #ccc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .post-card {
-    background: #f5f5f5;
+    background-color: #f5f5f5;
 }
 
 .reply-card {
-    background: #fcfcfc;
+    background-color: #fcfcfc;
+}
+
+.notification-card {
+    background-color: #f1f1f1;
 }
 
 .post-card p,
-.reply-card p {
+.reply-card p
+.notification-card p {
     color: var(--clr-txt);
     font-size: 1.2rem;
     line-height: 1.4;
@@ -40,9 +46,25 @@
     color: rgb(72, 72, 72);
 }
 
+.notification-card time {
+    display: inline-block;
+    margin-bottom: .5em;
+}
+
 .post-card a {
     display: inline-block;
     margin-top: .5em;
+}
+
+.notification-card footer {
+    margin-top: 1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-card button {
+    font-size: 1rem;
 }
 
 /*

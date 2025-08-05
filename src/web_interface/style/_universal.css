@@ -38,7 +38,8 @@ a, button, textarea, input {
 
 .top-nav {
     display: flex;
-    justify-content: right;
+    flex-wrap: wrap;
+    /* justify-content: right; */
     gap: .8em;
     max-width: 1400px;
     margin: auto;

@@ -10,15 +10,39 @@ main {
     position: relative;  
 }
 
-#post-stream {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+#profile-img-container {
+    padding-top: 2vh;   
+    padding-bottom: 3vh;   
 }
 
-#posts-container {
+#profile-img {
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+    border: 1px solid #939393;
+    background-color: #fcfcfc;
+    border-radius: 100%;
+    margin: auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.profile-img-component {
+    border-radius: 100%;
+    aspect-ratio: 1;
+    position: absolute;
+}
+
+#post-stream {
+    width: fit-content;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
     padding: .5em;
+}
+
+#post-stream h2 {
+    margin-bottom: .5em;
 }
 
 #posts-container .post-card {

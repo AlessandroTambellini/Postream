@@ -21,7 +21,7 @@ async function handle_post_submission(e)
     
     const content = textarea.value;
 
-    const { status_code, req_error } = await req(path, method, null, { content });
+    const { status_code, req_error } = await req(path, method, null, { content, created_at: new Date().toString() });
 
     if (req_error) {
         feedback.show('error', err_msg(status_code, 'post', 'send'));

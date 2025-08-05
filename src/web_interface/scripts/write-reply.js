@@ -22,7 +22,7 @@ async function handle_reply_submission(e)
     const post_id = document.URL.split('?id=')[1];
     const content = textarea.value;
 
-    const { status_code, req_error } = await req(path, method, null, { post_id, content });
+    const { status_code, req_error } = await req(path, method, null, { post_id, content, created_at: new Date().toString() });
 
     if (req_error) {
         feedback.show('error', err_msg(status_code, 'reply', 'send'));

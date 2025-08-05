@@ -1,0 +1,19 @@
+@import './_universal.css';
+@import './components/cards.css';
+@import './components/buttons.css';
+
+main {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    align-items: center;
+}
+
+h1 {
+    margin-block: .5em;
+}
+
+.notification-card {
+    margin-bottom: .5em;
+    margin-inline: .5em;
+}

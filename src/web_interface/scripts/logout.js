@@ -1,4 +1,4 @@
-import setup_feedback_cards from "./utils/feedback.js";
+import { setup_feedback_cards } from "./utils/feedback.js";
 
 const logout_form = document.querySelector('form');
 const feedback = logout_form.querySelector('.feedback-card');

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Document</title>
+
+    <link rel="icon" type="image/svg+xml" href="assets/mailbox.svg">
+    <link rel="stylesheet" href="style/notifications.css">
+
+    <script type="module" src="scripts/notifications.js"></script>
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="index">Index</a>
+        <a href="profile">Profile</a>
+    </nav>
+
+    <main>
+        <h1>Notifications</h1>
+
+        <div class="feedback-card none">
+            <div class="feedback-icon"></div>
+            <div class="feedback-content">
+                <p class="feedback-title"></p>
+                <p class="feedback-text"></p>
+            </div>
+            <button class="close-btn" type="button">x</button>
+        </div>
+
+        {{ notifications }}
+    </main>
+</body>
+</html>

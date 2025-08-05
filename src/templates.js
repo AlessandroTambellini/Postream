@@ -1,15 +1,3 @@
-function reply_card(reply)
-{
-    const { content, created_at } = reply;
-
-    return `
-        <article class='reply-card'>
-            <p>${content}</p>
-            <time datetime="${created_at}">${new Date(created_at).toLocaleString()}</time>
-        </article>
-    `;
-}
-
 function post_card(post, reply_link_type = false, cut_post_content = false)
 {
     const { id, content, created_at } = post;
@@ -26,6 +14,34 @@ function post_card(post, reply_link_type = false, cut_post_content = false)
                 content}</p>
             <time datetime="${created_at}">${new Date(created_at).toLocaleString()}</time>
             ${reply_link_types[reply_link_type]}
+        </article>
+    `;
+}
+
+function reply_card(reply)
+{
+    const { id, content, created_at } = reply;
+
+    return `
+        <article id='reply-${id}' class='reply-card'>
+            <p>${content}</p>
+            <time datetime="${created_at}">${new Date(created_at).toLocaleString()}</time>
+        </article>
+    `;
+}
+
+function notification_card(notification)
+{
+    const { id, post_id, post_content, reply_id, created_at } = notification;
+
+    return `
+        <article id='notification-card-${id}' class='notification-card'>
+            <time datetime="${created_at}">${new Date(created_at).toLocaleString()}</time>
+            <p><b>New reply for:</b> ${post_content}...</p>
+            <footer>
+                <a href='read-post?id=${post_id}#reply-${reply_id}'>Read Reply</a>
+                <button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>
+            </footer>
         </article>
     `;
 }
@@ -101,8 +117,9 @@ function fallback_info_msg(msg)
 }
 
 export {
-    reply_card,
     post_card,
+    reply_card,
+    notification_card,
     write_post_link,
     fallback_page,
     fallback_info_msg,
