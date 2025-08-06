@@ -10,12 +10,12 @@ main {
     position: relative;  
 }
 
-#profile-icon-container {
+#profile-picture-container {
     padding-top: 2vh;   
     padding-bottom: 3vh;   
 }
 
-#profile-icon {
+#profile-picture {
     width: 100%;
     max-width: 300px;
     aspect-ratio: 1;
@@ -27,11 +27,11 @@ main {
     position: relative;
 }
 
-#profile-icon img {
+#profile-picture img {
     position: absolute;
 }
 
-#profile-icon .circle {
+#profile-picture .circle {
     position: absolute;
     aspect-ratio: 1;
     border-radius: 100%;
