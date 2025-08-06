@@ -39,14 +39,67 @@ a, button, textarea, input {
 .top-nav {
     display: flex;
     flex-wrap: wrap;
-    /* justify-content: right; */
-    gap: .8em;
+    /* gap: 1.6em; */
     max-width: 1400px;
     margin: auto;
 
     font-size: 1.2rem;
     padding-block: .8em;
     padding-inline: calc(2vw + .5rem);
+}
+
+.top-nav a {
+    padding-inline: 0.8em;
+    padding-block: .4em;
+    position: relative;
+    padding-left: 1.2em; /* distance from the triangle */ 
+    text-decoration: none;
+}
+
+.top-nav a:hover {
+    text-decoration: underline;
+}
+
+.top-nav a::before {
+    --triangle-color: #939393;
+}
+
+.top-nav a[href=index]::before {
+    --triangle-color: #10b981;
+} 
+.top-nav a[href=login]::before {
+    --triangle-color: #4affc3;
+} 
+.top-nav a[href=create-account]::before {
+    --triangle-color: #ff8725;
+} 
+.top-nav a[href=notifications]::before {
+    --triangle-color: #3b82f6;
+} 
+.top-nav a[href=profile]::before {
+    --triangle-color: #d359f8;
+} 
+.top-nav a[href=logout]::before {
+    --triangle-color: #ffcc3f;
+} 
+.top-nav a[href=delete-account]::before {
+    --triangle-color: #840000;
+} 
+
+.top-nav a::before {
+    content: "";
+    position: absolute;
+    left: 0.4em;
+    top: 50%;
+    transform: translateY(-50%);
+    
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 8px solid var(--triangle-color);
+
+    transition: all 0.2s ease;
 }
 
 /*
