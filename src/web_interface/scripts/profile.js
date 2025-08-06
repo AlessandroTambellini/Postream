@@ -1,25 +1,26 @@
 /* Profile Image Art
 I generate a kind of profile icon every time the page is accessed.
-I felt the page was too emtpy and without an identity. */
+I felt the page was without an identity. It was not clear it is a profile page. */
 
-const profile_img = document.querySelector('#profile-img');
+const rand_int = (max) => Math.floor(Math.random() * max + 1);
 
-const num_of_divs = Math.max(10, Math.floor(Math.random() * 50));
+const profile_icon = document.querySelector('#profile-icon');
 
-for (let i = 0; i < num_of_divs; i++)
+const profile_face = profile_icon.querySelector('img');
+profile_face.style.top = `${Math.max(20, rand_int(250))}px`
+profile_face.style.left = `${Math.max(10, rand_int(250))}px`
+
+const num_of_circles = Math.max(10, rand_int(50));
+
+for (let i = 0; i < num_of_circles; i++)
 {
-    const div = document.createElement('div');
-    div.className = 'profile-img-component';
+    const circle = document.createElement('div');
+    circle.classList.add('circle');
 
-    const size = Math.floor(Math.random() * 120);
-    div.style.width = `${size}px`;
-    div.style.top = `${Math.floor(Math.random() * 270)}px`;
-    div.style.left = `${Math.floor(Math.random() * 270)}px`;
+    circle.style.width = `${rand_int(120)}px`;
+    circle.style.backgroundColor = `rgb(${rand_int(256)}, ${rand_int(256)}, ${rand_int(256)})`;
+    circle.style.top = `${rand_int(270)}px`;
+    circle.style.left = `${rand_int(270)}px`;
 
-    const r = Math.floor(Math.random() * 256);
-    const g = Math.floor(Math.random() * 256);
-    const b = Math.floor(Math.random() * 256);
-    div.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-
-    profile_img.appendChild(div)
+    profile_icon.appendChild(circle)
 }

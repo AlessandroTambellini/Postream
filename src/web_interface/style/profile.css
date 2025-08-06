@@ -10,12 +10,12 @@ main {
     position: relative;  
 }
 
-#profile-img-container {
+#profile-icon-container {
     padding-top: 2vh;   
     padding-bottom: 3vh;   
 }
 
-#profile-img {
+#profile-icon {
     width: 100%;
     max-width: 300px;
     aspect-ratio: 1;
@@ -27,10 +27,14 @@ main {
     position: relative;
 }
 
-.profile-img-component {
-    border-radius: 100%;
-    aspect-ratio: 1;
+#profile-icon img {
     position: absolute;
+}
+
+#profile-icon .circle {
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 100%;
 }
 
 #post-stream {
