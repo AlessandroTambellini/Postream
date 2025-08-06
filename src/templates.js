@@ -84,7 +84,7 @@ function fallback_page(status_code)
             
             <title>Page ${status_code}</title>
             
-            <link rel="icon" type="image/svg+xml" href="assets/mailbox.svg">
+            <link rel="icon" type="image/svg+xml" href="assets/write-post.svg">
             <link rel="stylesheet" href="style/_universal.css">
 
             <style>
