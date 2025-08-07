@@ -48,6 +48,7 @@ const MSG_UNKNOWN_DB_ERROR = (action, entity) => {
     return `Un unknown database error has occured while trying to ${action} the ${entity}`;
 };
 
+
 /*
  * 
  *  Pages 
@@ -382,94 +383,7 @@ page['delete-account'].GET = async function(req_data, res_obj)
 
     res_obj.page(200, delete_account_page);
 };
-
-/*
- * 
- *  Miscellaneous 
- */
-
-function not_found(path, res_obj) {
-    res_obj.error(404, `The path '${path}' doesn't exist`);
-}
-
-async function get_asset(req_data, res_obj) 
-{
-    const asset_path = req_data.path;
-
-    let f_binary = false;
-    let content_type;
-
-    const file_ext = extname(asset_path).replace('.', '');
-    
-    const extensions = {
-        css: 'text/css',
-        svg: 'image/svg+xml',
-        js: 'text/javascript',
-        mjs: 'text/javascript',
-        json: 'application/json',
-        ttf: 'font/ttf',
-    };
-
-    if (extensions[file_ext]) {
-        content_type = extensions[file_ext];
-    } else {
-        content_type = 'text/plain';
-        /* Not necessarily the request was made to get an asset.
-        So, before logging the warning for 'unknown extension', I first check if the extension is even defined at all.
-        That's because 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path. */
-        if (file_ext)
-            console.warn(`WARN: Unknown file extension '${file_ext}'. File path: '${asset_path}'.`);
-    }
-
-    if (content_type === 'font/ttf') 
-        f_binary = true;
-
-    try { 
-        const asset = await readFile(join(WEB_INTERFACE_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
-        
-        // I solved an unsolved computer science problem. 
-        // Frameworks like Vue and React force you to put assets in a specific folder if I remember correctly.
-        if (req_data.method !== 'GET') {
-            res_obj.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
-        } else {
-            res_obj.success(200, asset, content_type);
-        }
-
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            not_found(asset_path, res_obj);
-        } else if (error.code === 'EISDIR') {
-            res_obj.error(400, `'${asset_path}' is a directory`);
-        } else {
-            log_error(error);
-            res_obj.error(500, `Un unknown error has occured while trying to read '${asset_path}' from disk`);
-        }
-    }
-}
-
-function auth_user(cookies)
-{
-    let status_code = 200, auth_error = null;
-
-    if (!cookies || !cookies.password_hash) {
-        auth_error = MSG_INVALID_COOKIE('password_hash');
-        status_code = 401;
-        return { user_id: null, status_code, auth_error };
-    }  
-
-    const { user_id, db_error } = validate_token(cookies.password_hash);
-
-    if (db_error) {
-        status_code = 500;
-        auth_error = MSG_UNKNOWN_DB_ERROR('validate', 'token');
-    }
-    else if (!user_id) {
-        status_code = 401;
-        auth_error = `Invalid 'password_hash'. It may be expired`;
-    }
-
-    return { user_id, status_code, auth_error };
-} 
+ 
 
 /*
  * 
@@ -478,6 +392,7 @@ function auth_user(cookies)
 
 const API = {};
 
+API.list = route_API_method('list');
 API.user = route_API_method('user');
 API.token = route_API_method('token');
 API.post = route_API_method('post');
@@ -496,10 +411,10 @@ function route_API_method(api) {
     }
 }
 
-/*
- *  
- *  APIs - User
- */
+API.list.GET = function(req_data, res_obj) 
+{
+    res_obj.success(200, { 'Available APIs': Object.keys(API) });
+};
 
 API.user.POST = function(req_data, res_obj) 
 {
@@ -541,11 +456,6 @@ API.user.DELETE = function(req_data, res_obj)
 
     res_obj.success(200);
 };
-
-/*
- *  
- *  APIs - Token
- */
 
 API.token.GET = function(req_data, res_obj)
 {
@@ -672,11 +582,6 @@ API.token.PUT = function(req_data, res_obj)
     res_obj.success(200, { password_hash });
 };
 
-/*
- *  
- *  APIs - Post
- */
-
 API.post.GET = function(req_data, res_obj)
 {
     const post_id = req_data.search_params.get('id');
@@ -769,11 +674,6 @@ API.post.DELETE = function(req_data, res_obj)
 
     res_obj.success(200);
 };
-
-/*
- *  
- *  APIs - Reply
- */
 
 API.reply.POST = function(req_data, res_obj)
 {
@@ -869,11 +769,6 @@ API['user/notifications'].DELETE = function(req_data, res_obj)
     res_obj.success(200);
 };
 
-/*
- * 
- *  Miscellaneous 
- */ 
-
 API['posts/page'].GET = function(req_data, res_obj)
 {
     const page = parseInt(req_data.search_params.get('page')) || 1;
@@ -916,14 +811,93 @@ API['posts/all'].GET = function(req_data, res_obj)
     res_obj.success(200, posts);
 };
 
+
 /*
  * 
- * 
+ *  Miscellaneous 
  */
+
+async function get_asset(req_data, res_obj) 
+{
+    const asset_path = req_data.path;
+
+    let f_binary = false;
+    let content_type;
+
+    const file_ext = extname(asset_path).replace('.', '');
+    
+    const extensions = {
+        css: 'text/css',
+        svg: 'image/svg+xml',
+        js: 'text/javascript',
+        mjs: 'text/javascript',
+        json: 'application/json',
+        ttf: 'font/ttf',
+    };
+
+    if (extensions[file_ext]) {
+        content_type = extensions[file_ext];
+    } else {
+        content_type = 'text/plain';
+        /* Not necessarily the request was made to get an asset.
+        So, before logging the warning for 'unknown extension', I first check if the extension is even defined at all.
+        That's because 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path. */
+        if (file_ext)
+            console.warn(`WARN: Unknown file extension '${file_ext}'. File path: '${asset_path}'.`);
+    }
+
+    if (content_type === 'font/ttf') 
+        f_binary = true;
+
+    try { 
+        const asset = await readFile(join(WEB_INTERFACE_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
+        
+        // I solved an unsolved computer science problem. 
+        // Frameworks like Vue and React force you to put assets in a specific folder if I remember correctly.
+        if (req_data.method !== 'GET') {
+            res_obj.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
+        } else {
+            res_obj.success(200, asset, content_type);
+        }
+
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            res_obj.error(404, `The path '${asset_path}' doesn't exist`);
+        } else if (error.code === 'EISDIR') {
+            res_obj.error(400, `'${asset_path}' is a directory`);
+        } else {
+            log_error(error);
+            res_obj.error(500, `Un unknown error has occured while trying to read '${asset_path}' from disk`);
+        }
+    }
+}
+
+function auth_user(cookies)
+{
+    let status_code = 200, auth_error = null;
+
+    if (!cookies || !cookies.password_hash) {
+        auth_error = MSG_INVALID_COOKIE('password_hash');
+        status_code = 401;
+        return { user_id: null, status_code, auth_error };
+    }  
+
+    const { user_id, db_error } = validate_token(cookies.password_hash);
+
+    if (db_error) {
+        status_code = 500;
+        auth_error = MSG_UNKNOWN_DB_ERROR('validate', 'token');
+    }
+    else if (!user_id) {
+        status_code = 401;
+        auth_error = `Invalid 'password_hash'. It may be expired`;
+    }
+
+    return { user_id, status_code, auth_error };
+}
 
 export {
     page,
     API,
-    not_found,
     get_asset,
 };

@@ -1,7 +1,6 @@
 import * as http from 'node:http';
 import * as https from 'node:https';
 import { readFileSync } from 'node:fs';
-import { debuglog as _debuglog } from 'node:util';
 import { join } from 'node:path';
 import 'dotenv/config';
 
@@ -14,8 +13,6 @@ const PORT = PROTOCOL === 'https' ? 3001 : 3000;
 
 const MAX_BUFFER_SIZE = 128 * 1024; // 128KB
 const CERTIFICATES_PATH = join(import.meta.dirname, '..');
-
-const debuglog = _debuglog('server');
 
 const options = {
     key: readFileSync(join(CERTIFICATES_PATH, 'private-key.pem')),
@@ -36,43 +33,13 @@ server.listen(PORT);
 
 function handle_request(req, res)
 {
-    // res_obj can't be global because of possible conflicts among concurrent requests
-    const res_obj = 
-    {
-        status_code: 500,
-        content_type: 'application/json',
-        payload: {},
-
-        error: function(status_code, error_msg = '', server_log = false) {
-            this.status_code = status_code;
-            this.payload = { Error: `${error_msg}.` };
-            this.content_type = 'application/json';
-            
-            if (server_log) console.error(`ERROR: ${error_msg}.`);
-        },
-
-        success: function(status_code, payload = {}, content_type = 'application/json') {
-            this.status_code = status_code;
-            this.payload = payload;
-            this.content_type = content_type;
-        },
-
-        // I creaed the 'page' method, because calling 'res_obj.success()' for a page 500/401 doesn't seem too clear to me.
-        page: function(status_code, payload = '') {
-            this.status_code = status_code;
-            this.payload = payload;
-            this.content_type = 'text/html';
-        },
-    };
-
     const url_obj = new URL(req.url, `${PROTOCOL}://localhost:${PORT}`);
-    const trimmed_path = url_obj.pathname.replace(/^\/+|\/+$/g, '');
-
-    debuglog(`${req.method} /${trimmed_path}`);
 
     const body = [];
     let buffer_size = 0;
     let f_abort = false;
+
+    const res_obj = new Res();
     
     req.on('data', buffer => 
     {
@@ -96,7 +63,7 @@ function handle_request(req, res)
         if (f_abort) return;
 
         const req_data = {
-            'path': trimmed_path,
+            'path': url_obj.pathname,
             'search_params': url_obj.searchParams,
             'method': req.method,
             'cookies': parse_cookies(req.headers),
@@ -104,21 +71,15 @@ function handle_request(req, res)
         };
 
         try {
+            const path = req_data.path;
+            const page_path = path === '/' ? 'index' : path.replace('/', '');
+            const api_path = path === '/api' ? 'list' : path.replace('/api/', '');
 
-            let path = req_data.path;
-            if (path === '') path = 'index';
-
-            if (handlers.page[path]) {
-                await handlers.page[path](req_data, res_obj);
+            if (handlers.page[page_path]) {
+                await handlers.page[page_path](req_data, res_obj);
             } 
-            else if (path.startsWith('api/')) 
-            {  
-                const api_path = path.replace('api/', '');
-                if (handlers.API[api_path]) {
-                    handlers.API[api_path](req_data, res_obj);
-                } else {
-                    handlers.not_found(path, res_obj);
-                }
+            else if (handlers.API[api_path]) {  
+                handlers.API[api_path](req_data, res_obj);
             } 
             else {
                 await handlers.get_asset(req_data, res_obj);
@@ -151,12 +112,13 @@ function handle_request(req, res)
 function write_res(res, res_obj) 
 {
     try {
-        const payload = res_obj.content_type === 'application/json' ? JSON.stringify(res_obj.payload) : res_obj.payload;
+        const { status_code, payload: plain_payload, content_type } = res_obj.get_data();
+        const payload = content_type === 'application/json' ? JSON.stringify(plain_payload) : plain_payload;
         
         res.strictContentLength = true;
-        res.writeHead(res_obj.status_code, {
+        res.writeHead(status_code, {
             'Content-Length': Buffer.byteLength(payload),
-            'Content-Type': res_obj.content_type,
+            'Content-Type': content_type,
             'X-Frame-Options': 'SAMEORIGIN',
         });
 
@@ -216,4 +178,40 @@ function shutdown_server(signal)
         console.log('INFO: Database connection closed.');
         process.exit(128 + signals[signal]);
     });
+}
+
+class Res 
+{
+    #status_code = 500;
+    #payload = {};
+    #content_type = 'application/json';
+
+    error(status_code, error_msg = '', server_log = false) {
+        this.#status_code = status_code;
+        this.#payload = { Error: `${error_msg}.` };
+        this.#content_type = 'application/json';
+        
+        if (server_log) console.error(`ERROR: ${error_msg}.`);
+    }
+
+    success(status_code, payload = {}, content_type = 'application/json') {
+        this.#status_code = status_code;
+        this.#payload = payload;
+        this.#content_type = content_type;
+    }
+
+    // I creaed the 'page' method, because calling 'res_obj.success()' for a page 500/401 doesn't seem too clear to me.
+    page(status_code, payload = '') {
+        this.#status_code = status_code;
+        this.#payload = payload;
+        this.#content_type = 'text/html';
+    }
+
+    get_data() {
+        return {
+            status_code: this.#status_code,
+            payload: this.#payload,
+            content_type: this.#content_type,
+        }
+    }
 }
