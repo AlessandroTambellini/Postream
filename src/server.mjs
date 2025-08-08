@@ -76,7 +76,11 @@ function handle_request(req, res)
             const api_path = path === '/api' ? 'list' : path.replace('/api/', '');
 
             if (handlers.page[page_path]) {
-                await handlers.page[page_path](req_data, res_obj);
+                if (req_data.method === 'GET') {
+                    await handlers.page[page_path](req_data, res_obj);
+                } else {
+                    res_obj.error(405, `The method '${req_data.method}' isn't allowed for path '${req_data.path}'`);
+                }
             } 
             else if (handlers.API[api_path]) {  
                 handlers.API[api_path](req_data, res_obj);
@@ -112,13 +116,12 @@ function handle_request(req, res)
 function write_res(res, res_obj) 
 {
     try {
-        const { status_code, payload: plain_payload, content_type } = res_obj.get_data();
-        const payload = content_type === 'application/json' ? JSON.stringify(plain_payload) : plain_payload;
+        const payload = res_obj.content_type === 'application/json' ? JSON.stringify(res_obj.payload) : res_obj.payload;
         
         res.strictContentLength = true;
-        res.writeHead(status_code, {
+        res.writeHead(res_obj.status_code, {
             'Content-Length': Buffer.byteLength(payload),
-            'Content-Type': content_type,
+            'Content-Type': res_obj.content_type,
             'X-Frame-Options': 'SAMEORIGIN',
         });
 
@@ -182,36 +185,28 @@ function shutdown_server(signal)
 
 class Res 
 {
-    #status_code = 500;
-    #payload = {};
-    #content_type = 'application/json';
+    status_code = 500;
+    payload = {};
+    content_type = 'application/json';
 
     error(status_code, error_msg = '', server_log = false) {
-        this.#status_code = status_code;
-        this.#payload = { Error: `${error_msg}.` };
-        this.#content_type = 'application/json';
+        this.status_code = status_code;
+        this.payload = { Error: `${error_msg}.` };
+        this.content_type = 'application/json';
         
         if (server_log) console.error(`ERROR: ${error_msg}.`);
     }
 
     success(status_code, payload = {}, content_type = 'application/json') {
-        this.#status_code = status_code;
-        this.#payload = payload;
-        this.#content_type = content_type;
+        this.status_code = status_code;
+        this.payload = payload;
+        this.content_type = content_type;
     }
 
     // I creaed the 'page' method, because calling 'res_obj.success()' for a page 500/401 doesn't seem too clear to me.
     page(status_code, payload = '') {
-        this.#status_code = status_code;
-        this.#payload = payload;
-        this.#content_type = 'text/html';
-    }
-
-    get_data() {
-        return {
-            status_code: this.#status_code,
-            payload: this.#payload,
-            content_type: this.#content_type,
-        }
+        this.status_code = status_code;
+        this.payload = payload;
+        this.content_type = 'text/html';
     }
 }

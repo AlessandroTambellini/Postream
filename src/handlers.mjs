@@ -56,29 +56,7 @@ const MSG_UNKNOWN_DB_ERROR = (action, entity) => {
 
 const page = {};
 
-page.index = route_page_method('index');
-page.login = route_page_method('login');
-page['create-account'] = route_page_method('create-account');
-page.profile = route_page_method('profile');
-page.notifications = route_page_method('notifications');
-page['write-post'] = route_page_method('write-post');
-page['write-reply'] = route_page_method('write-reply');
-page['read-post'] = route_page_method('read-post');
-page.logout  = route_page_method('logout');
-page['delete-account'] = route_page_method('delete-account');
-
-function route_page_method(page) {
-    return async function(req_data, res_obj) {
-        if (req_data.method === 'GET') {
-            await this[page].GET(req_data, res_obj);
-        } else {
-            res_obj.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
-        }
-    }
-}
-
-// Auth required to enable SOME functionalities of the page
-page.index.GET = async function(req_data, res_obj) 
+page.index = async function(req_data, res_obj) 
 {
     let { page: index_page, fs_error } = await read_HTML_page('index');
     
@@ -122,7 +100,7 @@ page.index.GET = async function(req_data, res_obj)
     res_obj.page(200, index_page);
 };
 
-page['create-account'].GET = async function(req_data, res_obj)
+page['create-account'] = async function(req_data, res_obj)
 {
     let { page: signup_page, fs_error } = await read_HTML_page('create-account');
    
@@ -135,7 +113,7 @@ page['create-account'].GET = async function(req_data, res_obj)
     res_obj.page(200, signup_page);
 };
 
-page.login.GET = async function(req_data, res_obj)
+page.login = async function(req_data, res_obj)
 {
     let { page: login_page, fs_error } = await read_HTML_page('login');
     
@@ -148,8 +126,7 @@ page.login.GET = async function(req_data, res_obj)
     res_obj.page(200, login_page);
 };
 
-// Auth required to access the page
-page.profile.GET = async function(req_data, res_obj)
+page.profile = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -186,7 +163,7 @@ page.profile.GET = async function(req_data, res_obj)
     res_obj.page(200, profile_page);
 };
 
-page.notifications.GET = async function(req_data, res_obj)
+page.notifications = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -222,8 +199,7 @@ page.notifications.GET = async function(req_data, res_obj)
     res_obj.page(200, notifications_page);
 };
 
-// Auth required to access the page
-page['write-post'].GET = async function(req_data, res_obj) 
+page['write-post'] = async function(req_data, res_obj) 
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -244,8 +220,7 @@ page['write-post'].GET = async function(req_data, res_obj)
     res_obj.page(200, write_post_page);
 };
 
-// Auth required to access the page
-page['write-reply'].GET = async function(req_data, res_obj) 
+page['write-reply'] = async function(req_data, res_obj) 
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -282,7 +257,7 @@ page['write-reply'].GET = async function(req_data, res_obj)
     res_obj.page(200, write_reply_page);
 };
 
-page['read-post'].GET = async function(req_data, res_obj)
+page['read-post'] = async function(req_data, res_obj)
 {
     let { page: post_page, fs_error } = await read_HTML_page('read-post');
     
@@ -340,8 +315,7 @@ page['read-post'].GET = async function(req_data, res_obj)
     res_obj.page(200, post_page);
 };  
 
-// Auth required to access the page
-page.logout.GET = async function(req_data, res_obj)
+page.logout = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -362,8 +336,7 @@ page.logout.GET = async function(req_data, res_obj)
     res_obj.page(200, logout_page);
 };
 
-// Auth required to access the page
-page['delete-account'].GET = async function(req_data, res_obj)
+page['delete-account'] = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -382,6 +355,17 @@ page['delete-account'].GET = async function(req_data, res_obj)
     }
 
     res_obj.page(200, delete_account_page);
+};
+
+page.logo = async function(req_data, res_obj)
+{
+    const { page: logo_page, fs_error } = await read_HTML_page('logo');
+
+    if (fs_error) {
+        res_obj.page(500, fallback_page(500));
+    } else {
+        res_obj.page(200, logo_page);
+    }
 };
  
 
@@ -829,6 +813,7 @@ async function get_asset(req_data, res_obj)
     const extensions = {
         css: 'text/css',
         svg: 'image/svg+xml',
+        png: 'image/png',
         js: 'text/javascript',
         mjs: 'text/javascript',
         json: 'application/json',
@@ -846,7 +831,7 @@ async function get_asset(req_data, res_obj)
             console.warn(`WARN: Unknown file extension '${file_ext}'. File path: '${asset_path}'.`);
     }
 
-    if (content_type === 'font/ttf') 
+    if (['font/ttf', 'image/png'].includes(content_type)) 
         f_binary = true;
 
     try { 
@@ -861,6 +846,7 @@ async function get_asset(req_data, res_obj)
         }
 
     } catch (error) {
+        console.log(error)
         if (error.code === 'ENOENT') {
             res_obj.error(404, `The path '${asset_path}' doesn't exist`);
         } else if (error.code === 'EISDIR') {

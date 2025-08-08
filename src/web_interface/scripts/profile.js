@@ -7,8 +7,8 @@ const rand_int = (max) => Math.floor(Math.random() * max + 1);
 const profile_picture = document.querySelector('#profile-picture');
 
 const profile_face = profile_picture.querySelector('img');
-profile_face.style.top = `${Math.max(20, rand_int(250))}px`
-profile_face.style.left = `${Math.max(10, rand_int(250))}px`
+profile_face.style.top = `${Math.max(20, rand_int(250))}px`;
+profile_face.style.left = `${Math.max(10, rand_int(250))}px`;
 
 const num_of_circles = Math.max(10, rand_int(50));
 
