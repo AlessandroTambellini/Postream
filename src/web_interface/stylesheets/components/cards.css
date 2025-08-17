@@ -6,9 +6,18 @@
 .post-card,
 .reply-card,
 .notification-card {
-    padding: 1.2rem;
+    --text-line-length: 70ch;
+    --padding: 1.2rem;
+    --border-thickness: 1px;
+
+    padding: var(--padding);
     border: 1px solid #ccc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: calc(var(--text-line-length) + var(--padding) + var(--border-thickness));
+
+    /* This is an exception. I set a layout prop inside the element itself.
+    Often, I set it from the parent for consistency */
+    margin-inline: auto;
 }
 
 .post-card {
@@ -29,7 +38,7 @@
     color: var(--clr-txt);
     font-size: 1.2rem;
     line-height: 1.4;
-    max-width: 70ch;
+    max-width: var(--text-line-length);
     width: 100%;
 
     /* Keep extra whitespaces and newlines.

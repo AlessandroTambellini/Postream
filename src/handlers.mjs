@@ -153,8 +153,6 @@ page.profile = async function(req_data, res_obj)
         return;
     }
 
-    const menu_entries = ['index', 'notifications', 'logout', 'delete-account'];
-
     const { posts, db_error } = db_op.select_user_posts(user_id);
 
     if (db_error) {
@@ -180,10 +178,11 @@ page.profile = async function(req_data, res_obj)
 
     // const pattern = new RegExp(Object.keys(interpolations).join('|'), 'g');
     // const profile_page = profile_template.replace(pattern, match => interpolations[match]);
+    const menu_entries = ['index', 'notifications', 'logout', 'delete-account'];
 
     const profile_page = profile_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, menu_entries))
+        .replace('{{ #side-nav }}', components['#side-nav'](false, menu_entries))
         .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](menu_entries))
     ;
 
