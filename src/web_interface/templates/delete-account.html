@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Post Stream / Delete Account</title>
+
+    <link rel="stylesheet" href="../stylesheets/delete-account.css">
+    <script type="module" src="../scripts/delete-account.js"></script>
+    
+    {{ universal-resources }}
+</head>
+<body>
+    <main>
+        <h1 class="hidden">Delete Account</h1>
+    
+        <p class="info-msg">
+            Your posts will be deleted.
+        </p>
+        
+        <form action="api/user" method="DELETE">
+    
+            <div class="feedback-card none">
+                <div class="feedback-icon"></div>
+                <div class="feedback-content">
+                    <p class="feedback-title"></p>
+                    <p class="feedback-text"></p>
+                </div>
+                <button class="close-btn" type="button">x</button>
+            </div>
+    
+            <button class="primary-btn" type="submit">Delete Account</button>
+        </form>
+    </main>
+
+    {{ #side-nav }}
+</body>
+</html>

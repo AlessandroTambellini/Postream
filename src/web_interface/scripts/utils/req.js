@@ -15,6 +15,8 @@ async function req(path, method, search_params_obj = null, payload_obj = null)
         },
     };
 
+    console.log(payload_obj)
+
     if (method !== 'GET' && method !== 'HEAD') {
         // If the payload is present or not, I send it anyway.
         options.body = JSON.stringify(payload_obj);

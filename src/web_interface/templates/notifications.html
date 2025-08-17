@@ -6,17 +6,12 @@
     
     <title>Post Stream / Notifications</title>
 
-    <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="style/notifications.css">
+    <link rel="stylesheet" href="../stylesheets/notifications.css">
+    <script type="module" src="../scripts/notifications.js"></script>
 
-    <script type="module" src="scripts/notifications.js"></script>
+    {{ universal-resources }}
 </head>
 <body>
-    <nav class="top-nav">
-        <a href="index">Index</a>
-        <a href="profile">Profile</a>
-    </nav>
-
     <main>
         <h1>Notifications</h1>
 
@@ -31,5 +26,8 @@
 
         {{ notifications }}
     </main>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
 </body>
 </html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Post Stream / Create Account</title>
+    
+    <link rel="stylesheet" href="../stylesheets/create-account.css">
+    <script type="module" src="../scripts/create-account.js"></script>
+    
+    {{ universal-resources }}
+</head>
+<body>
+    <main>
+        <h1 class="hidden">Create Account</h1>
+
+        <p class="info-msg">
+            The password is generated automatically and there isn't an username.
+            Once you click on 'Create Account', you'll receive the password. 
+            That's the password you'll have to use to then login.
+        </p>
+
+        <form action="api/user" method="POST">
+
+            <button class="primary-btn" type="submit">
+                Create Account
+            </button>
+
+            <div class="feedback-card none">
+                <div class="feedback-icon"></div>
+                <div class="feedback-content">
+                    <p class="feedback-title"></p>
+                    <p class="feedback-text"></p>
+                </div>
+                <button class="close-btn" type="button">x</button>
+            </div>
+        </form>
+
+        <div class="none">
+            <button class="btn-unclicked">Copy</button>
+            <p id="password"></p>
+        </div>
+
+        <a href="login">Login</a>
+    </main>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
+</body>
+</html>

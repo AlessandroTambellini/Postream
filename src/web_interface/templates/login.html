@@ -3,29 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Reply to a post">
     
-    <title>Post Stream / Write Reply</title>
+    <title>Post Stream / Login</title>
     
-    <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="style/write-reply.css">
-
-    <script type="module" src="scripts/write-reply.js"></script>
+    <link rel="stylesheet" href="../stylesheets/login.css">
+    
+    <script type="module" src="../scripts/login.js"></script>
+    <!-- <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <script type="module" src="../scripts/utils/side-nav.js"></script> -->
+    {{ universal-resources }}
 </head>
 <body>
-    <h1 class="hidden">Write Reply</h1>
+    <h1 class="hidden">Login</h1>
 
-    <nav class="top-nav">
-        <a href="index">Index</a>
-        <a href="profile">Profile</a>
-    </nav>
-    
     <main>
-        {{ post-card }}
-
-        <form id="reply-form" action="api/reply" method="POST">
-            <textarea name="reply-textarea" placeholder="_"></textarea>
-            
+        <form action="api/token">
+    
+            <label for="password">Password:</label>
+            <input type="password" name="password" id="password" placeholder="·····">
+    
             <div class="feedback-card none">
                 <div class="feedback-icon"></div>
                 <div class="feedback-content">
@@ -34,11 +30,14 @@
                 </div>
                 <button class="close-btn" type="button">x</button>
             </div>
-        
+    
             <button class="primary-btn" type="submit">
-                Reply 
+                Login
             </button>
         </form>
     </main>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
 </body>
 </html>

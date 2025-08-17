@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Post Stream / Logout</title>
+    
+    <link rel="stylesheet" href="../stylesheets/logout.css">
+    <script type="module" src="../scripts/logout.js"></script>
+    
+    {{ universal-resources }}
+</head>
+<body>
+    <h1 class="hidden">Logout</h1>
+
+    <main>
+        <p class="info-msg">You'll be redirected to the home page.</p>
+    
+        <form>
+            
+            <div class="feedback-card none">
+                <div class="feedback-icon"></div>
+                <div class="feedback-content">
+                    <p class="feedback-title"></p>
+                    <p class="feedback-text"></p>
+                </div>
+                <button class="close-btn" type="button">x</button>
+            </div>
+            
+            <button class="primary-btn" type="submit">Logout</button>
+        </form>
+    </main>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
+</body>
+</html>

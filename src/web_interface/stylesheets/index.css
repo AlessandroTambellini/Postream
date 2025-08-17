@@ -2,16 +2,16 @@
 @import './components/buttons.css';
 @import './components/cards.css';
 
-/* body {
+body {
+    display: flex;
     max-height: 100vh;
-    overflow-y: scroll;
-} */
+}
 
 main {
     display: flex;
     flex-direction: column;
-    max-width: 1400px;
-    margin: auto;
+    width: 100%;
+    max-width: 1200px;
     position: relative;
 }
 
@@ -20,22 +20,25 @@ main {
     justify-content: center;
     gap: .5rem;
     padding-top: 1.5vh;
-    padding-bottom: 1vh;
+    padding-bottom: 1.5vh;
+    border-bottom: 1px solid #ccc;
+    z-index: 1;
+    box-shadow: -3px 3px 9px rgba(0, 0, 0, 0.1);
 }
 
 #post-stream {
-    /* overflow-y: scroll;
-    scrollbar-width: none; */
-    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-y: scroll;
+    scrollbar-width: none;
 }
 
 #posts-container {
     /* The post-card have some shadow and to avoid being covered by the container
     I add a bit of padding to their container. */
     padding: .5rem;
+    padding-top: 1rem;
 }
 
 #posts-container .post-card {
@@ -54,18 +57,17 @@ main {
     display: block;
 }
 
-#write-post-link-wrapper {
+nav:has(#write-post-link) {
     width: fit-content;
-    position: sticky;
+    position: absolute;
 
     /* .5rem is to leave a bit of fixed, consistent distance from the border */
     bottom: calc(2vw + .5rem);
-    margin-left: auto;
-    padding-right: calc(2vw + .5rem);
+    left: calc(2vw + .5rem);
 }
 
 #write-post-link {
-    --icon-width: 2rem;
+    --icon-width: 2.5rem;
 
     padding: calc(var(--icon-width) / 2.5);
     border-radius: 100%;
@@ -80,8 +82,10 @@ main {
     width: var(--icon-width);
 }
 
-@media (min-width: 500px) {
+/* Don't wanna deal with resizing now. 
+Before, I want to structure the layout. */
+/* @media (min-width: 500px) {
     #write-post-link img {
         --icon-width: 2.5rem;
     }  
-}
+} */

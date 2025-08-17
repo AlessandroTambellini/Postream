@@ -10,18 +10,14 @@ import {
 import { 
     JSON_to_obj,
     hash_password,
-    read_HTML_page,
+    read_template,
     generate_password,
     log_error,
 } from './utils.mjs';
 
 import { 
-    post_card, 
-    reply_card, 
-    notification_card,
-    write_post_link, 
+    components, 
     fallback_page,
-    fallback_info_msg, 
 } from "./templates.js";
 
 const WEB_INTERFACE_PATH = join(import.meta.dirname, 'web_interface');
@@ -58,7 +54,7 @@ const page = {};
 
 page.index = async function(req_data, res_obj) 
 {
-    let { page: index_page, fs_error } = await read_HTML_page('index');
+    let { template: index_template, fs_error } = await read_template('index');
     
     if (fs_error) 
     {
@@ -74,35 +70,33 @@ page.index = async function(req_data, res_obj)
         return;
     }
 
-    if (user_id) { // User is authenticated
-        index_page = index_page
-            .replace('{{ nav-links }}', `<a href="profile">Profile</a><a href="notifications">Notifications</a><a href="logout">Logout</a>`)
-            .replace('{{ write-post-link }}', write_post_link());
-    } else {
-        index_page = index_page
-            .replace('{{ nav-links }}', `<a href="login">Login</a><a href="create-account">Create Account</a>`)
-            .replace('{{ write-post-link }}', '');
-    }
-
     const { posts, db_error } = db_op.select_posts_page(1, 20, 'desc');
 
     if (db_error) 
-        index_page = index_page.replace('{{ post-cards }}', fallback_info_msg('Sorry, unable to retrieve the posts :)'));
+        index_template = index_template.replace('{{ post-cards }}', components['.info-msg']('Sorry, unable to retrieve the posts :)'));
     else 
     {
         const post_cards = [];
         posts.forEach(post => {
-            post_cards.push(post_card(post, 2, true));
+            post_cards.push(components['.post-card'](post, 2, true));
         });
-        index_page = index_page.replace('{{ post-cards }}', post_cards.join(''));
+        index_template = index_template.replace('{{ post-cards }}', post_cards.join(''));
     }
+
+    const menu_entries = user_id ? ['notifications'] : ['login', 'create-account'];
     
+    const index_page = index_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, menu_entries))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', ...menu_entries]))
+    ;
+
     res_obj.page(200, index_page);
 };
 
 page['create-account'] = async function(req_data, res_obj)
 {
-    let { page: signup_page, fs_error } = await read_HTML_page('create-account');
+    let { template: create_account_template, fs_error } = await read_template('create-account');
    
     if (fs_error) 
     {
@@ -110,18 +104,33 @@ page['create-account'] = async function(req_data, res_obj)
         return;
     }
 
-    res_obj.page(200, signup_page);
+    const menu_entries = ['index', 'login'];
+
+    const create_account_page = create_account_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](false, menu_entries))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](menu_entries));
+
+    res_obj.page(200, create_account_page);
 };
 
 page.login = async function(req_data, res_obj)
 {
-    let { page: login_page, fs_error } = await read_HTML_page('login');
+    let { template: login_template, fs_error } = await read_template('login');
     
     if (fs_error) 
     {
         res_obj.page(500, fallback_page(500));
         return;
     }
+
+    const menu_entries = ['index', 'create-account'];
+
+    const login_page = login_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](false, menu_entries))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](menu_entries))
+    ;
 
     res_obj.page(200, login_page);
 };
@@ -136,7 +145,7 @@ page.profile = async function(req_data, res_obj)
         return;
     }
 
-    let { page: profile_page, fs_error } = await read_HTML_page('profile');
+    let { template: profile_template, fs_error } = await read_template('profile');
     
     if (fs_error) 
     {
@@ -144,21 +153,39 @@ page.profile = async function(req_data, res_obj)
         return;
     }
 
+    const menu_entries = ['index', 'notifications', 'logout', 'delete-account'];
+
     const { posts, db_error } = db_op.select_user_posts(user_id);
 
-    if (db_error)
-        profile_page = profile_page.replace('{{ post-cards }}', 
-            fallback_info_msg('Sorry, unable to retrieve the posts :('));
+    if (db_error) {
+        profile_template = profile_template.replace('{{ post-cards }}', 
+            components['.info-msg']('Sorry, unable to retrieve the posts :('));
+    }
     else
     {
         const post_cards = [];
         posts.forEach(post => {
-            post_cards.push(post_card(post, 1, true));
+            post_cards.push(components['.post-card'](post, 1, true));
         });
 
-        profile_page = profile_page.replace('{{ post-cards }}', 
-            post_cards.length > 0 ? post_cards.join('') : fallback_info_msg('You didn\'t create any post yet.'));
+        profile_template = profile_template.replace('{{ post-cards }}', 
+            post_cards.length > 0 ? post_cards.join('') : components['.info-msg']('You didn\'t create any post yet.'));
     }
+
+    // const interpolations = {
+    //     '{{ universal-resources }}': components['universa-resources'],
+    //     '{{ #side-nav }}': components['#side-nav'](true, menu_entries),
+    //     '{{ #open-side-nav-btn }}': components['#open-side-nav-btn'](menu_entries),
+    // };
+
+    // const pattern = new RegExp(Object.keys(interpolations).join('|'), 'g');
+    // const profile_page = profile_template.replace(pattern, match => interpolations[match]);
+
+    const profile_page = profile_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](true, menu_entries))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](menu_entries))
+    ;
 
     res_obj.page(200, profile_page);
 };
@@ -173,7 +200,7 @@ page.notifications = async function(req_data, res_obj)
         return;
     }
 
-    let { page: notifications_page, fs_error } = await read_HTML_page('notifications');
+    let { template: notifications_template, fs_error } = await read_template('notifications');
 
     if (fs_error) {
         res_obj.page(500, fallback_page(500));
@@ -183,18 +210,24 @@ page.notifications = async function(req_data, res_obj)
     const { notifications, db_error } = db_op.select_user_notifications(user_id);
 
     if (db_error)
-        notifications_page = notifications_page.replace('{{ notifications }}', 
-            fallback_info_msg('Sorry, unable to retrieve the posts :('));
+        notifications_template = notifications_template.replace('{{ notifications }}', 
+            components['.info-msg']('Sorry, unable to retrieve the posts :('));
     else
     {
         const notification_cards = [];
         notifications.forEach(notification => {
-            notification_cards.push(notification_card(notification));
+            notification_cards.push(components['.notification-card'](notification));
         });
 
-        notifications_page = notifications_page.replace('{{ notifications }}', 
-            notification_cards.length > 0 ? notification_cards.join('') : fallback_info_msg('You don\'t have any notification :)'));
+        notifications_template = notifications_template.replace('{{ notifications }}', 
+            notification_cards.length > 0 ? notification_cards.join('') : components['.info-msg']('You don\'t have any notification :)'));
     }
+
+    const notifications_page = notifications_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index']))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index']))
+    ;
 
     res_obj.page(200, notifications_page);
 };
@@ -209,13 +242,19 @@ page['write-post'] = async function(req_data, res_obj)
         return;
     }
 
-    const { page: write_post_page, fs_error } = await read_HTML_page('write-post');
+    const { template: write_post_template, fs_error } = await read_template('write-post');
     
     if (fs_error) 
     {
         res_obj.page(500, fallback_page(500));
         return;
     }
+
+    const write_post_page = write_post_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index']))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index']))
+    ;
 
     res_obj.page(200, write_post_page);
 };
@@ -230,7 +269,7 @@ page['write-reply'] = async function(req_data, res_obj)
         return;
     }
 
-    let { page: write_reply_page, fs_error } = await read_HTML_page('write-reply');
+    let { template: write_reply_template, fs_error } = await read_template('write-reply');
     
     if (fs_error) 
     {
@@ -249,17 +288,23 @@ page['write-reply'] = async function(req_data, res_obj)
     }
 
     if (!post) {
-        write_reply_page = write_reply_page.replace('{{ post-card }}', fallback_info_msg(`There is no post with id '${post_id}'`));
+        write_reply_template = write_reply_template.replace('{{ .post-card }}', components['.info-msg'](`There is no post with id '${post_id}'`));
     } else {
-        write_reply_page = write_reply_page.replace('{{ post-card }}', post_card(post, 0, false));
+        write_reply_template = write_reply_template.replace('{{ .post-card }}', components['.post-card'](post, 0, false));
     }
+
+    const write_reply_page = write_reply_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index']))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index']))
+    ;
 
     res_obj.page(200, write_reply_page);
 };
 
 page['read-post'] = async function(req_data, res_obj)
 {
-    let { page: post_page, fs_error } = await read_HTML_page('read-post');
+    let { template: post_template, fs_error } = await read_template('read-post');
     
     if (fs_error) 
     {
@@ -279,16 +324,13 @@ page['read-post'] = async function(req_data, res_obj)
     const { user_id, status_code } = auth_user(req_data.cookies);
 
     if (!post) {
-        post_page = post_page.replace('{{ post-card }}', fallback_info_msg(`There is no post with id '${post_id}'`));
+        post_template = post_template.replace('{{ .post-card }}', components['.info-msg'](`There is no post with id '${post_id}'`));
     } else {
-        post_page = post_page.replace('{{ post-card }}', post_card(post, user_id ? 2 : 0, false));
+        post_template = post_template.replace('{{ .post-card }}', components['.post-card'](post, user_id ? 2 : 0, false));
     }
 
     /*
      * If, who is reading the post is also its the author, load the replies. */
-
-    if (user_id) post_page = post_page.replace('{{ nav-links }}', `<a href="index">Index</a><a href="profile">Profile</a>`);
-    else post_page = post_page.replace('{{ nav-links }}', `<a href="index">Index</a>`);
 
     if (user_id && post.user_id === user_id)
     {
@@ -296,21 +338,27 @@ page['read-post'] = async function(req_data, res_obj)
         const { replies, db_error } = db_op.select_post_replies(post_id);
 
         if (db_error)
-            post_page = post_page.replace('{{ replies }}', 
-                fallback_info_msg('Sorry, unable to retrieve the replies :('));
+            post_template = post_template.replace('{{ replies }}', 
+                components['.info-msg']('Sorry, unable to retrieve the replies :('));
         else
         {
             const reply_cards = [];
             replies.forEach(reply => {
-                reply_cards.push(reply_card(reply));
+                reply_cards.push(components['.reply-card'](reply));
             });
 
-            post_page = post_page.replace('{{ replies }}',
-                reply_cards.length > 0 ? reply_cards.join('') : fallback_info_msg('There aren\'t replies.'));
+            post_template = post_template.replace('{{ replies }}',
+                reply_cards.length > 0 ? reply_cards.join('') : components['.info-msg']('There aren\'t replies.'));
         }
     }
     else
-        post_page = post_page.replace('{{ replies }}', '');
+        post_template = post_template.replace('{{ replies }}', '');
+
+    const post_page = post_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, ['index']))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](user_id ? ['profile', 'index'] : ['index']))
+    ;
 
     res_obj.page(200, post_page);
 };  
@@ -325,13 +373,15 @@ page.logout = async function(req_data, res_obj)
         return;
     }
 
-    const { page: logout_page, fs_error } = await read_HTML_page('logout');
+    let { template: logout_page, fs_error } = await read_template('logout');
     
     if (fs_error) 
     {
         res_obj.page(500, fallback_page(500));
         return;
     }
+
+    logout_page = logout_page.replace('{{ side-nav }}', components['#side-nav'](['index'], true));
 
     res_obj.page(200, logout_page);
 };
@@ -346,7 +396,7 @@ page['delete-account'] = async function(req_data, res_obj)
         return;
     }  
 
-    const { page: delete_account_page, fs_error } = await read_HTML_page('delete-account');
+    let { template: delete_account_page, fs_error } = await read_template('delete-account');
 
     if (fs_error) 
     {
@@ -354,12 +404,14 @@ page['delete-account'] = async function(req_data, res_obj)
         return;
     }
 
+    delete_account_page = delete_account_page.replace('{{ side-nav }}', components['#side-nav'](['index'], true));
+
     res_obj.page(200, delete_account_page);
 };
 
 page.logo = async function(req_data, res_obj)
 {
-    const { page: logo_page, fs_error } = await read_HTML_page('logo');
+    const { template: logo_page, fs_error } = await read_template('logo');
 
     if (fs_error) {
         res_obj.page(500, fallback_page(500));
@@ -615,7 +667,7 @@ API.post.POST = function(req_data, res_obj)
     }
 
     if (!created_at || typeof created_at !== 'string') {
-        created_at = new Date().toISOString();
+        created_at = new Date().toLocaleString(); // Locale to the server
     }
 
     const post_id = db_op.insert_post(user_id, content, created_at);
@@ -689,7 +741,7 @@ API.reply.POST = function(req_data, res_obj)
     }
 
     if (!created_at || typeof created_at !== 'string') {
-        created_at = new Date().toISOString();
+        created_at = new Date().toLocaleString();
     }
 
     const { post, db_error } = db_op.select_post(post_id);
@@ -757,7 +809,7 @@ API['posts/page'].GET = function(req_data, res_obj)
 {
     const page = parseInt(req_data.search_params.get('page')) || 1;
     const limit = parseInt(req_data.search_params.get('limit')) || 50;
-    const sort = req_data.search_params.get('sort') || 'asc';
+    const sort = req_data.search_params.get('sort') || 'desc';
 
     if (page < 1) {
         res_obj.error(400, `Page must be >= 1. Got ${page} instead`);
@@ -769,7 +821,7 @@ API['posts/page'].GET = function(req_data, res_obj)
         return;
     }
     
-    if (sort !== 'asc' && sort !== 'desc' && sort !== 'rand') {
+    if (!['desc', 'asc', 'rand'].includes(sort)) {
         res_obj.error(400, `Invalid sorting option. Got '${sort}'. Valid options are: asc, desc, rand`);
         return;
     }
@@ -812,11 +864,14 @@ async function get_asset(req_data, res_obj)
     
     const extensions = {
         css: 'text/css',
-        svg: 'image/svg+xml',
-        png: 'image/png',
         js: 'text/javascript',
         mjs: 'text/javascript',
         json: 'application/json',
+        // images
+        svg: 'image/svg+xml',
+        png: 'image/png',
+        webp: 'image/webp',
+        // font
         ttf: 'font/ttf',
     };
 
@@ -846,7 +901,6 @@ async function get_asset(req_data, res_obj)
         }
 
     } catch (error) {
-        console.log(error)
         if (error.code === 'ENOENT') {
             res_obj.error(404, `The path '${asset_path}' doesn't exist`);
         } else if (error.code === 'EISDIR') {

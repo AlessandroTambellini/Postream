@@ -1,0 +1,184 @@
+@import './buttons.css';
+
+:root {
+    --profile-pic-size: 70px;
+    --bullet-size: .3em;
+    --list-fs: 2rem;
+}
+
+#side-nav {
+    font-size: var(--list-fs);
+    padding: 1em;
+    height: 100vh;
+    background-color: var(--clr-bkg);
+}
+
+@media (max-width: 1189px) {
+    #side-nav {
+        box-shadow: -2px 0px 8px #ccc;
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        min-width: 35vw;
+    }
+
+    #open-side-nav-btn {
+        position: fixed;
+        bottom: calc(2vw + .5rem);
+        right: calc(2vw + .5rem);
+        /* Override default padding of .secondary-btn */
+        padding: .75rem .65rem;
+    }
+
+    #open-side-nav-btn > div {
+        margin-bottom: .65rem;   
+        display: flex;
+        align-items: center;
+    }
+
+    #open-side-nav-btn div:last-child {
+        margin-bottom: 0;
+    }
+
+    #open-side-nav-btn > div .bullet {
+        --circle-color: #676767;
+        display: inline-block;
+        height: 5px;
+        aspect-ratio: 1;
+        background-color: var(--circle-color);
+        border-radius: 100%;
+        margin-right: .25em;
+    }
+
+    #open-side-nav-btn > div .row {
+        display: inline-block;
+        width: var(--list-fs);
+        height: 3px;
+        border-radius: 8px;
+        background-color: var(--clr-txt);
+    }
+}
+
+@media (min-width: 1190px) {
+    /* For the main, I set the id '#main' so 
+    that I can override the 'display-opaque' prop when I resize the page. */
+    #main {
+        opacity: 1;
+    }
+
+    #side-nav {
+        display: block;
+        border-left: 1px solid #bbb;
+    }
+
+    #open-side-nav-btn {
+        display: none;
+    }
+}
+
+#profile-pic-mini {
+    width: var(--profile-pic-size);
+    aspect-ratio: 1;
+    background-color: white;
+    border-radius: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+#profile-pic-mini:hover {
+    box-shadow: 0 2px 4px 1px rgba(0, 0, 0, 0.16);
+}
+
+#profile-pic-mini .circle {
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 100%;
+}
+
+#side-nav ul {
+    font-size: inherit;
+    line-height: 1.2;
+    list-style: none;
+    /* avoid 'create-account' link from wrapping onto two lines */
+    white-space: nowrap;
+}
+
+#side-nav li {
+    position: relative;
+}
+
+#side-nav a {
+    text-decoration: none;
+}
+
+#side-nav a:hover {
+    text-decoration: underline;
+}
+
+#side-nav ul li:not(li[for=profile]) {
+    margin-bottom: .25em;
+    padding-left: calc(var(--bullet-size)*3); 
+    /* This margin is to align the bullets with the profile pic 
+    and equally space left and right of the list items. */
+    margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);
+}
+
+#side-nav ul li[for=profile] {
+    margin-bottom: .5em;
+    width: fit-content;
+}
+
+#side-nav ul li:not(li[for=profile])::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    
+    width: var(--bullet-size);
+    aspect-ratio: 1;
+    border-radius: 100%;
+    background-color: var(--circle-color);
+    /* margin-left: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2); */
+}
+
+/* 
+ * Color-specific customization */
+
+#open-side-nav-btn > div[for=index] .bullet,
+#side-nav ul li[for=index]::before {
+    --circle-color: #10b981;
+}
+
+#open-side-nav-btn > div[for=login] .bullet,
+#side-nav ul li[for=login]::before {
+    --circle-color: #4affc3;
+}
+
+#open-side-nav-btn > div[for=create-account] .bullet,
+#side-nav ul li[for=create-account]::before {
+    --circle-color: #ff8725;
+}
+
+#open-side-nav-btn > div[for=notifications] .bullet,
+#side-nav ul li[for=notifications]::before {
+    --circle-color: #3b82f6;
+}
+
+#open-side-nav-btn > div[for=profile] .bullet,
+#side-nav ul li[for=profile]::before {
+    --circle-color: #d359f8;
+}
+#side-nav ul li[for=profile]::before {
+    border: none;
+}
+
+#open-side-nav-btn > div[for=logout] .bullet,
+#side-nav ul li[for=logout]::before {
+    --circle-color: #ff793f;
+}
+
+#open-side-nav-btn > div[for=delete-account] .bullet,
+#side-nav ul li[for=delete-account]::before {
+    --circle-color: #840000;
+} 

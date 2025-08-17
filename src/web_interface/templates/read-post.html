@@ -7,22 +7,22 @@
     
     <title>Post Stream / Read Post</title>
         
-    <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="style/read-post.css">
+    <link rel="stylesheet" href="../stylesheets/read-post.css">
+
+    {{ universal-resources }}
 </head>
 <body>
     <h1 class="hidden">Read Post</h1>
-
-    <nav class="top-nav">
-        {{ nav-links }}
-    </nav>
     
     <main>
-        {{ post-card }}
+        {{ .post-card }}
         
         <div id="replies-container">
             {{ replies }}
         </div>
     </main>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
 </body>
 </html>

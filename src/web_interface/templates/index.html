@@ -10,22 +10,18 @@
     
     <title>Post Stream</title>
     
-    <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="style/index.css">
-
-    <script type="module" src="scripts/index.js"></script>
+    <link rel="stylesheet" href="../stylesheets/index.css">
+    <script type="module" src="../scripts/index.js"></script>
+    
+    {{ universal-resources }}    
 </head>
 <body>
     <h1 class="hidden">Post Stream</h1>
-
-    <nav class="top-nav">
-        {{ nav-links }}
-    </nav>
     
     <main>
         <nav id="controls-nav">
             <button id="reload-posts-btn" class="secondary-btn" title="reload">
-                <img class="icon" src="assets/restart.svg" alt="Reload">
+                &olarr;
             </button>
             <button class="control secondary-btn selected" title="load posts from newest to oldest" value="desc">
                 DESC
@@ -35,7 +31,7 @@
             </button>
             <button class="control secondary-btn" title="load posts randomly" value="rand">
                 RAND
-            </button>
+            </button> 
         </nav>
 
         <div id="post-stream">
@@ -57,7 +53,14 @@
             <button id="load-more-posts-btn" class="primary-btn">load more</button>
         </div>
 
-        {{ write-post-link }}
+        <nav>
+            <a href="write-post" id="write-post-link" class="secondary-btn" title="Write a post">
+                <img src="assets/write-post.svg" class="icon" alt="Write post icon">
+            </a>            
+        </nav>
     </main>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
 </body>
 </html>

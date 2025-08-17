@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Reply to a post">
+    
+    <title>Post Stream / Write Reply</title>
+    
+    <link rel="stylesheet" href="../stylesheets/write-reply.css">
+    <script type="module" src="../scripts/write-reply.js"></script>
+    
+    {{ universal-resources }}
+</head>
+<body>
+    <h1 class="hidden">Write Reply</h1>
+
+    <main>
+        {{ .post-card }}
+
+        <form id="reply-form" action="api/reply" method="POST">
+            <textarea name="reply-textarea" placeholder="_"></textarea>
+            
+            <div class="feedback-card none">
+                <div class="feedback-icon"></div>
+                <div class="feedback-content">
+                    <p class="feedback-title"></p>
+                    <p class="feedback-text"></p>
+                </div>
+                <button class="close-btn" type="button">x</button>
+            </div>
+        
+            <button class="primary-btn" type="submit">
+                Reply 
+            </button>
+        </form>
+    </main>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
+</body>
+</html>

@@ -1,4 +1,21 @@
-function post_card(post, reply_link_type = false, cut_post_content = false)
+function prettify_date(date) 
+{
+    const week_days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = [0, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const week_day = new Date(date).getDay();
+    const [year_time, day_time] = date.split(', ')
+    const [month, day, year] = year_time.split('/')
+
+    const [clock_time, am_pm] = day_time.split(' ');
+    const [hour, mins, secs] = clock_time.split(':');
+
+    return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
+}
+
+const components = {};
+
+components['.post-card'] = function(post, reply_link_type = false, cut_post_content = false)
 {
     const { id, content, created_at } = post;
 
@@ -12,31 +29,31 @@ function post_card(post, reply_link_type = false, cut_post_content = false)
             <p>${cut_post_content && content.length > 70*10 ? 
                 content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>read entirely</a>` : 
                 content}</p>
-            <time datetime="${created_at}">${new Date(created_at).toLocaleString()}</time>
+            <time datetime="${created_at}">${prettify_date(created_at)}</time>
             ${reply_link_types[reply_link_type]}
         </article>
     `;
 }
 
-function reply_card(reply)
+components['.reply-card'] = function(reply)
 {
     const { id, content, created_at } = reply;
 
     return `
         <article id='reply-${id}' class='reply-card'>
             <p>${content}</p>
-            <time datetime="${created_at}">${new Date(created_at).toLocaleString()}</time>
+            <time datetime="${created_at}">${prettify_date(created_at)}</time>
         </article>
     `;
 }
 
-function notification_card(notification)
+components['.notification-card'] = function(notification)
 {
     const { id, post_id, post_content, reply_id, created_at } = notification;
 
     return `
         <article id='notification-card-${id}' class='notification-card'>
-            <time datetime="${created_at}">${new Date(created_at).toLocaleString()}</time>
+            <time datetime="${created_at}">${prettify_date(created_at)}</time>
             <p><b>New reply for:</b> ${post_content}...</p>
             <footer>
                 <a href='read-post?id=${post_id}#reply-${reply_id}'>Read Reply</a>
@@ -46,14 +63,51 @@ function notification_card(notification)
     `;
 }
 
-function write_post_link() {
+components['universal-resources'] = 
+`
+    <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <link rel="stylesheet" href="../stylesheets/components/side-nav.css">
+    <script type="module" src="../scripts/utils/side-nav.js"></script>
+`;
+
+components['#side-nav'] = function(show_profile_pic, pages)
+{
     return `
-        <nav id="write-post-link-wrapper">
-            <a href="write-post" id="write-post-link" class="secondary-btn" title="Write a post">
-                <img src="assets/write-post.svg" class="icon" alt="Write post icon">
-            </a>            
+        <nav id='side-nav' class="display-none">
+            <ul>
+                ${show_profile_pic ? `<li for="profile">
+                    <a href="profile">
+                        <div id="profile-pic-mini"></div>
+                    </a>
+                </li>` : ''}
+                ${pages.reduce((accumulator, page) => {
+                    return accumulator + 
+                        `<li for="${page}">
+                            <a href="${page}">${page}</a>
+                        </li>`;
+                }, '')}
+            </ul>
         </nav>
     `;
+}
+
+components['#open-side-nav-btn'] = function(pages) {
+    return `
+        <button id="open-side-nav-btn" class="secondary-btn display-block">
+            ${pages.reduce((accumulator, page) => {
+                return accumulator + `
+                <div for=${page}>
+                    <span class='bullet'></span><span class='row'></span>
+                </div>
+                `;
+            }, '')}
+        </button>
+    `;
+}
+
+components['.info-msg'] = function(msg) 
+{
+    return `<p class='info-msg'>${msg}</p>`
 }
 
 /* fallback_page may be called (but not only) in case I'm not able to load the wanted page from disk using readFile().
@@ -84,8 +138,8 @@ function fallback_page(status_code)
             
             <title>Page ${status_code}</title>
             
-            <link rel="icon" type="image/png" href="assets/logo.png">
-            <link rel="stylesheet" href="style/_universal.css">
+            <link rel="icon" type="image/webp" href="../assets/logo.webp">
+            <link rel="stylesheet" href="../stylesheets/_universal.css">
 
             <style>
                 body {
@@ -111,16 +165,7 @@ function fallback_page(status_code)
     `;
 }
 
-function fallback_info_msg(msg) 
-{
-    return `<p class='info-msg'>${msg}</p>`
-}
-
 export {
-    post_card,
-    reply_card,
-    notification_card,
-    write_post_link,
+    components,
     fallback_page,
-    fallback_info_msg,
 };

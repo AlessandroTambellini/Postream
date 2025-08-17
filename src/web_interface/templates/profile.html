@@ -4,30 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Take a look at the posts you made">
-
+    
     <title>Post Stream / Profile</title>
     
-    <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="style/profile.css">
-
-    <script async src="scripts/profile.js"></script>
+    <link rel="stylesheet" href="../stylesheets/profile.css">
+    <script type="module" src="../scripts/profile.js"></script>
+    
+    {{ universal-resources }}
 </head>
 <body>
     <h1 class="hidden">Profile</h1>
 
-    <nav class="top-nav">
-        <a href="index">Index</a>
-        <a href="notifications">Notifications</a>
-        <a href="logout">Logout</a>
-        <a href="delete-account">Delete Account</a>
-    </nav>
-
-    <main>
-        <div id="profile-picture-container">
-            <div id="profile-picture">
-                <img src="assets/face.svg" width="100px" alt="face">
-            </div>
-        </div>
+    <main id="main">
+        <div id="profile-picture"></div>
 
         <div id="post-stream">
             <h2>Posts</h2>
@@ -36,11 +25,14 @@
             </div>
         </div>
     
-        <nav id="write-post-link-wrapper">
+        <nav>
             <a href="write-post" id="write-post-link" class="secondary-btn" title="Write a post">
                 <img src="assets/write-post.svg" class="icon" alt="Write post icon">
             </a>            
         </nav>
     </main>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
 </body>
 </html>

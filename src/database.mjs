@@ -283,7 +283,7 @@ db_op.select_user_notifications = function(user_id)
     return { notifications, db_error };
 };
 
-db_op.select_posts_page = function(page = 1, limit = 50, sort = 'asc') 
+db_op.select_posts_page = function(page = 1, limit = 50, sort = 'desc') 
 {
     const offset = (page - 1) * limit;    
     let posts = null, db_error = false;

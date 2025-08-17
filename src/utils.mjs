@@ -44,27 +44,27 @@ function hash_password(password)
         .digest('hex');
 }
 
-async function read_HTML_page(page_name) 
+async function read_template(template_name) 
 {
-    let page = null, fs_error = null;
+    let template = null, fs_error = null;
     
-    let page_path = null;
+    let template_path = null;
     try {
-        page_path = join(WEB_INTERFACE_PATH, `${page_name}.html`);
+        template_path = join(WEB_INTERFACE_PATH, 'templates', `${template_name}.html`);
     } catch (error) {
-        fs_error = `The path '${WEB_INTERFACE_PATH}/${page_name}.html' doesn't exist`;
+        fs_error = `The path '${template_path}' doesn't exist`;
         log_error(error);    
-        return { page, fs_error };    
+        return { template, fs_error };    
     }
     
     try {
-        page = await readFile(page_path, { encoding: 'utf8' });        
+        template = await readFile(template_path, { encoding: 'utf8' });        
     } catch (error) {
-        fs_error = `Unable to read '${page_path}' from disk`;
+        fs_error = `Unable to read '${template_path}' from disk`;
         log_error(error);
     }
 
-    return { page, fs_error };
+    return { template, fs_error };
 }
 
 function log_error(error)
@@ -87,7 +87,7 @@ function log_error(error)
 export {
     JSON_to_obj,
     hash_password,
-    read_HTML_page,
+    read_template,
     generate_password,
     log_error,
 };

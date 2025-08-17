@@ -1,27 +1,22 @@
 @import './_universal.css';
+
 @import './components/form.css';
 @import './components/buttons.css';
 @import './components/cards.css';
 
-form {
-    margin: auto;
-    padding: 1em;
-}
-
-#password {
-    font-weight: 500;
+main {
+    margin: .5em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
 }
 
 button[type=submit] {
-    margin: auto;
+    margin-left: auto;
 }
 
 .feedback-card {
     margin-block: 5px;
-}
-
-body > a[href=login] {
-    display: block;
-    text-align: center;
-    font-size: 1.2rem;
 }

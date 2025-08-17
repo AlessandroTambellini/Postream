@@ -22,7 +22,8 @@ async function handle_reply_submission(e)
     const post_id = document.URL.split('?id=')[1];
     const content = textarea.value;
 
-    const { status_code, payload, req_error } = await req(path, method, null, { post_id, content, created_at: new Date().toString() });
+    // I have to create the date on the client because it has to be locale to it
+    const { status_code, payload, req_error } = await req(path, method, null, { post_id, content, created_at: new Date().toLocaleString() });
 
     if (req_error) {
         feedback.show('error', err_msg(status_code, 'reply', 'send'));

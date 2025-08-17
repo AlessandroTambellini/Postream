@@ -4,26 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Post Stream / Login</title>
+    <title>Post Stream / Write Post</title>
     
-    <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="style/login.css">
-
-    <script type="module" src="scripts/login.js"></script>
+    <link rel="stylesheet" href="../stylesheets/write-post.css">
+    <script type="module" src="../scripts/write-post.js"></script>
+    
+    {{ universal-resources }}
 </head>
 <body>
-    <h1 class="hidden">Login</h1>
+    <h1 class="hidden">Write Post</h1>
 
-    <nav class="top-nav">
-        <a href="index">Index</a>
-        <a href="create-account">Create Account</a>
-    </nav>
-
-    <form action="api/token">
-
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password" placeholder="·····">
-
+    <form action="api/post" method="POST">
+        <textarea name="post-textarea" placeholder="_"></textarea>
+        
         <div class="feedback-card none">
             <div class="feedback-icon"></div>
             <div class="feedback-content">
@@ -32,10 +25,13 @@
             </div>
             <button class="close-btn" type="button">x</button>
         </div>
-
+    
         <button class="primary-btn" type="submit">
-            Login
+            Upload 
         </button>
     </form>
+
+    {{ #side-nav }}
+    {{ #open-side-nav-btn }}
 </body>
 </html>

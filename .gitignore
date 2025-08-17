@@ -3,5 +3,6 @@ test.*
 notes.md
 data
 .env
+.vscode
 certificate.pem
 private-key.pem

@@ -2,33 +2,32 @@
 @import './components/buttons.css';
 @import './components/cards.css';
 
+body {
+    display: flex;
+    /* for the posts stream */
+    max-height: 100vh;
+}
+
 main {
+    flex-grow: 2;
     display: flex;
     flex-direction: column;
-    max-width: 1400px;
-    margin: auto;
+    width: 100%;
+    max-width: 1200px;
     position: relative;  
 }
 
-#profile-picture-container {
-    padding-top: 2vh;   
-    padding-bottom: 3vh;   
-}
-
 #profile-picture {
+    margin-top: 2vh;   
+    margin-bottom: 3vh;   
     width: 100%;
     max-width: 300px;
     aspect-ratio: 1;
-    border: 1px solid #939393;
-    background-color: #fcfcfc;
+    background-color: white;
     border-radius: 100%;
-    margin: auto;
+    margin-inline: auto;
     overflow: hidden;
     position: relative;
-}
-
-#profile-picture img {
-    position: absolute;
 }
 
 #profile-picture .circle {
@@ -38,11 +37,14 @@ main {
 }
 
 #post-stream {
-    width: fit-content;
-    margin: auto;
     display: flex;
     flex-direction: column;
-    padding: .5em;
+    /* width: fit-content;
+    margin: auto;
+    padding: .5em; */
+    align-items: center;
+    overflow-y: scroll;
+    scrollbar-width: none;
 }
 
 #post-stream h2 {
@@ -53,20 +55,21 @@ main {
     margin-bottom: 1vh;
 }
 
-#write-post-link-wrapper {
+/* write-post-link is copy-pasted from index */
+nav:has(#write-post-link) {
     width: fit-content;
-    position: sticky;
+    position: absolute;
 
     /* .5rem is to leave a bit of fixed, consistent distance from the border */
     bottom: calc(2vw + .5rem);
-    margin-left: auto;
-    padding-right: calc(2vw + .5rem);
+    left: calc(2vw + .5rem);
+    /* padding-right: calc(2vw + .5rem); */
 }
 
 #write-post-link {
     --icon-width: 2rem;
 
-    margin-top: 1em;
+    /* margin-top: 1em; */
     padding: calc(var(--icon-width) / 2.5);
     border-radius: 100%;
     
