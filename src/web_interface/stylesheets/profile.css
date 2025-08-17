@@ -3,22 +3,21 @@
 @import './components/cards.css';
 
 body {
-    display: flex;
     /* for the posts stream */
     max-height: 100vh;
 }
 
 main {
-    flex-grow: 2;
     display: flex;
     flex-direction: column;
+    align-items: center;
     width: 100%;
-    max-width: 1200px;
     position: relative;  
+    max-height: 100vh;
 }
 
 #profile-picture {
-    margin-top: 2vh;   
+    flex-shrink: 0;
     margin-bottom: 3vh;   
     width: 100%;
     max-width: 300px;
@@ -28,33 +27,28 @@ main {
     margin-inline: auto;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 0px 3px rgb(0, 0, 0, 0.1);
+    box-shadow: 0 0px 3px #ccc;
 }
 
 #profile-picture .circle {
     position: absolute;
     aspect-ratio: 1;
     border-radius: 100%;
+    box-shadow: 0 0px 3px #ccc;
 }
 
-#post-stream {
-    display: flex;
-    flex-direction: column;
-    /* width: fit-content;
-    margin: auto;
-    padding: .5em; */
-    align-items: center;
-    overflow-y: scroll;
-    scrollbar-width: none;
-}
-
-#post-stream h2 {
+h2 {
     font-size: 2em;
     margin-bottom: .5em;
+    text-align: center;
 }
 
 #posts-container {
-    width: 100%;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    width: fit-content;
+    border-top: 1px solid #ccc;
+    padding-top: .5rem;
 }
 
 #posts-container .post-card {

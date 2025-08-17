@@ -25,7 +25,7 @@ components['.post-card'] = function(post, reply_link_type = false, cut_post_cont
     const reply_link_types = ['', `<a href='read-post?id=${id}'>Read Replies</a>`, `<a href='write-reply?id=${id}'>Reply</a>`];
 
     return `
-        <article class="post-card">
+        <article class="card post-card">
             <p>${cut_post_content && content.length > 70*10 ? 
                 content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>read entirely</a>` : 
                 content}</p>
@@ -40,7 +40,7 @@ components['.reply-card'] = function(reply)
     const { id, content, created_at } = reply;
 
     return `
-        <article id='reply-${id}' class='reply-card'>
+        <article id='reply-${id}' class='card reply-card'>
             <p>${content}</p>
             <time datetime="${created_at}">${prettify_date(created_at)}</time>
         </article>
@@ -52,7 +52,7 @@ components['.notification-card'] = function(notification)
     const { id, post_id, post_content, reply_id, created_at } = notification;
 
     return `
-        <article id='notification-card-${id}' class='notification-card'>
+        <article id='notification-card-${id}' class='card notification-card'>
             <time datetime="${created_at}">${prettify_date(created_at)}</time>
             <p><b>New reply for:</b> ${post_content}...</p>
             <footer>
@@ -81,10 +81,11 @@ components['#side-nav'] = function(show_profile_pic, pages)
                     </a>
                 </li>` : ''}
                 ${pages.reduce((accumulator, page) => {
-                    return accumulator + 
-                        `<li for="${page}">
+                    return accumulator + `
+                        <li for="${page}">
                             <a href="${page}">${page}</a>
-                        </li>`;
+                        </li>
+                    `;
                 }, '')}
             </ul>
         </nav>
@@ -96,9 +97,9 @@ components['#open-side-nav-btn'] = function(pages) {
         <button id="open-side-nav-btn" class="secondary-btn display-block">
             ${pages.reduce((accumulator, page) => {
                 return accumulator + `
-                <div for=${page}>
-                    <span class='bullet'></span><span class='row'></span>
-                </div>
+                    <div for=${page}>
+                        <span class='bullet'></span><span class='row'></span>
+                    </div>
                 `;
             }, '')}
         </button>

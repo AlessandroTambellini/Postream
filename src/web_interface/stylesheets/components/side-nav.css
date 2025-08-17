@@ -68,7 +68,7 @@
 
     #side-nav {
         display: block;
-        border-left: 1px solid #bbb;
+        box-shadow: -1px 0 0 #ccc;
     }
 
     #open-side-nav-btn {
@@ -83,11 +83,11 @@
     border-radius: 100%;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 0px 3px rgb(0, 0, 0, 0.1);
+    box-shadow: 0 0px 3px #ccc;
 }
 
 #profile-pic-mini:hover {
-    box-shadow: 0 2px 4px 1px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 2px 4px 1px #ccc;
 }
 
 #profile-pic-mini .circle {
@@ -119,6 +119,10 @@
 #side-nav ul li:not(li[for=profile]) {
     margin-bottom: .25em;
     padding-left: calc(var(--bullet-size)*3); 
+}
+
+/* Apply this margin only when the profile-pic is present. */
+#side-nav:has(li[for=profile]) li:not(li[for=profile]) {
     /* This margin is to align the bullets with the profile pic 
     and equally space left and right of the list items. */
     margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);

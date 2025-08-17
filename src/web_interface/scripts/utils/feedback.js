@@ -1,6 +1,6 @@
 function show_feedback(type, msg) 
 {
-    this.className = 'feedback-card';
+    this.className = 'card feedback-card';
 
     const icon = this.querySelector('.feedback-icon');
     const title = this.querySelector('.feedback-title');
@@ -33,7 +33,7 @@ function show_feedback(type, msg)
 }
 
 function hide_feedback() {
-    this.className = 'feedback-card';
+    this.className = 'card feedback-card';
     this.classList.add('none');
 }
 

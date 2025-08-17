@@ -3,16 +3,10 @@
 @import './components/buttons.css';
 @import './components/cards.css';
 
-
 form {
-    margin: auto;
     padding: 1em;
 }
 
 button[type=submit] {
     margin: auto;
-}
-
-.feedback-card {
-    margin-block: 5px;
 }

@@ -3,24 +3,6 @@
 @import './components/buttons.css';
 @import './components/cards.css';
 
-
-body {
-    display: flex;
-}
-
-main {
-    flex-grow: 2;
-}
-
-form {
-    margin: auto;
-    padding: calc(2vw + .5rem);
-}
-
 button[type=submit] {
     margin-left: auto;
-}
-
-.feedback-card {
-    margin-block: 5px;
 }

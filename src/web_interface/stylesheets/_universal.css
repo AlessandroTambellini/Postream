@@ -21,6 +21,18 @@
 body {
     background-color: var(--clr-bkg);
     font-family: 'Libertinus Mono', monospace;
+    display: flex;
+}
+
+main {
+    flex-grow: 2;
+    max-width: 1200px;
+    margin-top: 2vh;
+    padding-inline: calc(1vh + .5rem);
+}
+
+main > * {
+    margin-inline: auto;
 }
 
 a, button, textarea, input {
@@ -29,7 +41,6 @@ a, button, textarea, input {
 
 .info-msg {
     padding-top: 2rem;
-    padding-inline: 1rem;
     margin-inline: auto;
     max-width: 70ch;
     font-size: 1.2rem;

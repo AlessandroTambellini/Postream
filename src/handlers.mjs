@@ -83,7 +83,7 @@ page.index = async function(req_data, res_obj)
         index_template = index_template.replace('{{ post-cards }}', post_cards.join(''));
     }
 
-    const menu_entries = user_id ? ['notifications'] : ['login', 'create-account'];
+    const menu_entries = user_id ? ['notifications', 'logout'] : ['login', 'create-account'];
     
     const index_page = index_template
         .replace('{{ universal-resources }}', components['universal-resources'])
@@ -251,8 +251,8 @@ page['write-post'] = async function(req_data, res_obj)
 
     const write_post_page = write_post_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index']))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index']))
+        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index', 'notifications']))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index', 'notifications']))
     ;
 
     res_obj.page(200, write_post_page);
@@ -294,8 +294,8 @@ page['write-reply'] = async function(req_data, res_obj)
 
     const write_reply_page = write_reply_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index']))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index']))
+        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index', 'notifications']))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index', 'notifications']))
     ;
 
     res_obj.page(200, write_reply_page);
@@ -353,10 +353,12 @@ page['read-post'] = async function(req_data, res_obj)
     else
         post_template = post_template.replace('{{ replies }}', '');
 
+    const menu_entries = user_id ? ['index', 'notifications'] : ['index', 'login', 'create-account'];
+
     const post_page = post_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, ['index']))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](user_id ? ['profile', 'index'] : ['index']))
+        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, menu_entries))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](user_id ? ['profile', ...menu_entries] : menu_entries))
     ;
 
     res_obj.page(200, post_page);
@@ -372,7 +374,7 @@ page.logout = async function(req_data, res_obj)
         return;
     }
 
-    let { template: logout_page, fs_error } = await read_template('logout');
+    const { template: logout_template, fs_error } = await read_template('logout');
     
     if (fs_error) 
     {
@@ -380,7 +382,11 @@ page.logout = async function(req_data, res_obj)
         return;
     }
 
-    logout_page = logout_page.replace('{{ side-nav }}', components['#side-nav'](['index'], true));
+    const logout_page = logout_template
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index']))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index']))
+    ;
 
     res_obj.page(200, logout_page);
 };
@@ -403,7 +409,11 @@ page['delete-account'] = async function(req_data, res_obj)
         return;
     }
 
-    delete_account_page = delete_account_page.replace('{{ side-nav }}', components['#side-nav'](['index'], true));
+    delete_account_page = delete_account_page
+        .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index', 'logout']))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index', 'logout']))
+    ;
 
     res_obj.page(200, delete_account_page);
 };

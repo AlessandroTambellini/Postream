@@ -3,14 +3,8 @@
 @import './components/buttons.css';
 @import './components/cards.css';
 
-
-body {
-    display: flex;
-}
-
 form {
-    margin: auto;
-    padding: 1em;
+    padding-block: 1em;
 }
 
 div:has(#password) {
@@ -54,12 +48,8 @@ div:has(#password) button.btn-clicked {
     padding: .25em 1.25em .75em 1.25em;
 }
 
-form button[type=submit] {
+button[type=submit] {
     margin: auto;
-}
-
-.feedback-card {
-    margin-block: 5px;
 }
 
 main > a[href=login] {

@@ -1,22 +1,12 @@
 @import './_universal.css';
-
 @import './components/form.css';
 @import './components/buttons.css';
 @import './components/cards.css';
 
-main {
-    margin: .5em;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1em;
+form {
+    margin-top: 1em;
 }
 
 button[type=submit] {
     margin-left: auto;
-}
-
-.feedback-card {
-    margin-block: 5px;
 }

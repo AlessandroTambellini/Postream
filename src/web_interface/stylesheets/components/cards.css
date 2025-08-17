@@ -1,23 +1,30 @@
-/*
- *
- *  Post/Reply Cards
- */
-
-.post-card,
-.reply-card,
-.notification-card {
+.card {
     --text-line-length: 70ch;
     --padding: 1.2rem;
     --border-thickness: 1px;
 
+    font-size: 1.2rem;
     padding: var(--padding);
     border: 1px solid #ccc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    max-width: calc(var(--text-line-length) + var(--padding) + var(--border-thickness));
+    max-width: calc(var(--text-line-length) + var(--padding)*2 + var(--border-thickness)*2);
+}
 
-    /* This is an exception. I set a layout prop inside the element itself.
-    Often, I set it from the parent for consistency */
-    margin-inline: auto;
+.card p {
+    color: var(--clr-txt);
+    line-height: 1.4;
+    /* max-width: var(--text-line-length); */
+    /* width: 100%; */
+
+    /* Keep extra whitespaces and newlines.
+    A side-effect of this property is that if the text is selected,
+    the selection overflows a bit the card. */
+    white-space: pre-wrap; 
+}
+
+.card time,
+.card a {
+    font-size: initial;
 }
 
 .post-card {
@@ -30,21 +37,6 @@
 
 .notification-card {
     background-color: #f1f1f1;
-}
-
-.post-card p,
-.reply-card p
-.notification-card p {
-    color: var(--clr-txt);
-    font-size: 1.2rem;
-    line-height: 1.4;
-    max-width: var(--text-line-length);
-    width: 100%;
-
-    /* Keep extra whitespaces and newlines.
-    A side-effect of this property is that if the text is selected,
-    the selection overflows a bit the card. */
-    white-space: pre-wrap; 
 }
 
 .post-card time,
@@ -76,17 +68,11 @@
     font-size: 1rem;
 }
 
-/*
- *
- *  Feedback Cards
- */
-
 .feedback-card {    
-    padding: 20px;
     border-radius: 8px;
+    border: unset;
     border-left: 4px solid;
     background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     /* For the close button ('x') that has position absolute. */
@@ -99,7 +85,6 @@
 }
 
 .feedback-icon {
-    /* I use pixels because I don't want the icon to resize based on user-defined rem. */
     font-size: 16px;
     height: 25px;
     aspect-ratio: 1;
@@ -112,15 +97,16 @@
 }
 
 .feedback-content {
-    /* A bit of padding to keep the close button a bit distant from the text. */
+    /* A bit of padding to keep the 'x' button a bit distant from the text. */
     padding-left: .5em;
     padding-right: 1em;
 }
 
-.feedback-title {
+.feedback-card .feedback-title {
     font-weight: 600;
     font-size: 1.3rem;
     margin-bottom: .2em;
+    line-height: initial;
 }
 
 .feedback-text {
