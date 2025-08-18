@@ -82,13 +82,10 @@ page.index = async function(req_data, res_obj)
         });
         index_template = index_template.replace('{{ post-cards }}', post_cards.join(''));
     }
-
-    const menu_entries = user_id ? ['notifications', 'logout'] : ['login', 'create-account'];
     
     const index_page = index_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, menu_entries))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](user_id ? ['profile', ...menu_entries] : menu_entries))
+        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, 'index'))
     ;
 
     res_obj.page(200, index_page);
@@ -104,12 +101,10 @@ page['create-account'] = async function(req_data, res_obj)
         return;
     }
 
-    const menu_entries = ['index', 'login'];
-
     const create_account_page = create_account_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](false, menu_entries))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](menu_entries));
+        .replace('{{ #side-nav }}', components['#side-nav'](false, 'create-account'))
+    ;
 
     res_obj.page(200, create_account_page);
 };
@@ -124,12 +119,9 @@ page.login = async function(req_data, res_obj)
         return;
     }
 
-    const menu_entries = ['index', 'create-account'];
-
     const login_page = login_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](false, menu_entries))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](menu_entries))
+        .replace('{{ #side-nav }}', components['#side-nav'](false, 'login'))
     ;
 
     res_obj.page(200, login_page);
@@ -170,20 +162,9 @@ page.profile = async function(req_data, res_obj)
             post_cards.length > 0 ? post_cards.join('') : components['.info-msg']('You didn\'t create any post yet.'));
     }
 
-    // const interpolations = {
-    //     '{{ universal-resources }}': components['universa-resources'],
-    //     '{{ #side-nav }}': components['#side-nav'](true, menu_entries),
-    //     '{{ #open-side-nav-btn }}': components['#open-side-nav-btn'](menu_entries),
-    // };
-
-    // const pattern = new RegExp(Object.keys(interpolations).join('|'), 'g');
-    // const profile_page = profile_template.replace(pattern, match => interpolations[match]);
-    const menu_entries = ['index', 'notifications', 'logout', 'delete-account'];
-
     const profile_page = profile_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](false, menu_entries))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](menu_entries))
+        .replace('{{ #side-nav }}', components['#side-nav'](true, 'profile'))
     ;
 
     res_obj.page(200, profile_page);
@@ -224,8 +205,7 @@ page.notifications = async function(req_data, res_obj)
 
     const notifications_page = notifications_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index']))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index']))
+        .replace('{{ #side-nav }}', components['#side-nav'](true, 'notifications'))
     ;
 
     res_obj.page(200, notifications_page);
@@ -249,10 +229,11 @@ page['write-post'] = async function(req_data, res_obj)
         return;
     }
 
+    const menu_entries = ['index', 'notifications', 'logout'];
+
     const write_post_page = write_post_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index', 'notifications']))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index', 'notifications']))
+        .replace('{{ #side-nav }}', components['#side-nav'](true, 'write-post'))
     ;
 
     res_obj.page(200, write_post_page);
@@ -294,8 +275,7 @@ page['write-reply'] = async function(req_data, res_obj)
 
     const write_reply_page = write_reply_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index', 'notifications']))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index', 'notifications']))
+        .replace('{{ #side-nav }}', components['#side-nav'](true, 'write-reply'))
     ;
 
     res_obj.page(200, write_reply_page);
@@ -357,8 +337,7 @@ page['read-post'] = async function(req_data, res_obj)
 
     const post_page = post_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, menu_entries))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](user_id ? ['profile', ...menu_entries] : menu_entries))
+        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, 'read-post'))
     ;
 
     res_obj.page(200, post_page);
@@ -384,8 +363,7 @@ page.logout = async function(req_data, res_obj)
 
     const logout_page = logout_template
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index']))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index']))
+        .replace('{{ #side-nav }}', components['#side-nav'](true, 'logout'))
     ;
 
     res_obj.page(200, logout_page);
@@ -411,8 +389,7 @@ page['delete-account'] = async function(req_data, res_obj)
 
     delete_account_page = delete_account_page
         .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, ['index', 'logout']))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', 'index', 'logout']))
+        .replace('{{ #side-nav }}', components['#side-nav'](true, 'delete-account'))
     ;
 
     res_obj.page(200, delete_account_page);

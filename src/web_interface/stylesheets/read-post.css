@@ -1,6 +1,15 @@
 @import './_universal.css';
 @import './components/cards.css';
 
-.reply-card {
+.reply-card:first-child {
     margin-top: 1em;
+}
+
+.reply-card {
+    margin-top: .5em;
+    margin-inline: auto;
+}
+
+main {
+    padding-bottom: 12vh;   
 }

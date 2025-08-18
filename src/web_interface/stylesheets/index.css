@@ -19,8 +19,9 @@ main {
     justify-content: center;
     gap: .5rem;
     padding-bottom: 1.5vh;
-    border-bottom: 1px solid #ccc;
+    
     z-index: 1;
+    border-bottom: 1px solid #ccc;
     box-shadow: -4px 3px 9px rgba(0, 0, 0, 0.1);
 }
 
@@ -65,35 +66,4 @@ main {
     #load-more-posts-btn {
         font-size: 1.2rem;
     }
-}
-
-nav:has(#write-post-link) {
-    width: fit-content;
-    position: absolute;
-
-    /* .5rem is to leave a bit of fixed, consistent distance from the border */
-    bottom: 2vh;
-    left: 2vw;
-}
-
-#write-post-link {
-    --icon-width: 2.25rem;
-
-    padding: calc(var(--icon-width) / 2.5);
-    border-radius: 100%;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #e8e8e8;
-}
-
-#write-post-link img {
-    width: var(--icon-width);
-}
-
-@media (min-width: 500px) {
-    #write-post-link {
-        --icon-width: 2.5rem;
-    }  
 }

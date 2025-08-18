@@ -70,7 +70,7 @@
     #open-side-nav-btn {
         position: fixed;
         bottom: 2vh;
-        right: 2vw;
+        right: 3vw;
         /* Override default padding of .secondary-btn */
         padding: .75rem .65rem;
     }
@@ -158,6 +158,11 @@
 #open-side-nav-btn > div[for=index] .bullet,
 #side-nav li[for=index]::before {
     --circle-color: #10b981;
+}
+
+#open-side-nav-btn > div[for=write-post] .bullet,
+#side-nav li[for=write-post]::before {
+    --circle-color: #1ec8de;
 }
 
 #open-side-nav-btn > div[for=login] .bullet,

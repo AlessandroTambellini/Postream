@@ -27,7 +27,7 @@ body {
 main {
    flex-grow: 2;
    max-width: 1200px;
-   padding: 2vh 2vw;
+   padding: 2vh 2vw 0 2vw;
 }
 
 main > * {

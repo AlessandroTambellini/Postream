@@ -41,51 +41,21 @@ main {
 
 h2 {
     font-size: 2em;
-    margin-bottom: .5em;
     text-align: center;
+    border-bottom: 1px solid #ccc;
+    width: 100%;
+    padding-bottom: .5em;
 }
 
 #posts-container {
     overflow-y: scroll;
     scrollbar-width: none;
     width: fit-content;
-    border-top: 1px solid #ccc;
-    padding-top: .5rem;
+    padding-top: .5em;
     /* to let the last post not be covered by the menu btn and the write-post-btn */
     padding-bottom: 12vh;
 }
 
 #posts-container .post-card {
     margin-bottom: 1vh;
-}
-
-/* write-post-link is copy-pasted from index */
-nav:has(#write-post-link) {
-    width: fit-content;
-    position: absolute;
-    bottom: 2vh;
-    left: 2vw;
-}
-
-#write-post-link {
-    --icon-width: 2rem;
-
-    /* margin-top: 1em; */
-    padding: calc(var(--icon-width) / 2.5);
-    border-radius: 100%;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #e8e8e8;
-}
-
-#write-post-link img {
-    width: var(--icon-width);
-}
-
-@media (min-width: 500px) {
-    #write-post-link img {
-        --icon-width: 2.5rem;
-    }  
 }

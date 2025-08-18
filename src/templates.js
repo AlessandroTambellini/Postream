@@ -70,17 +70,24 @@ components['universal-resources'] =
     <script type="module" src="../scripts/utils/side-nav.js"></script>
 `;
 
-components['#side-nav'] = function(show_profile_pic, pages)
+components['#side-nav'] = function(logged_in, page)
 {
-    return `
+    let menu_entries = logged_in ? 
+        ['index', 'notifications', 'write-post', 'logout'] : 
+        ['index', 'login', 'create-account'];
+
+    menu_entries = menu_entries.filter(entry => entry !== page);
+
+    const side_nav = `
         <nav id='side-nav' class="display-none">
             <ul>
-                ${show_profile_pic ? `<li for="profile">
-                    <a href="profile">
-                        <div id="profile-pic-mini"></div>
-                    </a>
-                </li>` : ''}
-                ${pages.reduce((accumulator, page) => {
+                ${(logged_in && page !== 'profile') ? 
+                    `<li for="profile">
+                        <a href="profile">
+                            <div id="profile-pic-mini"></div>
+                        </a>
+                    </li>` : ''}
+                ${menu_entries.reduce((accumulator, page) => {
                     return accumulator + `
                         <li for="${page}">
                             <a href="${page}">${page}</a>
@@ -88,14 +95,13 @@ components['#side-nav'] = function(show_profile_pic, pages)
                     `;
                 }, '')}
             </ul>
-        </nav>
-    `;
-}
+        </nav>`;
 
-components['#open-side-nav-btn'] = function(pages) {
-    return `
-        <button id="open-side-nav-btn" class="secondary-btn display-block">
-            ${pages.reduce((accumulator, page) => {
+    // if (logged_in && page !== 'profile') 
+    //     menu_entries.unshift('profile');
+
+    const open_side_nav_btn = `<button id="open-side-nav-btn" class="secondary-btn display-block">
+            ${menu_entries.reduce((accumulator, page) => {
                 return accumulator + `
                     <div for=${page}>
                         <span class='bullet'></span><span class='row'></span>
@@ -104,6 +110,8 @@ components['#open-side-nav-btn'] = function(pages) {
             }, '')}
         </button>
     `;
+
+    return side_nav + open_side_nav_btn;
 }
 
 components['.info-msg'] = function(msg) 
