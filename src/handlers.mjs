@@ -88,7 +88,7 @@ page.index = async function(req_data, res_obj)
     const index_page = index_template
         .replace('{{ universal-resources }}', components['universal-resources'])
         .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, menu_entries))
-        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](['profile', ...menu_entries]))
+        .replace('{{ #open-side-nav-btn }}', components['#open-side-nav-btn'](user_id ? ['profile', ...menu_entries] : menu_entries))
     ;
 
     res_obj.page(200, index_page);

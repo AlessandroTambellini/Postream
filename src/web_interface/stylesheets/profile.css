@@ -2,25 +2,21 @@
 @import './components/buttons.css';
 @import './components/cards.css';
 
-body {
-    /* for the posts stream */
-    max-height: 100vh;
-}
-
 main {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
     position: relative;  
+    /* for the posts stream */
+    height: 100vh;
     max-height: 100vh;
 }
 
 #profile-picture {
     flex-shrink: 0;
     margin-bottom: 3vh;   
-    width: 100%;
-    max-width: 300px;
+    width: 225px;
     aspect-ratio: 1;
     background-color: white;
     border-radius: 100%;
@@ -28,6 +24,12 @@ main {
     overflow: hidden;
     position: relative;
     box-shadow: 0 0px 3px #ccc;
+}
+
+@media (min-width: 500px) {
+    #profile-picture {
+        width: 300px;
+    }
 }
 
 #profile-picture .circle {
@@ -49,6 +51,8 @@ h2 {
     width: fit-content;
     border-top: 1px solid #ccc;
     padding-top: .5rem;
+    /* to let the last post not be covered by the menu btn and the write-post-btn */
+    padding-bottom: 12vh;
 }
 
 #posts-container .post-card {
@@ -59,11 +63,8 @@ h2 {
 nav:has(#write-post-link) {
     width: fit-content;
     position: absolute;
-
-    /* .5rem is to leave a bit of fixed, consistent distance from the border */
-    bottom: calc(2vw + .5rem);
-    left: calc(2vw + .5rem);
-    /* padding-right: calc(2vw + .5rem); */
+    bottom: 2vh;
+    left: 2vw;
 }
 
 #write-post-link {

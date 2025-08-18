@@ -2,19 +2,16 @@
 @import './components/cards.css';
 @import './components/buttons.css';
 
-
 main {
-    display: flex;
-    flex-direction: column;
-    margin: auto;
-    align-items: center;
+    /* to let the last notification not be covered by the menu btn*/
+    padding-bottom: 12vh;
 }
 
 h1 {
     margin-block: .5em;
+    text-align: center;
 }
 
 .notification-card {
     margin-bottom: .5em;
-    margin-inline: .5em;
 }

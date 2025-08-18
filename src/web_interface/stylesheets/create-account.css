@@ -55,6 +55,7 @@ button[type=submit] {
 main > a[href=login] {
     display: block;
     margin: auto;
+    margin-top: 1em;
     width: fit-content;
     font-size: 1.2rem;
 }

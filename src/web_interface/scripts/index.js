@@ -10,12 +10,27 @@ function post_card(post)
 {
     const { id, content, created_at } = post;
 
+    function prettify_date(date) 
+    {
+        const week_days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = [0, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        const week_day = new Date(date).getDay();
+        const [year_time, day_time] = date.split(', ')
+        const [month, day, year] = year_time.split('/')
+
+        const [clock_time, am_pm] = day_time.split(' ');
+        const [hour, mins, secs] = clock_time.split(':');
+
+        return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
+    }
+
     return `
-        <article class="post-card">
+        <article class="card post-card">
             <p>${content.length > 70*10 ? 
                 content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>read entirely</a>` : 
                 content}</p>
-            <time datetime="${created_at}">${new Date(created_at).toLocaleString()}</time>
+            <time datetime="${created_at}">${prettify_date(created_at)}</time>
             <a href='write-reply?id=${id}'>Reply</a>
         </article>
     `;

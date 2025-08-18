@@ -5,6 +5,7 @@
 
 form {
     margin-top: 1em;
+    padding-bottom: 12vh;
 }
 
 button[type=submit] {

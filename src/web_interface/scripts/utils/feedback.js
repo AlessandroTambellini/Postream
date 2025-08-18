@@ -34,7 +34,7 @@ function show_feedback(type, msg)
 
 function hide_feedback() {
     this.className = 'card feedback-card';
-    this.classList.add('none');
+    this.classList.add('display-none');
 }
 
 function setup_feedback_cards()

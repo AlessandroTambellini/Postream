@@ -1,9 +1,9 @@
 .card {
     --text-line-length: 70ch;
-    --padding: 1.2rem;
+    --padding: 1em;
     --border-thickness: 1px;
 
-    font-size: 1.2rem;
+    font-size: 1rem;
     padding: var(--padding);
     border: 1px solid #ccc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -24,7 +24,18 @@
 
 .card time,
 .card a {
-    font-size: initial;
+    font-size: .9rem;
+}
+
+@media (min-width: 500px) {
+    .card {
+        font-size: 1.2rem;
+    }
+
+    .card time,
+    .card a {
+        font-size: initial;
+    }
 }
 
 .post-card {
@@ -77,67 +88,86 @@
 
     /* For the close button ('x') that has position absolute. */
     position: relative;
+
+    .feedback-icon {
+        /* I don't want the text inside the icon to be regulated based on user rem. */
+        font-size: 13px;
+        height: 22px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+    }
+
+    .feedback-content {
+        /* A bit of padding to keep the 'x' button a bit distant from the text. */
+        padding-left: .5em;
+        padding-right: 1em;
+
+        .feedback-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: .2em;
+            line-height: initial;
+        }
+
+        .feedback-text {
+            font-size: 1rem;
+            opacity: 0.8;
+            max-width: 70ch;
+            white-space: pre-wrap; 
+        }
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        border: none;
+        background: none;
+        opacity: 0.5;
+        font-size: 16px;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        transition: opacity 0.2s ease, background-color 0.2s ease;
+    }
+
+    .close-btn:hover {
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+}
+
+@media (min-width: 500px) {
+    .feedback-card {  
+        .feedback-icon {
+            font-size: 16px;
+            height: 25px;
+        }
+
+        .feedback-content {
+            .feedback-title {
+                font-size: 1.3rem;
+            }
+            .feedback-text {
+                font-size: 1.1rem;
+            }
+        }
+    }
 }
 
 .feedback-card:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.feedback-icon {
-    font-size: 16px;
-    height: 25px;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-}
-
-.feedback-content {
-    /* A bit of padding to keep the 'x' button a bit distant from the text. */
-    padding-left: .5em;
-    padding-right: 1em;
-}
-
-.feedback-card .feedback-title {
-    font-weight: 600;
-    font-size: 1.3rem;
-    margin-bottom: .2em;
-    line-height: initial;
-}
-
-.feedback-text {
-    font-size: 1.1rem;
-    opacity: 0.8;
-    max-width: 70ch;
-    white-space: pre-wrap; 
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    border: none;
-    background: none;
-    opacity: 0.5;
-    font-size: 16px;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    transition: opacity 0.2s ease, background-color 0.2s ease;
-}
-
-.close-btn:hover {
-    opacity: 1;
-    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .feedback-info {

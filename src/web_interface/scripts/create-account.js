@@ -27,7 +27,7 @@ async function handle_registration(e)
         // Once a registration happens, the previous cookie is deleted to avoid conflicts with a previous user while logging in 
         document.cookie = 'password_hash=';
 
-        password_container.className = 'block';
+        password_container.className = 'display-block';
     }
 }
 

@@ -49,12 +49,12 @@ components['.reply-card'] = function(reply)
 
 components['.notification-card'] = function(notification)
 {
-    const { id, post_id, post_content, reply_id, created_at } = notification;
+    const { id, post_id, post_content_snapshot, reply_id, created_at } = notification;
 
     return `
         <article id='notification-card-${id}' class='card notification-card'>
             <time datetime="${created_at}">${prettify_date(created_at)}</time>
-            <p><b>New reply for:</b> ${post_content}...</p>
+            <p><b>New reply for:</b> ${post_content_snapshot}...</p>
             <footer>
                 <a href='read-post?id=${post_id}#reply-${reply_id}'>Read Reply</a>
                 <button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>
@@ -143,24 +143,22 @@ function fallback_page(status_code)
             <link rel="stylesheet" href="../stylesheets/_universal.css">
 
             <style>
-                body {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
+                main {
+                    max-width: unset;
                 }
-
+                    
                 h1 {
-                    margin-top: 1em;
-                    margin-inline: .5em;
                     text-align: center;
                 }
             </style>
         </head>
         <body>
-            <h1>${reason} | ${status_code}</h1>
-            <p class="info-msg">
-                ${msg}
-            </p>
+            <main>
+                <h1>${reason} | ${status_code}</h1>
+                <p class="info-msg">
+                    ${msg}
+                </p>
+            </main>
         </body>
         </html>
     `;

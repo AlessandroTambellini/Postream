@@ -21,14 +21,13 @@
 body {
     background-color: var(--clr-bkg);
     font-family: 'Libertinus Mono', monospace;
-    display: flex;
+    display: flex;    
 }
 
 main {
-    flex-grow: 2;
-    max-width: 1200px;
-    margin-top: 2vh;
-    padding-inline: calc(1vh + .5rem);
+   flex-grow: 2;
+   max-width: 1200px;
+   padding: 2vh 2vw;
 }
 
 main > * {
@@ -59,41 +58,15 @@ And so, sometimes elements are shown/hidden and you don't understand why
 (especially if the codebase is big).
 Therefore, I modify the state only via these CSS classes below. */
 
-/* TODO change the name to be display-<state> */
-
-.block {
-    display: block;
-}
 .display-block {
     display: block;
 }
 
+/* to 'flex' and 'hidden' I don't add the prefix 'display'
+because it's pretty clear that's about displaying. */
+
 .flex {
     display: flex;
-}
-
-.vanish {
-    animation: vanish 3s ease-in-out;
-    animation-fill-mode: forwards;
-}
-
-@keyframes vanish {
-      0% { display: flex; opacity: 1; }
-     50% { opacity: 1; }
-    100% { display: none; opacity: 0; }
-}
-
-.display-none,
-.none {
-    display: none;
-}
-
-.display-opaque {
-    opacity: .5;
-}
-
-.selected {
-    background-color: rgb(255, 185, 56);
 }
 
 .hidden {
@@ -108,12 +81,35 @@ Therefore, I modify the state only via these CSS classes below. */
     border: 0;
 }
 
+.display-none {
+    display: none;
+}
+
+.vanish {
+    animation: vanish 3s ease-in-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes vanish {
+      0% { display: flex; opacity: 1; }
+     50% { opacity: 1; }
+    100% { display: none; opacity: 0; }
+}
+
+.display-opaque {
+    opacity: .5;
+}
+
+.selected {
+    background-color: rgb(255, 185, 56);
+}
+
 /* A couple of considerations:
 1) `create-account`, `delete-account`, `login`, `logout`, `read-post`, `write-post`, `write-reply` 
 have pretty much the same elements with the same positioning on the page 
 and the pages themselves are really minimal. 
 Neverthless, I prefer to have a separate css file for each of them 
-to layout their components individually in case in the future I want to do some page-specific customization.
+to layout their components individually in case in the future I want to do page-specific customizations.
 
 2) I use `@import` in the .css files instead of using `<link>` in the corresponding HTML file
 because I want to keep track of the styling priorities. Same reason for why I don't use inline-styling
