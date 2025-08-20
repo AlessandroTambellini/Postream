@@ -53,6 +53,24 @@
     }
 }
 
+#side-nav > button {
+    /* only for desktop */
+    display: none;
+    margin-top: 5vh;
+    background: unset;
+    border: unset;
+    font-size: 2rem;
+    color: grey;
+    margin-left: auto;
+    width: fit-content;
+    width: 2rem;
+    border-radius: 100%;
+} 
+
+#side-nav > button:hover {
+    background-color: rgb(229, 229, 229);
+}
+
 @media (max-width: 1189px) {
     :root {
         --list-fs: 1.5rem;
@@ -118,6 +136,20 @@
 
     #open-side-nav-btn {
         display: none;
+    }
+
+    #side-nav > button.display-block {
+        display: block;
+    }
+
+    .minified-list li a:not(a[href=profile]) {
+        visibility: hidden;
+        display: inline-block;
+        width: 0;
+    }
+    
+    .minified-list li {
+        padding-inline: 0 !important;
     }
 }
 

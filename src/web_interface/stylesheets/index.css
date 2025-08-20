@@ -29,6 +29,8 @@ main {
     overflow-y: scroll;
     scrollbar-width: none;
     padding-inline: 2vw;
+    /* handy for the scrolling */
+    width: 100%;
 }
 
 #post-stream > * {

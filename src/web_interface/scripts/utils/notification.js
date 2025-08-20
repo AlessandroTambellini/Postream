@@ -1,3 +1,5 @@
+/* WARN! these functions aren't used. just playin around */
+
 let notification_allowed = false;
 
 function get_notification_permission() {

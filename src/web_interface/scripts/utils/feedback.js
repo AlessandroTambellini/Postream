@@ -1,5 +1,6 @@
 function show_feedback(type, msg) 
 {
+    // reset the classes
     this.className = 'card feedback-card';
 
     const icon = this.querySelector('.feedback-icon');
