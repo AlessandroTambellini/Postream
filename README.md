@@ -19,7 +19,18 @@ You can also load the scene data file `Website-Map.excalidraw` into Excalidraw.
 1) **Why is the password generated automatically?**
     Because the password serves as the sole identifier for the user and so it must be unique.
     Therefore, during the account creation, I cannot tell the user if the choosen password is available or not, otherwise I would practically give him access to someone else profile.
-2) **Why don't I use a template for the html pages (e.g. to include `<head>` and few other universal components)?**
-    * I should read two files instead of one: the template file and the page-specific file.
-    * Copy-pasting a couple of components isn't a problem for my fingers **+** I have an Emmet abbreviation to create the boilerplate of an HTML page
-    * I don't want to complicate the code with useless interpolations. I use them where necessary.
+
+2) **Navigation of the website**:
+    * The links that can be present in the side-nav are: 
+        * if logged-in: 
+            `[profile, index, notifications, write-post, logout, delete-account] - current-page`
+        * if logged-out: 
+            `[index, login, create-account] - current-page`
+        * delete-account is present only if the current-page is profile.
+    * There are also read-post and write-reply, but these pages are accessible from the post-card itself.
+    * I don't show the login and create-account links while you are logged-in because it would be confusing, but it's still possible to access them:
+        * If you login again, you simply extend the session.
+        * If you create an account, you create a new account and you are switched to it.
+
+3) **HTTPS**:
+It is required only for login and create-account because the password is transmitted in the payload of the request. See `API.user.POST` and `API.token.POST` in handlers.js
