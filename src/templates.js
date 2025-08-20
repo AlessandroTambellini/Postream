@@ -77,6 +77,7 @@ components['#side-nav'] = function(logged_in, page)
         ['index', 'login', 'create-account'];
 
     menu_entries = menu_entries.filter(entry => entry !== page);
+    if (page === 'profile') menu_entries.push('delete-account');
 
     const side_nav = `
         <nav id='side-nav' class="display-none">
@@ -97,6 +98,9 @@ components['#side-nav'] = function(logged_in, page)
             </ul>
         </nav>`;
 
+    /* The button icon is a miniature of the list and the profile-pic wouldn't fit nicely there. 
+    Therefore I would represent also the profile link as bullet + row, 
+    but The button becomes too tall and the profile-pic isn't really part of the list of links. */
     // if (logged_in && page !== 'profile') 
     //     menu_entries.unshift('profile');
 
