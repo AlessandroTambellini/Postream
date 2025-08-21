@@ -156,11 +156,8 @@ function fallback_page(status_code)
             <link rel="icon" type="image/webp" href="../assets/logo.webp">
             <link rel="stylesheet" href="../stylesheets/_universal.css">
 
-            <style>
-                main {
-                    max-width: unset;
-                }
-                    
+            ${components["universal-resources"]}
+            <style> 
                 h1 {
                     text-align: center;
                 }
@@ -173,6 +170,8 @@ function fallback_page(status_code)
                     ${msg}
                 </p>
             </main>
+
+            ${components['#side-nav'](false)}
         </body>
         </html>
     `;

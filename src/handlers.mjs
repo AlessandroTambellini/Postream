@@ -214,7 +214,7 @@ page.notifications = async function(req_data, res_obj)
 page['write-post'] = async function(req_data, res_obj) 
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
-
+    
     if (!user_id)
     {
         res_obj.page(status_code, fallback_page(status_code));
@@ -228,8 +228,6 @@ page['write-post'] = async function(req_data, res_obj)
         res_obj.page(500, fallback_page(500));
         return;
     }
-
-    const menu_entries = ['index', 'notifications', 'logout'];
 
     const write_post_page = write_post_template
         .replace('{{ universal-resources }}', components['universal-resources'])
@@ -332,8 +330,6 @@ page['read-post'] = async function(req_data, res_obj)
     }
     else
         post_template = post_template.replace('{{ replies }}', '');
-
-    const menu_entries = user_id ? ['index', 'notifications'] : ['index', 'login', 'create-account'];
 
     const post_page = post_template
         .replace('{{ universal-resources }}', components['universal-resources'])

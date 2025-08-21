@@ -20,8 +20,9 @@ async function handle_post_submission(e)
     const method = write_post_form.attributes.method.value;
     
     const content = textarea.value;
+    const created_at = new Date().toLocaleString();
     
-    const { status_code, req_error } = await req(path, method, null, { content, created_at: new Date().toLocaleString() });
+    const { status_code, req_error } = await req(path, method, null, { content, created_at });
 
     if (req_error) {
         feedback.show('error', err_msg(status_code, 'post', 'send'));

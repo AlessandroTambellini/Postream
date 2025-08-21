@@ -38,7 +38,7 @@ function handle_request(req, res)
     const body = [];
     let buffer_size = 0;
     let f_abort = false;
-
+    
     const res_obj = new Res();
     
     req.on('data', buffer => 
@@ -87,7 +87,7 @@ function handle_request(req, res)
             } 
             else {
                 await handlers.get_asset(req_data, res_obj);
-            }
+            }            
             
             write_res(res, res_obj);
 
@@ -117,7 +117,7 @@ function write_res(res, res_obj)
 {
     try {
         const payload = res_obj.content_type === 'application/json' ? JSON.stringify(res_obj.payload) : res_obj.payload;
-        
+
         res.strictContentLength = true;
         res.writeHead(res_obj.status_code, {
             'Content-Length': Buffer.byteLength(payload),
