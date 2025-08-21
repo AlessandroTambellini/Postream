@@ -15,3 +15,7 @@ h1 {
 .notification-card {
     margin-bottom: .5em;
 }
+
+.delete-notification-btn:hover {
+    background-color: #ff8282;
+}
