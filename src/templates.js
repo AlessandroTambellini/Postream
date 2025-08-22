@@ -96,8 +96,8 @@ components['#side-nav'] = function(logged_in, page)
                     `;
                 }, '')}
             </ul>
-            <button title='minify nav' class='display-block'>-</button>
-            <button title='expand nav' class='display-none'>+</button>
+            <button title='minify nav' class='display-block'>〈</button>
+            <button title='expand nav' class='display-none'>〉</button>
         </nav>`;
 
     /* The button icon is a miniature of the list and the profile-pic wouldn't fit nicely there. 
@@ -106,14 +106,17 @@ components['#side-nav'] = function(logged_in, page)
     // if (logged_in && page !== 'profile') 
     //     menu_entries.unshift('profile');
 
-    const open_side_nav_btn = `<button id="open-side-nav-btn" class="secondary-btn display-block">
-            ${menu_entries.reduce((accumulator, page) => {
-                return accumulator + `
-                    <div for=${page}>
-                        <span class='bullet'></span><span class='row'></span>
-                    </div>
-                `;
-            }, '')}
+    const open_side_nav_btn = `
+        <button id="open-side-nav-btn" class="secondary-btn display-block">
+            <span role='img'>
+                ${menu_entries.reduce((accumulator, page) => {
+                    return accumulator + `
+                        <span for=${page}>
+                            <span class='bullet'></span><span class='row'></span>
+                        </span>
+                    `;
+                }, '')}
+            </span>
         </button>
     `;
 
