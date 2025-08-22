@@ -84,8 +84,8 @@ components['#side-nav'] = function(logged_in, page)
             <ul>
                 ${(logged_in && page !== 'profile') ? 
                     `<li for="profile">
-                        <a href="profile">
-                            <div id="profile-pic-mini"></div>
+                        <a href="profile" title='profile'>
+                            <span role='img'></span>
                         </a>
                     </li>` : ''}
                 ${menu_entries.reduce((accumulator, page) => {
@@ -104,7 +104,7 @@ components['#side-nav'] = function(logged_in, page)
             </button>
         </nav>`;
 
-    /* The button icon is a miniature of the list and the profile-pic wouldn't fit nicely there. 
+    /* The button icon is a miniature of the list and the profile-pic wouldn't be a nice fit there. 
     Therefore I would represent also the profile link as bullet + row, 
     but The button becomes too tall and the profile-pic isn't really part of the list of links. */
     // if (logged_in && page !== 'profile') 

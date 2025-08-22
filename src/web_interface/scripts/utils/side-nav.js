@@ -8,7 +8,7 @@ const expand_nav_btn = side_nav.querySelector('button[title="expand nav"]');
 
 (function main() 
 {
-    generate_profile_picture('#profile-pic-mini', 50, 70);
+    generate_profile_picture('a[href=profile] span', 50, 70);
     
     open_side_nav_btn.switch_class = 
     minify_nav_btn.switch_class    = 

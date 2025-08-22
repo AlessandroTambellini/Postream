@@ -9,6 +9,7 @@ import { db_close } from './database.mjs';
 import { log_error } from './utils.mjs';
 
 const PROTOCOL = process.env.ENVIRONMENT === 'production' ? 'https' : 'http';
+
 const PORT = PROTOCOL === 'https' ? 3001 : 3000;
 
 const MAX_BUFFER_SIZE = 128 * 1024; // 128KB

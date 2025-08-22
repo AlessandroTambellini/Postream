@@ -32,7 +32,8 @@
         }
     }
 
-    #profile-pic-mini {
+    a[href=profile] > span {
+        display: block;
         width: var(--profile-pic-size);
         aspect-ratio: 1;
         background-color: white;
@@ -42,11 +43,11 @@
         box-shadow: 0 0px 3px #ccc;
     }
 
-    #profile-pic-mini:hover {
+    a[href=profile] > span:hover {
         box-shadow: 0 2px 4px 1px #ccc;
     }
 
-    #profile-pic-mini .circle {
+    a[href=profile] > span .circle {
         position: absolute;
         aspect-ratio: 1;
         border-radius: 100%;
@@ -60,7 +61,7 @@
     background: unset;
     border: unset;
     font-size: 2rem;
-    color: rgb(184, 184, 184);
+    color: rgb(164, 164, 164);
     margin-left: auto;
     border-radius: 8px;
 } 
@@ -73,7 +74,7 @@
 }
 
 #side-nav > button:hover {
-    background-color: rgb(229, 229, 229);
+    background-color: rgb(237, 237, 237);
 }
 
 @media (max-width: 1189px) {

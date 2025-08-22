@@ -5,15 +5,20 @@ but the replies are only visible to the author of the post.
 ## Setup
 Node.js version used: `v22.14.0`
 
-```bash
-npm install
-npm run dev
-```
-The database will be created automatically on first run.
+1) Create a `.env` file in the root folder
+2) Fill the `.env` file with the following content:
+    ```.env
+    HASHING_SECRET=your_hashing_secret
+    ENVIRONMENT=development
+    ```
+3) Generate the private key and the certificate:
+    ```sh
+    openssl req -newkey rsa:2048 -nodes -x509 -keyout -sha256 -subj '/CN=localhost' private-key.pem -out certificate.pem
+    ```
+4) Install the dependencies: `npm install`
 
-## Map of the website
-https://excalidraw.com/#json=CF1WWhoiTgfj_nCEqNzpR,BcgmPkWFjCUH4OuFcXjnPQ  
-You can also load the scene data file `Website-Map.excalidraw` into Excalidraw.
+Now you are ready to go. Run `npm run dev` to start the app.
+Note: the database will be created automatically on first run.
 
 ## Considerations
 1) **Why is the password generated automatically?**
@@ -21,6 +26,7 @@ You can also load the scene data file `Website-Map.excalidraw` into Excalidraw.
     Therefore, during the account creation, I cannot tell the user if the choosen password is available or not, otherwise I would practically give him access to someone else profile.
 
 2) **Navigation of the website**:
+    The website is composed of 10 pages, 6 of which are basically forms.
     * The links that can be present in the side-nav are: 
         * if logged-in: 
             `[profile, index, notifications, write-post, logout, delete-account] - current-page`
@@ -33,4 +39,4 @@ You can also load the scene data file `Website-Map.excalidraw` into Excalidraw.
         * If you create an account, you create a new account and you are switched to it.
 
 3) **HTTPS**:
-It is required only for login and create-account because the password is transmitted in the payload of the request. See `API.user.POST` and `API.token.POST` in handlers.js
+It is required only for login and create-account because the password is transmitted in the payload of the request. See `API.user.POST` and `API.token.POST` in `handlers.js`

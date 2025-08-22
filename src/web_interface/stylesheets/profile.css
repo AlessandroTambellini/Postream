@@ -15,6 +15,7 @@ main {
 
 #profile-picture {
     flex-shrink: 0;
+    display: block;
     margin-bottom: 3vh;   
     width: 225px;
     aspect-ratio: 1;
