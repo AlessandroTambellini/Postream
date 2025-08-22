@@ -60,11 +60,17 @@
     background: unset;
     border: unset;
     font-size: 2rem;
-    color: grey;
+    color: rgb(184, 184, 184);
     margin-left: auto;
-    width: 2rem;
-    border-radius: 100%;
+    border-radius: 8px;
 } 
+
+#side-nav > button[title='minify nav'] {
+    padding-right: .5em;
+}
+#side-nav > button[title='expand nav'] {
+    padding-left: .5em;
+}
 
 #side-nav > button:hover {
     background-color: rgb(229, 229, 229);

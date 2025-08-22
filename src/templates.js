@@ -96,8 +96,12 @@ components['#side-nav'] = function(logged_in, page)
                     `;
                 }, '')}
             </ul>
-            <button title='minify nav' class='display-block'>〈</button>
-            <button title='expand nav' class='display-none'>〉</button>
+            <button title='minify nav' class='display-block'>
+                <span role='img'>〈</span>
+            </button>
+            <button title='expand nav' class='display-none'>
+                <span role='img'>〉</span>
+            </button>
         </nav>`;
 
     /* The button icon is a miniature of the list and the profile-pic wouldn't fit nicely there. 
