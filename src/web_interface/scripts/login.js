@@ -1,25 +1,19 @@
-import req from "./utils/req.js";
-import { setup_feedback_cards, err_msg } from "./utils/feedback.js";
+import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.js';
 
 const login_form = document.querySelector('form');
-const feedback = login_form.querySelector('.feedback-card');
+const feedback_card = login_form.querySelector('.feedback-card');
 const password_input = login_form.querySelector('input[name=password]');
 
-(function main()
-{
-    setup_feedback_cards();
-    login_form.addEventListener('submit', handle_login);
-})();
+feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
+login_form.addEventListener('submit', handle_login);
 
 async function handle_login(e) 
 {
     e.preventDefault();
-    feedback.hide();
+    hide_feedback_card(feedback_card);
 
     const path = login_form.attributes.action.value;
-    
     const password = password_input.value;
-
     const password_hash = parse_cookies(document.cookie).password_hash;
 
     /* 
@@ -34,7 +28,7 @@ async function handle_login(e)
         const { status_code, payload, req_error } = await req(path, 'PUT', null, { password });
         
         if (req_error) {
-            feedback.show('error', err_msg(status_code, 'password'));
+            show_feedback_card(feedback_card, 'error', err_msg(status_code, 'password'));
         } else {
             document.cookie = `password_hash=${payload.password_hash}`;        
             /* I was thinking: "Why should I bother about automatically changing the location?
@@ -54,14 +48,14 @@ async function handle_login(e)
             const { status_code, payload, req_error } = await req(path, 'GET', { password });
             
             if (req_error) {
-                feedback.show('error', err_msg(status_code, 'password'));
+                show_feedback_card(feedback_card, 'error', err_msg(status_code, 'password'));
             } 
             else 
             {
                 const { status_code, payload, req_error } = await req(path, 'PUT', null, { password });
                     
                 if (req_error) {
-                   feedback.show('error', err_msg(status_code, 'password'));
+                   show_feedback_card(feedback_card, 'error', err_msg(status_code, 'password'));
                 } else {
                     document.cookie = `password_hash=${payload.password_hash}`; 
                     location.href = '/';

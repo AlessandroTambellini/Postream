@@ -1,4 +1,4 @@
-import generate_profile_picture from "./generate-profile-pic.js";
+import { generate_profile_picture } from "../_utils.js";
 
 const side_nav = document.querySelector('#side-nav');
 const open_side_nav_btn = document.querySelector('#open-side-nav-btn');

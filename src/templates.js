@@ -67,7 +67,7 @@ components['universal-resources'] =
 `
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel="stylesheet" href="../stylesheets/components/side-nav.css">
-    <script type="module" src="../scripts/utils/side-nav.js"></script>
+    <script type="module" src="../scripts/components/side-nav.js"></script>
 `;
 
 components['#side-nav'] = function(logged_in, page)

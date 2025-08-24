@@ -1,5 +1,4 @@
-import { setup_feedback_cards } from "./utils/feedback.js";
-import req from "./utils/req.js";
+import { req, show_feedback_card, hide_feedback_card } from './_utils.js';
 
 const PAGE_LIMIT = 20;
 
@@ -38,8 +37,8 @@ function post_card(post)
 
 async function fill_stream(flags, displayed_posts, f_reload = false)
 {
-    const feedback = document.querySelector('.feedback-card');
-    feedback.hide();
+    const feedback_card = document.querySelector('.feedback-card');
+    hide_feedback_card(feedback_card);
 
     const search_params = {};
     search_params.page  = flags.sort === 'asc' ? flags.page_asc : flags.page_desc;
@@ -49,7 +48,7 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
     const { status_code, payload, req_error } = await req('api/posts/page', 'GET', search_params);
 
     if (req_error) {
-        feedback.show('error', req_error);
+        show_feedback_card(feedback_card, 'error', req_error);
         return;
     }
 
@@ -72,9 +71,9 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
     if (!new_posts)
     {
         if (num_of_posts === displayed_posts.size) {
-            feedback.show('info', 'There aren\'t new posts.');
+            show_feedback_card(feedback_card, 'info', 'There aren\'t new posts.');
         } else {
-            feedback.show('warn', 'No new posts retrieved. They where retrieved just posts already present in the stream.');
+            show_feedback_card(feedback_card, 'warn', 'No new posts retrieved. They where retrieved just posts already present in the stream.');
         }
     }
 
@@ -135,7 +134,6 @@ function identify_displayed_posts(flags, displayed_posts)
      *  Calls
      */
 
-    setup_feedback_cards();
     identify_displayed_posts(flags, displayed_posts);
 })();
 

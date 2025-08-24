@@ -1,13 +1,13 @@
-import { err_msg, setup_feedback_cards } from "./utils/feedback.js";
-import req from "./utils/req.js";
+import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.js';
 
-const feedback = document.querySelector('.feedback-card');
+const feedback_card = document.querySelector('.feedback-card');
 
-setup_feedback_cards();
-
-document.querySelectorAll('.delete-notification-btn').forEach(btn => {
+document.querySelectorAll('.delete-notification-btn').forEach(btn => 
+{
     btn.addEventListener('click', async () => 
     {
+        hide_feedback_card(feedback_card);
+
         const notification_id = btn.id.split('-')[1];
         const { status_code, payload, req_error } = await req('api/user/notifications', 'DELETE', { id: notification_id });
     
@@ -19,7 +19,7 @@ document.querySelectorAll('.delete-notification-btn').forEach(btn => {
         {
             notification_card.classList.remove('deleting');
             btn.disabled = false;
-            feedback.show('error', err_msg(status_code, 'notification', 'delete'));
+            show_feedback_card(feedback_card, 'error', err_msg(status_code, 'notification', 'delete'));
         } 
         else {
             setTimeout(() => {
