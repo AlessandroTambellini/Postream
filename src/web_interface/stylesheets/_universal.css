@@ -9,7 +9,7 @@
 
 :root {
     --clr-txt: #343A40;
-    --clr-bkg: #F8F9FA;
+    --clr-bkg: hsl(210, 17%, 98%);
 }
 
 * {

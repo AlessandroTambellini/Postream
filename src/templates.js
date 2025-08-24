@@ -4,8 +4,8 @@ function prettify_date(date)
     const months = [0, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     const week_day = new Date(date).getDay();
-    const [year_time, day_time] = date.split(', ')
-    const [month, day, year] = year_time.split('/')
+    const [year_time, day_time] = date.split(', ');
+    const [month, day, year] = year_time.split('/');
 
     const [clock_time, am_pm] = day_time.split(' ');
     const [hour, mins, secs] = clock_time.split(':');
@@ -22,7 +22,7 @@ components['.post-card'] = function(post, reply_link_type = false, cut_post_cont
     /* Sometimes I don't want the reply link to be shown. 
     E.g. if you are the author of the post and you are simply visualizing it in the profile page
     (even though, you can reply to your own posts) */
-    const reply_link_types = ['', `<a href='read-post?id=${id}'>Read Replies</a>`, `<a href='write-reply?id=${id}'>Reply</a>`];
+    const reply_link_types = ['', `<a href='read-post?id=${id}'>Read Replies</a>`, `<a href='write-reply?id=${id}'>Reply</a>`];    
 
     return `
         <article class="card post-card">
@@ -83,14 +83,14 @@ components['#side-nav'] = function(logged_in, page)
         <nav id='side-nav' class="display-none">
             <ul>
                 ${(logged_in && page !== 'profile') ? 
-                    `<li for="profile">
+                    `<li itemprop="profile">
                         <a href="profile" title='profile'>
                             <span role='img'></span>
                         </a>
                     </li>` : ''}
                 ${menu_entries.reduce((accumulator, page) => {
                     return accumulator + `
-                        <li for="${page}">
+                        <li itemprop="${page}">
                             <a href="${page}">${page}</a>
                         </li>
                     `;
@@ -115,7 +115,7 @@ components['#side-nav'] = function(logged_in, page)
             <span role='img'>
                 ${menu_entries.reduce((accumulator, page) => {
                     return accumulator + `
-                        <span for=${page}>
+                        <span itemprop=${page}>
                             <span class='bullet'></span><span class='row'></span>
                         </span>
                     `;

@@ -190,7 +190,7 @@ page.notifications = async function(req_data, res_obj)
     const { notifications, db_error } = db_op.select_user_notifications(user_id);
 
     if (db_error)
-        notifications_template = notifications_template.replace('{{ notifications }}', 
+        notifications_template = notifications_template.replace('{{ notification-cards }}', 
             components['.info-msg']('Sorry, unable to retrieve the posts :('));
     else
     {
@@ -199,7 +199,7 @@ page.notifications = async function(req_data, res_obj)
             notification_cards.push(components['.notification-card'](notification));
         });
 
-        notifications_template = notifications_template.replace('{{ notifications }}', 
+        notifications_template = notifications_template.replace('{{ notification-cards }}', 
             notification_cards.length > 0 ? notification_cards.join('') : components['.info-msg']('You don\'t have any notification :)'));
     }
 

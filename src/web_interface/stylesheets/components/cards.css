@@ -2,12 +2,13 @@
     --text-line-length: 70ch;
     --padding: 1em;
     --border-thickness: 1px;
+    --card-max-width: calc(var(--text-line-length) + var(--padding)*2 + var(--border-thickness)*2);
 
     font-size: 1rem;
     padding: var(--padding);
     border: 1px solid #ccc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    max-width: calc(var(--text-line-length) + var(--padding)*2 + var(--border-thickness)*2);
+    max-width: var(--card-max-width);
 }
 
 .card p {

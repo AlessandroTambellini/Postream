@@ -137,7 +137,8 @@
 
     #side-nav {
         display: block;
-        box-shadow: -1px 0 0 #ccc;
+        /* box-shadow: -1px 0 0 #ccc; */
+        border-left: 1px solid #ccc;
     }
 
     #open-side-nav-btn {
@@ -159,24 +160,24 @@
     }
 }
 
-#side-nav li:not(li[for=profile]) {
+#side-nav li:not(li[itemprop=profile]) {
     margin-bottom: .25em;
     padding-left: calc(var(--bullet-size)*3); 
 }
 
 /* Apply this margin only when the profile-pic is present. */
-#side-nav:has(li[for=profile]) li:not(li[for=profile]) {
+#side-nav:has(li[itemprop=profile]) li:not(li[itemprop=profile]) {
     /* This margin is to align the bullets with the profile pic 
     and equally space left and right of the list items. */
     margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);
 }
 
-#side-nav li[for=profile] {
+#side-nav li[itemprop=profile] {
     margin-bottom: .5em;
     width: fit-content;
 }
 
-#side-nav li:not(li[for=profile])::before {
+#side-nav li:not(li[itemprop=profile])::before {
     content: "";
     position: absolute;
     left: 0;
@@ -193,45 +194,45 @@
 /* 
  * Color-specific customization */
 
-#open-side-nav-btn span[for=index] .bullet,
-#side-nav li[for=index]::before {
+#open-side-nav-btn span[itemprop=index] .bullet,
+#side-nav li[itemprop=index]::before {
     --circle-color: #10b981;
 }
 
-#open-side-nav-btn span[for=write-post] .bullet,
-#side-nav li[for=write-post]::before {
+#open-side-nav-btn span[itemprop=write-post] .bullet,
+#side-nav li[itemprop=write-post]::before {
     --circle-color: #1ec8de;
 }
 
-#open-side-nav-btn span[for=login] .bullet,
-#side-nav li[for=login]::before {
+#open-side-nav-btn span[itemprop=login] .bullet,
+#side-nav li[itemprop=login]::before {
     --circle-color: #4affc3;
 }
 
-#open-side-nav-btn span[for=create-account] .bullet,
-#side-nav li[for=create-account]::before {
+#open-side-nav-btn span[itemprop=create-account] .bullet,
+#side-nav li[itemprop=create-account]::before {
     --circle-color: #ff8725;
 }
 
-#open-side-nav-btn span[for=notifications] .bullet,
-#side-nav li[for=notifications]::before {
+#open-side-nav-btn span[itemprop=notifications] .bullet,
+#side-nav li[itemprop=notifications]::before {
     --circle-color: #3b82f6;
 }
 
-#open-side-nav-btn span[for=profile] .bullet,
-#side-nav li[for=profile]::before {
+#open-side-nav-btn span[itemprop=profile] .bullet,
+#side-nav li[itemprop=profile]::before {
     --circle-color: #d359f8;
 }
-#side-nav li[for=profile]::before {
+#side-nav li[itemprop=profile]::before {
     border: none;
 }
 
-#open-side-nav-btn span[for=logout] .bullet,
-#side-nav li[for=logout]::before {
+#open-side-nav-btn span[itemprop=logout] .bullet,
+#side-nav li[itemprop=logout]::before {
     --circle-color: #ff793f;
 }
 
-#open-side-nav-btn span[for=delete-account] .bullet,
-#side-nav li[for=delete-account]::before {
+#open-side-nav-btn span[itemprop=delete-account] .bullet,
+#side-nav li[itemprop=delete-account]::before {
     --circle-color: #840000;
 } 

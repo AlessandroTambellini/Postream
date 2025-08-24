@@ -3,19 +3,32 @@
 @import './components/buttons.css';
 
 main {
-    /* to let the last notification not be covered by the menu btn*/
+    overflow-y: scroll;
+    scrollbar-width: none;
+    height: 100vh;
+
+    padding: 0;
     padding-bottom: 12vh;
 }
 
 h1 {
-    margin-block: .5em;
+    padding-block: 1em;
     text-align: center;
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(10px);
+    background-color: hsl(210, 17%, 98%, .5);
 }
 
-.notification-card {
+.notification-card 
+{
+    max-width: min(var(--card-max-width), calc(100% - 4vw));
+    
     margin-bottom: .5em;
+
     transition: all .3s ease-out;
     transform-origin: top;
+
     /* If overflow isn't set to hidden, 
     the text would appear to spill out below the boundaries of the shrinking card
     when the deleting class is set. */

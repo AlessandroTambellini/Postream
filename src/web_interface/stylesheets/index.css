@@ -2,50 +2,38 @@
 @import './components/buttons.css';
 @import './components/cards.css';
 
-body {
-    max-height: 100vh;
-}
-
 main {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    padding-inline: 0;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    height: 100vh;
+
+    padding: 0;
+    padding-bottom: 12vh;
 }
 
 #controls-nav {
-    width: 100%;
+    position: sticky;
+    top: 0;
+    padding-block: 1em;
+    backdrop-filter: blur(10px);
+    background-color: hsl(210, 17%, 98%, .5);
+
     display: flex;
     justify-content: center;
     gap: .5rem;
-    padding-bottom: 1.5vh;
-    
-    z-index: 1;
-    border-bottom: 1px solid #ccc;
-    box-shadow: -4px 3px 9px rgba(0, 0, 0, 0.1);
-}
-
-#post-stream {
-    overflow-y: scroll;
-    scrollbar-width: none;
-    padding-inline: 2vw;
-    /* handy for the scrolling */
-    width: 100%;
-}
-
-#post-stream > * {
-    margin-inline: auto;
 }
 
 #posts-container {
-    /* The post-card have some shadow and to avoid being covered by the container
-    I add a bit of padding to their container. */
-    padding-top: .5rem;
-    width: fit-content;
+    padding-inline: 2vw;
+}
+
+#posts-container > * {
+    margin-inline: auto;
 }
 
 #posts-container .post-card {
-    margin-bottom: 1vh;
+    /* margin-bottom: 1vh; */
+    margin-bottom: .5em;
 }
 
 .feedback-card {
@@ -53,18 +41,13 @@ main {
 }
 
 #load-more-posts-btn {
-    font-size: 1rem;
-    padding: .8rem;
-    margin-top: .75rem;
-    margin-bottom: 1.5rem;
     display: block;
+    font-size: 1rem;
+    padding: .8em;
+    margin-block: 1em;
 }
 
 @media (min-width: 500px) {
-    #posts-container {
-        padding-top: 1rem;
-    }
-
     #load-more-posts-btn {
         font-size: 1.2rem;
     }
