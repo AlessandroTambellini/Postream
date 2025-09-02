@@ -21,14 +21,7 @@
         <form id="reply-form" action="api/reply" method="POST">
             <textarea name="reply-textarea" placeholder="_"></textarea>
             
-            <div class="card feedback-card display-none">
-                <div class="feedback-icon"></div>
-                <div class="feedback-content">
-                    <p class="feedback-title"></p>
-                    <p class="feedback-text"></p>
-                </div>
-                <button class="close-btn" type="button">x</button>
-            </div>
+            {{ .feedback-card }}
         
             <button class="primary-btn" type="submit">
                 Reply 

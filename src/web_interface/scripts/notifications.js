@@ -2,6 +2,8 @@ import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.j
 
 const feedback_card = document.querySelector('.feedback-card');
 
+feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
+
 document.querySelectorAll('.delete-notification-btn').forEach(btn => 
 {
     btn.addEventListener('click', async () => 

@@ -4,6 +4,8 @@ const write_reply_form = document.querySelector('form');
 const textarea = write_reply_form.querySelector('textarea');
 const feedback_card = write_reply_form.querySelector('.feedback-card');
 
+feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
+
 write_reply_form.addEventListener('submit', handle_reply_submission);
 
 async function handle_reply_submission(e)

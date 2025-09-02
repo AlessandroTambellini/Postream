@@ -89,80 +89,80 @@
 
     /* For the close button ('x') that has position absolute. */
     position: relative;
-
-    .feedback-icon {
-        /* I don't want the text inside the icon to be regulated based on user rem. */
-        font-size: 13px;
-        height: 22px;
-        aspect-ratio: 1;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: white;
-    }
-
-    .feedback-content {
-        /* A bit of padding to keep the 'x' button a bit distant from the text. */
-        padding-left: .5em;
-        padding-right: 1em;
-
-        .feedback-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: .2em;
-            line-height: initial;
-        }
-
-        .feedback-text {
-            font-size: 1rem;
-            opacity: 0.8;
-            max-width: 70ch;
-            white-space: pre-wrap; 
-        }
-    }
-
-    .close-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        border: none;
-        background: none;
-        opacity: 0.5;
-        font-size: 16px;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        transition: opacity 0.2s ease, background-color 0.2s ease;
-    }
-
-    .close-btn:hover {
-        opacity: 1;
-        background-color: rgba(0, 0, 0, 0.1);
-    }
 }
 
-@media (min-width: 500px) {
-    .feedback-card {  
-        .feedback-icon {
-            font-size: 16px;
-            height: 25px;
-        }
+.feedback-card span[role=img] {
+    /* I don't want the text inside the icon to be regulated based on user rem. */
+    font-size: 13px;
+    height: 22px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+}
 
-        .feedback-content {
-            .feedback-title {
-                font-size: 1.3rem;
-            }
-            .feedback-text {
-                font-size: 1.1rem;
-            }
-        }
+.feedback-card p {
+    padding-inline: 1em;
+    /* Override */
+    white-space: unset;
+}
+
+.feedback-card p .type {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: .2em;
+    line-height: initial;
+    display: block;
+}
+
+.feedback-card p .msg {
+    font-size: 1rem;
+    opacity: 0.8;
+    max-width: 70ch;
+    white-space: pre-wrap; 
+    color: #374151;
+}
+
+.feedback-card .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    opacity: 0.5;
+    font-size: 16px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.feedback-card .close-btn:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 500px) 
+{
+    .feedback-card span[role=img] {
+        font-size: 16px;
+        height: 25px;
+    }
+
+    .feedback-card p .type {
+        font-size: 1.3rem;
+    }
+
+    .feedback-card p .msg {
+        font-size: 1.1rem;
     }
 }
 
@@ -174,43 +174,40 @@
 .feedback-info {
     border-left-color: #3b82f6;
 }
-.feedback-info .feedback-icon {
+.feedback-info span[role=img] {
     background-color: #3b82f6;
 }
-.feedback-info .feedback-title {
+.feedback-info p .type {
     color: #1e40af;
 }
 
 .feedback-success {
     border-left-color: #10b981;
 }
-.feedback-success .feedback-icon {
+.feedback-success span[role=img] {
     background-color: #10b981;
 }
-.feedback-success .feedback-title {
+.feedback-success p .type {
     color: #047857;
 }
 
 .feedback-warn {
     border-left-color: #ff8f3f;
 }
-.feedback-warn .feedback-icon {
+.feedback-warn span[role=img] {
     background-color: #ff8f3f;
 }
-.feedback-warn .feedback-title {
+.feedback-warn p .type {
     color: #dd6713;
 }
 
 .feedback-error {
     border-left-color: #ef4444;
 }
-.feedback-error .feedback-icon {
+.feedback-error span[role=img] {
     background-color: #ef4444;
 }
-.feedback-error .feedback-title {
+.feedback-error p .type {
     color: #dc2626;
 }
 
-.feedback-text {
-    color: #374151;
-}

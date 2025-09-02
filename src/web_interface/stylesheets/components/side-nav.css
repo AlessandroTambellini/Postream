@@ -8,50 +8,83 @@
 
 #side-nav {
     font-size: var(--list-fs);
-    padding: 1em;
+    padding: 1.2em;
     height: 100vh;
     background-color: var(--clr-bkg);
+}
 
-    ul {
-        font-size: inherit;
-        line-height: 1.2;
-        list-style: none;
-        /* avoid 'create-account' link from wrapping onto two lines */
-        white-space: nowrap;
+#side-nav ul {
+    font-size: inherit;
+    line-height: 1.4;
+    list-style: none;
+    /* avoid 'create-account' link from wrapping onto two lines */
+    white-space: nowrap;
 
-        li {
-            position: relative;
+    /* Experiment. I saw that now it is possible to write nested CSS. */
+    li {
+        /* for the bullet made with ::before */
+        position: relative;
 
-            a {
-                text-decoration: none;
-            }
+        a {
+            text-decoration: none;
+        }
 
-            a:hover {
-                text-decoration: underline;
-            }
+        a:hover {
+            text-decoration: underline;
         }
     }
+}
 
-    a[href=profile] > span {
-        display: block;
-        width: var(--profile-pic-size);
-        aspect-ratio: 1;
-        background-color: white;
-        border-radius: 100%;
-        overflow: hidden;
-        position: relative;
-        box-shadow: 0 0px 3px #ccc;
-    }
+#side-nav li[itemprop=profile] {
+    margin-bottom: .5em;
+    width: fit-content;
+}
 
-    a[href=profile] > span:hover {
-        box-shadow: 0 2px 4px 1px #ccc;
-    }
+#side-nav li:not(li[itemprop=profile]) {
+    margin-bottom: .25em;
+    padding-left: calc(var(--bullet-size)*3); 
+}
 
-    a[href=profile] > span .circle {
-        position: absolute;
-        aspect-ratio: 1;
-        border-radius: 100%;
-    }
+/* Apply this margin only when the profile-pic is present. */
+#side-nav:has(li[itemprop=profile]) li:not(li[itemprop=profile]) {
+    /* This margin is to align the bullets with the profile pic 
+    and equally space left and right of the list items. */
+    margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);
+}
+
+#side-nav li:not(li[itemprop=profile])::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    
+    width: var(--bullet-size);
+    aspect-ratio: 1;
+    border-radius: 100%;
+    background-color: var(--circle-color);
+    /* margin-left: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2); */
+}
+
+#side-nav a[href=profile] > span {
+    display: block;
+    width: var(--profile-pic-size);
+    aspect-ratio: 1;
+    background-color: white;
+    border-radius: 100%;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0px 3px #ccc;
+}
+
+#side-nav a[href=profile] > span:hover {
+    box-shadow: 0 2px 4px 1px #ccc;
+}
+
+#side-nav a[href=profile] > span .circle {
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 100%;
 }
 
 #side-nav > button {
@@ -62,15 +95,16 @@
     border: unset;
     font-size: 2rem;
     color: rgb(164, 164, 164);
-    margin-left: auto;
     border-radius: 8px;
 } 
 
 #side-nav > button[title='minify nav'] {
     padding-right: .5em;
+    margin-left: auto;
 }
 #side-nav > button[title='expand nav'] {
     padding-left: .5em;
+    margin-inline: auto;
 }
 
 #side-nav > button:hover {
@@ -149,46 +183,21 @@
         display: block;
     }
 
+    .minified-list li {
+        padding-left: 0 !important;
+    }
+
     .minified-list li a:not(a[href=profile]) {
         visibility: hidden;
-        display: inline-block;
-        width: 0;
-    }
-    
-    .minified-list li {
-        padding-inline: 0 !important;
-    }
-}
+        font-size: 0;
+        /* display: inline-block; */
+        /* width: 0; */
+        /* overflow: hidden; */
+    }  
 
-#side-nav li:not(li[itemprop=profile]) {
-    margin-bottom: .25em;
-    padding-left: calc(var(--bullet-size)*3); 
-}
-
-/* Apply this margin only when the profile-pic is present. */
-#side-nav:has(li[itemprop=profile]) li:not(li[itemprop=profile]) {
-    /* This margin is to align the bullets with the profile pic 
-    and equally space left and right of the list items. */
-    margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);
-}
-
-#side-nav li[itemprop=profile] {
-    margin-bottom: .5em;
-    width: fit-content;
-}
-
-#side-nav li:not(li[itemprop=profile])::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    
-    width: var(--bullet-size);
-    aspect-ratio: 1;
-    border-radius: 100%;
-    background-color: var(--circle-color);
-    /* margin-left: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2); */
+    .minified-list li::before {
+        display: none;
+    }   
 }
 
 /* 

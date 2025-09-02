@@ -19,14 +19,7 @@
             <label for="password">Password:</label>
             <input type="password" name="password" id="password" placeholder="·····">
     
-            <div class="card feedback-card display-none">
-                <div class="feedback-icon"></div>
-                <div class="feedback-content">
-                    <p class="feedback-title"></p>
-                    <p class="feedback-text"></p>
-                </div>
-                <button class="close-btn" type="button">x</button>
-            </div>
+            {{ .feedback-card }}
     
             <button class="primary-btn" type="submit">
                 Login

@@ -1,17 +1,6 @@
 @import './_universal.css';
 @import './components/cards.css';
 
-main {
-    padding-bottom: 12vh;   
-    max-height: 100vh;
-    overflow-y: scroll;
-    scrollbar-width: none;
-}
-
-.reply-card:first-child {
-    margin-top: 1em;
-}
-
 .reply-card {
     margin-top: .5em;
     margin-inline: auto;

@@ -78,50 +78,40 @@ function show_feedback_card(feedback_card, type, msg)
     // reset the classes
     feedback_card.className = 'card feedback-card';
 
-    const icon = feedback_card.querySelector('.feedback-icon');
-    const title = feedback_card.querySelector('.feedback-title');
+    const icon = feedback_card.querySelector('span[role=img]');
+    const _type = feedback_card.querySelector('p .type');
 
     if (type === 'info') {
         feedback_card.classList.add('feedback-info');
         icon.textContent = 'i';
-        title.textContent = 'Info';
+        _type.textContent = 'Info';
         feedback_card.classList.add('vanish');
     } else if (type === 'success') {
         feedback_card.classList.add('feedback-success');
         icon.textContent = '✓';
-        title.textContent = 'Success';
+        _type.textContent = 'Success';
         feedback_card.classList.add('vanish');
     } else if (type === 'warn') { 
         feedback_card.classList.add('feedback-warn');
         icon.textContent = '!';
-        title.textContent = 'Warning';
+        _type.textContent = 'Warning';
         feedback_card.classList.add('flex');
     } else if (type === 'error') {
         feedback_card.classList.add('feedback-error');
         icon.textContent = '!';
-        title.textContent = 'Error';
+        _type.textContent = 'Error';
         feedback_card.classList.add('flex');
     } else {
         console.error(`Invalid feedback type. Passed '${type}.'`);
     }
 
-    feedback_card.querySelector('.feedback-text').textContent = msg;
+    feedback_card.querySelector('p .msg').textContent = msg;
 }
 
 function hide_feedback_card(feedback_card) {
     feedback_card.className = 'card feedback-card';
     feedback_card.classList.add('display-none');
 }
-
-// function setup_feedback_cards()
-// {
-//     document.querySelectorAll('.feedback-card').forEach(card => {
-//         // Attach properties to the feedback cards.
-//         card.show = show_feedback;
-//         card.hide = hide_feedback;
-//         card.querySelector('.close-btn').addEventListener('click', () => card.hide());
-//     });
-// }
 
 /* This function is to make sense of the possible errors coming from the server 
 that to the user wouldn't make much sense. 
@@ -133,10 +123,16 @@ function err_msg(status_code, entity, action)
     else return `Invalid ${entity}`;
 }
 
+function switch_class(element, old, _new) {
+    element.classList.remove(old);
+    element.classList.add(_new)
+}
+
 export {
     generate_profile_picture,
     req,
     show_feedback_card,
     hide_feedback_card,
     err_msg,
+    switch_class,
 };

@@ -38,6 +38,8 @@ function post_card(post)
 async function fill_stream(flags, displayed_posts, f_reload = false)
 {
     const feedback_card = document.querySelector('.feedback-card');
+    feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
+    
     hide_feedback_card(feedback_card);
 
     const search_params = {};

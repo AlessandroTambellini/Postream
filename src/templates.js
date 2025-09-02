@@ -54,7 +54,7 @@ components['.notification-card'] = function(notification)
     return `
         <article id='notification-card-${id}' class='card notification-card'>
             <time datetime="${created_at}">${prettify_date(created_at)}</time>
-            <p><b>New reply for:</b> ${post_content_snapshot}...</p>
+            <p><b>New reply for:</b> "${post_content_snapshot}..."</p>
             <footer>
                 <a href='read-post?id=${post_id}#reply-${reply_id}'>Read Reply</a>
                 <button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>
@@ -62,6 +62,17 @@ components['.notification-card'] = function(notification)
         </article>
     `;
 }
+
+components['.feedback-card'] = `
+    <div class="feedback-card display-none">
+        <span role='img'></span>
+        <p>
+            <span class='type'></span>
+            <span class='msg'></span>
+        </p>
+        <button class="close-btn" type='button'>x</button>
+    </div>
+`;
 
 components['universal-resources'] = 
 `
@@ -84,7 +95,7 @@ components['#side-nav'] = function(logged_in, page)
             <ul>
                 ${(logged_in && page !== 'profile') ? 
                     `<li itemprop="profile">
-                        <a href="profile" title='profile'>
+                        <a href="profile">
                             <span role='img'></span>
                         </a>
                     </li>` : ''}
@@ -102,13 +113,14 @@ components['#side-nav'] = function(logged_in, page)
             <button title='expand nav' class='display-none'>
                 <span role='img'>〉</span>
             </button>
-        </nav>`;
+        </nav>
+    `;
 
-    /* The button icon is a miniature of the list and the profile-pic wouldn't be a nice fit there. 
-    Therefore I would represent also the profile link as bullet + row, 
-    but The button becomes too tall and the profile-pic isn't really part of the list of links. */
     // if (logged_in && page !== 'profile') 
     //     menu_entries.unshift('profile');
+
+    // Otherwise the button is too high
+    while (menu_entries.length > 4) menu_entries.pop();
 
     const open_side_nav_btn = `
         <button id="open-side-nav-btn" class="secondary-btn display-block">

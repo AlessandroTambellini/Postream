@@ -1,10 +1,12 @@
-import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.js';
+import { req, show_feedback_card, hide_feedback_card, err_msg, switch_class } from './_utils.js';
 
 const create_account_form = document.querySelector('form');
 const feedback_card = create_account_form.querySelector('.feedback-card');
 const password_container = document.querySelector('div:has(#password)');
 const password_p = document.querySelector('#password');
 const copy_password_btn = password_container.querySelector('button');
+
+feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
 
 create_account_form.addEventListener('submit', handle_registration);
 copy_password_btn.addEventListener('click', copy_password);
@@ -23,7 +25,7 @@ async function handle_registration(e)
         // Once a registration happens, the previous cookie is deleted to avoid conflicts with a previous user while logging in 
         document.cookie = 'password_hash=';
 
-        password_container.className = 'display-block';
+        switch_class(password_container, 'display-none', 'display-block');
     }
 }
 

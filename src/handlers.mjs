@@ -85,6 +85,7 @@ page.index = async function(req_data, res_obj)
     
     const index_page = index_template
         .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ .feedback-card }}', components['.feedback-card'])
         .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, 'index'))
     ;
 
@@ -103,6 +104,7 @@ page['create-account'] = async function(req_data, res_obj)
 
     const create_account_page = create_account_template
         .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ .feedback-card }}', components['.feedback-card'])
         .replace('{{ #side-nav }}', components['#side-nav'](false, 'create-account'))
     ;
 
@@ -121,6 +123,7 @@ page.login = async function(req_data, res_obj)
 
     const login_page = login_template
         .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ .feedback-card }}', components['.feedback-card'])
         .replace('{{ #side-nav }}', components['#side-nav'](false, 'login'))
     ;
 
@@ -205,6 +208,7 @@ page.notifications = async function(req_data, res_obj)
 
     const notifications_page = notifications_template
         .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ .feedback-card }}', components['.feedback-card'])
         .replace('{{ #side-nav }}', components['#side-nav'](true, 'notifications'))
     ;
 
@@ -231,6 +235,7 @@ page['write-post'] = async function(req_data, res_obj)
 
     const write_post_page = write_post_template
         .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ .feedback-card }}', components['.feedback-card'])
         .replace('{{ #side-nav }}', components['#side-nav'](true, 'write-post'))
     ;
 
@@ -273,6 +278,7 @@ page['write-reply'] = async function(req_data, res_obj)
 
     const write_reply_page = write_reply_template
         .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ .feedback-card }}', components['.feedback-card'])
         .replace('{{ #side-nav }}', components['#side-nav'](true, 'write-reply'))
     ;
 
@@ -385,6 +391,7 @@ page['delete-account'] = async function(req_data, res_obj)
 
     delete_account_page = delete_account_page
         .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ .feedback-card }}', components['.feedback-card'])
         .replace('{{ #side-nav }}', components['#side-nav'](true, 'delete-account'))
     ;
 

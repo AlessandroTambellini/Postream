@@ -7,8 +7,8 @@ main {
     scrollbar-width: none;
     height: 100vh;
 
-    padding: 0;
-    padding-bottom: 12vh;
+    padding-inline: 0;
+    padding-top: 0;
 }
 
 #controls-nav {

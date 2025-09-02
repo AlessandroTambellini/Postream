@@ -12,7 +12,9 @@
     --clr-bkg: hsl(210, 17%, 98%);
 }
 
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -27,7 +29,7 @@ body {
 main {
    flex-grow: 2;
    max-width: 1200px;
-   padding: 2vh 2vw 0 2vw;
+   padding: 2vh 2vw 10vh 2vw;
 }
 
 main > * {
@@ -98,6 +100,10 @@ because it's pretty clear that's about displaying. */
 
 .display-opaque {
     opacity: .5;
+}
+.display-opaque a,
+.display-opaque button {
+    pointer-events: none;
 }
 
 .selected {

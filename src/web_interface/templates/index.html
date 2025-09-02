@@ -1,8 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" 
-    itemscope itemtype="https://schema.org/WebPage">
-    <!-- Found itemscope and itemtype in the Google Drive web page. 
-    It seems quite useless, but I wanted to copy it anyway. -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,21 +32,14 @@
         </nav>
 
         <!-- <div id="post-stream"> -->
-            <!-- The container around the posts is just handy for the manipulations via JS -->
-            <div id="posts-container">
-                {{ post-cards }}
-            </div>
+        <!-- The container around the posts is just handy for the manipulations via JS -->
+        <div id="posts-container">
+            {{ post-cards }}
+        </div>
 
-            <div class="card feedback-card display-none">
-                <div class="feedback-icon">i</div>
-                <div class="feedback-content">
-                    <p class="feedback-title">Title</p>
-                    <p class="feedback-text">content</p>
-                </div>
-                <button class="close-btn" type="button">x</button>
-            </div>
-            
-            <button id="load-more-posts-btn" class="primary-btn">load more</button>
+        {{ .feedback-card }}
+        
+        <button id="load-more-posts-btn" class="primary-btn">load more</button>
         <!-- </div> -->
     </main>
 

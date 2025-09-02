@@ -12,12 +12,13 @@ main {
     scrollbar-width: none;
     
     padding: 0;
-    padding-bottom: 12vh;
+    padding-bottom: 10vh;
 }
 
 #profile-picture {
     display: block;
-    margin-block: 1em;   
+    margin-top: 2vh; 
+    margin-bottom: 1em;  
     width: 225px;
     aspect-ratio: 1;
     background-color: white;
@@ -47,7 +48,7 @@ h2 {
     text-align: center;
     position: sticky;
     top: 0;
-    padding-block: 1em;
+    padding-block: .5em;
     
     backdrop-filter: blur(10px);
     background-color: hsl(210, 17%, 98%, .5);
