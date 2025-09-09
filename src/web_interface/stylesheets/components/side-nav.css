@@ -162,13 +162,8 @@
     }
 }
 
-@media (min-width: 1190px) {
-    /* For the main, I set the id '#main' so 
-    that I can override the 'display-opaque' prop when I resize the page. */
-    #main {
-        opacity: 1;
-    }
-
+@media (min-width: 1190px) 
+{
     #side-nav {
         display: block;
         /* box-shadow: -1px 0 0 #ccc; */

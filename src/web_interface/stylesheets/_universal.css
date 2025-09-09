@@ -1,3 +1,5 @@
+@import './components/buttons.css';
+
 @font-face { 
     src:
         local('Libertinus Mono'), 
@@ -7,9 +9,14 @@
     font-style: normal;
 }
 
-:root {
+:root 
+{
     --clr-txt: #343A40;
     --clr-bkg: hsl(210, 17%, 98%);
+
+    --profile-pic-size: 70px;
+    --bullet-size: .3em;
+    --list-fs: 2rem;
 }
 
 *,
@@ -48,6 +55,271 @@ a, button, textarea, input {
     text-align: center;
 }
 
+
+/*
+ *
+ *  Side Nav
+ */
+
+#side-nav {
+    font-size: var(--list-fs);
+    padding: 1.2em;
+    height: 100vh;
+    background-color: var(--clr-bkg);
+}
+
+#side-nav ul {
+    font-size: inherit;
+    line-height: 1.4;
+    list-style: none;
+    /* avoid 'create-account' link from wrapping onto two lines */
+    white-space: nowrap;
+
+    /* Experiment. I saw that now it is possible to write nested CSS. */
+    li {
+        /* for the bullet made with ::before */
+        position: relative;
+
+        a {
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+#side-nav li[itemprop=profile] {
+    margin-bottom: .5em;
+    width: fit-content;
+}
+
+#side-nav li:not(li[itemprop=profile]) {
+    margin-bottom: .25em;
+    padding-left: calc(var(--bullet-size)*3); 
+}
+
+/* Apply this margin only when the profile-pic is present. */
+#side-nav:has(li[itemprop=profile]) li:not(li[itemprop=profile]) {
+    /* This margin is to align the bullets with the profile pic 
+    and equally space left and right of the list items. */
+    margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);
+}
+
+#side-nav li:not(li[itemprop=profile])::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    
+    width: var(--bullet-size);
+    aspect-ratio: 1;
+    border-radius: 100%;
+    background-color: var(--circle-color);
+    /* margin-left: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2); */
+}
+
+#side-nav a[href=profile] > span {
+    display: block;
+    width: var(--profile-pic-size);
+    /* I don't use aspect-ratio, so I can regulate them separately.
+    E.g. when I collapse the nav. */
+    height: var(--profile-pic-size);
+    background-color: white;
+    border-radius: 100%;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0px 3px #ccc;
+}
+
+#side-nav a[href=profile] > span:hover {
+    box-shadow: 0 2px 4px 1px #ccc;
+}
+
+#side-nav a[href=profile] > span .circle {
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 100%;
+}
+
+#side-nav > button {
+    /* only for desktop */
+    display: none;
+    margin-top: 5vh;
+    background: unset;
+    border: unset;
+    font-size: 2rem;
+    color: rgb(164, 164, 164);
+    border-radius: 8px;
+} 
+
+#side-nav > button[title='minify nav'] {
+    padding-right: .5em;
+    margin-left: auto;
+}
+#side-nav > button[title='expand nav'] {
+    padding-left: .5em;
+    margin-inline: auto;
+}
+
+#side-nav > button:hover {
+    background-color: rgb(237, 237, 237);
+}
+
+@media (max-width: 1189px) {
+    :root {
+        --list-fs: 1.5rem;
+        --profile-pic-size: 60px;
+    }
+
+    #side-nav {
+        box-shadow: -2px 0px 8px #ccc;
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        min-width: 35vw;
+    }
+
+    #open-side-nav-btn {
+        position: fixed;
+        bottom: 2vh;
+        right: 3vw;
+        /* Override default padding of .secondary-btn */
+        padding: .75rem .65rem;
+    }
+
+    #open-side-nav-btn span[role=img] > span {
+        margin-bottom: .65rem;   
+        display: flex;
+        align-items: center;
+    }
+
+    #open-side-nav-btn span[role=img] > span:last-child {
+        margin-bottom: 0;
+    }
+
+    #open-side-nav-btn .bullet {
+        --circle-color: #676767;
+        display: inline-block;
+        height: 5px;
+        aspect-ratio: 1;
+        background-color: var(--circle-color);
+        border-radius: 100%;
+        margin-right: .25em;
+    }
+
+    #open-side-nav-btn .row {
+        display: inline-block;
+        width: 32px;
+        height: 3px;
+        border-radius: 8px;
+        background-color: var(--clr-txt);
+    }
+}
+
+@media (min-width: 1190px) 
+{
+    body {
+        display: flex;
+        align-items: start;
+        justify-content: center;
+    }
+
+    #side-nav {
+        display: block;
+        /* box-shadow: -1px 0 0 #ccc; */
+        border-left: 1px solid #ccc;
+    }
+
+    #side-nav > button.display-block {
+        display: block;
+    }
+
+    #side-nav:has(.minified-list) {
+        border-left: unset;
+        padding-inline: 0;
+    }
+
+    .minified-list li {
+        padding-inline: 0 !important;
+        margin-inline: 0 !important;
+    }
+
+    #side-nav:has(.minified-list) a[href=profile] > span {
+        width: 0;
+    }
+
+    /* .minified-list li a:not(a[href=profile]) { */
+    .minified-list li a {
+        visibility: hidden;
+        font-size: 0;
+        /* display: inline-block; */
+        /* width: 0; */
+        /* overflow: hidden; */
+    }  
+
+    .minified-list li::before {
+        display: none;
+    }  
+
+    #side-nav:has(.minified-list) > button {
+        margin-inline: 0;
+    }
+    
+    #open-side-nav-btn {
+        display: none;
+    }
+}
+
+/* 
+ * Color-specific customization */
+
+#open-side-nav-btn span[itemprop=index] .bullet,
+#side-nav li[itemprop=index]::before {
+    --circle-color: #10b981;
+}
+
+#open-side-nav-btn span[itemprop=write-post] .bullet,
+#side-nav li[itemprop=write-post]::before {
+    --circle-color: #1ec8de;
+}
+
+#open-side-nav-btn span[itemprop=login] .bullet,
+#side-nav li[itemprop=login]::before {
+    --circle-color: #4affc3;
+}
+
+#open-side-nav-btn span[itemprop=create-account] .bullet,
+#side-nav li[itemprop=create-account]::before {
+    --circle-color: #ff8725;
+}
+
+#open-side-nav-btn span[itemprop=notifications] .bullet,
+#side-nav li[itemprop=notifications]::before {
+    --circle-color: #3b82f6;
+}
+
+#open-side-nav-btn span[itemprop=profile] .bullet,
+#side-nav li[itemprop=profile]::before {
+    --circle-color: #d359f8;
+}
+#side-nav li[itemprop=profile]::before {
+    border: none;
+}
+
+#open-side-nav-btn span[itemprop=logout] .bullet,
+#side-nav li[itemprop=logout]::before {
+    --circle-color: #ff793f;
+}
+
+#open-side-nav-btn span[itemprop=delete-account] .bullet,
+#side-nav li[itemprop=delete-account]::before {
+    --circle-color: #840000;
+} 
+
+
 /*
  *
  *  States
@@ -56,9 +328,8 @@ a, button, textarea, input {
 /* I created these states because sometimes in JS you may write e.g. 'div.style.display = "flex"',
 but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
 that has higher priority compared to the CSS classes. 
-And so, sometimes elements are shown/hidden and you don't understand why 
-(especially if the codebase is big).
-Therefore, I modify the state only via these CSS classes below. */
+And so, sometimes elements are shown/hidden unexpectedly becuase of the usage different specificities (especially in a big codebase).
+Therefore, I modify the state only via these CSS classes. */
 
 .display-block {
     display: block;
@@ -113,7 +384,7 @@ because it's pretty clear that's about displaying. */
 /* A couple of considerations:
 1) `create-account`, `delete-account`, `login`, `logout`, `read-post`, `write-post`, `write-reply` 
 have pretty much the same elements with the same positioning on the page 
-and the pages themselves are really minimal. 
+and the pages themselves are minimal. 
 Neverthless, I prefer to have a separate css file for each of them 
 to layout their components individually in case in the future I want to do page-specific customizations.
 

@@ -74,10 +74,10 @@ components['.feedback-card'] = `
     </div>
 `;
 
+//<link rel="stylesheet" href="../stylesheets/components/side-nav.css">
 components['universal-resources'] = 
 `
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel="stylesheet" href="../stylesheets/components/side-nav.css">
     <script type="module" src="../scripts/components/side-nav.js"></script>
 `;
 
