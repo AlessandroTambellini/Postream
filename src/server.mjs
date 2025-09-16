@@ -73,7 +73,9 @@ function handle_request(req, res)
 
         try {
             const path = req_data.path;
-            const page_path = path === '/' ? 'index' : path.replace('/', '');
+            let page_path = path === '/' ? 'index' : path.replace('/', '');
+            // allow for the specification of the html extension in a path
+            if (page_path.endsWith('.html')) page_path = page_path.replace('.html', '');
             const api_path = path === '/api' ? 'list' : path.replace('/api/', '');
 
             if (handlers.page[page_path]) {
