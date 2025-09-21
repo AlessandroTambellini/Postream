@@ -759,6 +759,9 @@ API.reply.POST = function(req_data, res_obj)
         return;
     }
 
+    // const res = active_clients.get(req_data.cookies.password_hash);
+    // if (res) res.write(`data: new notification.\n\n`);
+
     res_obj.success(200, { reply_id });
 };
 

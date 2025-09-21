@@ -36,11 +36,18 @@ main.addEventListener('click', e =>
     main.classList.remove('display-opaque');
 });
 
-// const eventSource = new EventSource("http://localhost:3000/notifications");
+// const eventSource = new EventSource('api/active-clients');
+
+// const notifications_item = side_nav.querySelector('li[itemprop=notifications]');
 
 // eventSource.onmessage = function(event) {
-//     console.log('new event:', event.data);
+//     console.log(event.data);
+//     notifications_item.classList.add('new-notification');
 // };
+
+// notifications_item?.addEventListener('click', () => {
+//     notifications_item.classList.remove('new-notification');
+// });
 
 // eventSource.onerror = function(err) {
 //     console.error("Event failed:", err);
