@@ -3,8 +3,8 @@ import { generate_profile_picture, switch_class } from "../_utils.js";
 const side_nav = document.querySelector('#side-nav');
 const open_side_nav_btn = document.querySelector('#open-side-nav-btn');
 const main = document.querySelector('main');
-const minify_nav_btn = side_nav.querySelector('button[title="minify nav"]');
-const expand_nav_btn = side_nav.querySelector('button[title="expand nav"]');
+const minify_nav_btn = side_nav.querySelector('#minify-nav-btn');
+const expand_nav_btn = side_nav.querySelector('#expand-nav-btn');
 
 generate_profile_picture('a[href=profile] span', 50, 70);
 

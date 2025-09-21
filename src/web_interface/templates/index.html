@@ -17,30 +17,27 @@
     
     <main>
         <nav id="controls-nav">
-            <button id="reload-posts-btn" class="secondary-btn" title="reload">
+            <button id="reload-posts-btn" class="secondary-btn" aria-label="reload">
                 &olarr;
             </button>
-            <button class="control secondary-btn selected" title="load posts from newest to oldest" value="desc">
+            <button id="load-posts-desc-btn" class="control secondary-btn selected" aria-label="load posts from newest to oldest" value="desc">
                 DESC
             </button>
-            <button class="control secondary-btn" title="load posts from oldest to newest" value="asc">
+            <button id="load-posts-asc-btn" class="control secondary-btn" aria-label="load posts from oldest to newest" value="asc">
                 ASC
             </button>
-            <button class="control secondary-btn" title="load posts randomly" value="rand">
+            <button id="load-posts-rand-btn" class="control secondary-btn" aria-label="load posts randomly" value="rand">
                 RAND
             </button> 
         </nav>
 
-        <!-- <div id="post-stream"> -->
-        <!-- The container around the posts is just handy for the manipulations via JS -->
         <div id="posts-container">
             {{ post-cards }}
-        </div>
+        </div>   
 
         {{ .feedback-card }}
         
-        <button id="load-more-posts-btn" class="primary-btn">load more</button>
-        <!-- </div> -->
+        <button id="load-more-posts-btn" class="primary-btn" aria-label="Load more posts">load more</button>
     </main>
 
     {{ #side-nav }}

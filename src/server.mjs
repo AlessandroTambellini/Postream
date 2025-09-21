@@ -8,7 +8,7 @@ import * as handlers from './handlers.mjs';
 import { db_close } from './database.mjs';
 import { log_error } from './utils.mjs';
 
-const PROTOCOL = process.env.ENVIRONMENT === 'production' ? 'https' : 'http';
+const PROTOCOL = process.env.NODE_ENV === 'production' ? 'https' : 'http';
 
 const PORT = PROTOCOL === 'https' ? 3001 : 3000;
 

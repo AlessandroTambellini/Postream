@@ -107,10 +107,10 @@ components['#side-nav'] = function(logged_in, page)
                     `;
                 }, '')}
             </ul>
-            <button title='minify nav' class='display-block'>
+            <button id='minify-nav-btn' aria-label='minify nav' class='display-block'>
                 <span role='img'>〈</span>
             </button>
-            <button title='expand nav' class='display-none'>
+            <button id='expand-nav-btn' aria-label='expand nav' class='display-none'>
                 <span role='img'>〉</span>
             </button>
         </nav>
@@ -123,7 +123,7 @@ components['#side-nav'] = function(logged_in, page)
     while (menu_entries.length > 4) menu_entries.pop();
 
     const open_side_nav_btn = `
-        <button id="open-side-nav-btn" class="secondary-btn display-block">
+        <button id="open-side-nav-btn" class="secondary-btn display-block" aria-label='open side-nav'>
             <span role='img'>
                 ${menu_entries.reduce((accumulator, page) => {
                     return accumulator + `

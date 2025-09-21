@@ -168,11 +168,11 @@ a, button, textarea, input {
     border-radius: 8px;
 } 
 
-#side-nav > button[title='minify nav'] {
+#minify-nav-btn {
     padding-right: .5em;
     margin-left: auto;
 }
-#side-nav > button[title='expand nav'] {
+#expand-nav-btn {
     padding-left: .5em;
     margin-inline: auto;
 }

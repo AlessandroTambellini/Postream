@@ -9,7 +9,7 @@ Node.js version used: `v22.14.0`
 2) Fill the `.env` file with the following content:
     ```.env
     HASHING_SECRET=your_hashing_secret
-    ENVIRONMENT=development
+    NODE_ENV=development
     ```
 3) Generate the private key and the certificate:
     ```sh
