@@ -33,10 +33,10 @@ Note: the database will be created automatically on first run.
         * if logged-out: 
             `[index, login, create-account] - current-page`
         * delete-account is present only if the current-page is profile.
-    * There are also read-post and write-reply, but these pages are accessible from the post-card itself.
+    * There are also read-post and write-reply, but these pages are accessible from the post-card itself, not from the side-nav.
     * I don't show the login and create-account links while you are logged-in because it would be confusing, but it's still possible to access them:
         * If you login again, you simply extend the session.
         * If you create an account, you create a new account and you are switched to it.
 
 3) **HTTPS**:
-It is required only for login and create-account because the password is transmitted in the payload of the request. See `API.user.POST` and `API.token.POST` in `handlers.js`
+It is required only for login and create-account because the password is transmitted in the payload of the request. See `API.user.POST` and `API.token.POST` in `handlers.js` for more info.
