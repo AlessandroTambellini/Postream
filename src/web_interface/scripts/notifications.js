@@ -13,10 +13,6 @@ document.querySelectorAll('.delete-notification-btn').forEach(btn =>
         const notification_id = btn.id.split('-')[1];
         const { status_code, payload, req_error } = await req('api/user/notifications', 'DELETE', { id: notification_id });
     
-        const notification_card = document.querySelector(`#notification-card-${notification_id}`);
-        notification_card.classList.add('deleting');
-        btn.disabled = true;
-
         if (req_error) 
         {
             notification_card.classList.remove('deleting');
@@ -24,6 +20,10 @@ document.querySelectorAll('.delete-notification-btn').forEach(btn =>
             show_feedback_card(feedback_card, 'error', err_msg(status_code, 'notification', 'delete'));
         } 
         else {
+            const notification_card = document.querySelector(`#notification-card-${notification_id}`);
+            notification_card.classList.add('deleting');
+            btn.disabled = true;
+
             setTimeout(() => {
                 notification_card.remove();
             }, 300); // Matches the .notification-card transition duration

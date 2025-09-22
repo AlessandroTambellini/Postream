@@ -17,6 +17,8 @@
     --profile-pic-size: 70px;
     --bullet-size: .3em;
     --list-fs: 2rem;
+
+    --page-inline-padding: 2vw;
 }
 
 *,
@@ -36,7 +38,8 @@ body {
 main {
    flex-grow: 2;
    max-width: 1200px;
-   padding: 2vh 2vw 10vh 2vw;
+   padding-block: 2vh;
+   padding-inline: var(--page-inline-padding);
 }
 
 main > * {

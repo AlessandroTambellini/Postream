@@ -24,7 +24,7 @@ main {
 }
 
 #posts-container {
-    padding-inline: 2vw;
+    padding-inline: var(--page-inline-padding);
 }
 
 #posts-container > * {
@@ -38,6 +38,7 @@ main {
 
 .feedback-card {
     margin-top: .75rem;
+    max-width: min(var(--card-max-width), calc(100% - 2*var(--page-inline-padding)));
 }
 
 #load-more-posts-btn {
