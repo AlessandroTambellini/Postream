@@ -13,9 +13,13 @@ function prettify_date(date)
     return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
 }
 
-const components = {};
+// const components = {};
 
-components['.post-card'] = function(post, reply_link_type = 0, cut_post_content = false)
+const DOMElements = {};
+
+const code_snippets = {};
+
+DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content = false)
 {
     const { id, content, created_at } = post;
 
@@ -39,7 +43,7 @@ components['.post-card'] = function(post, reply_link_type = 0, cut_post_content 
     `;
 }
 
-components['.reply-card'] = function(reply)
+DOMElements['.reply-card'] = function(reply)
 {
     const { id, content, created_at } = reply;
 
@@ -51,7 +55,7 @@ components['.reply-card'] = function(reply)
     `;
 }
 
-components['.notification-card'] = function(notification)
+DOMElements['.notification-card'] = function(notification)
 {
     const { id, post_id, post_content_snapshot, reply_id, created_at } = notification;
 
@@ -67,34 +71,30 @@ components['.notification-card'] = function(notification)
     `;
 }
 
-components['.feedback-card'] = `
+DOMElements['.feedback-card'] = `
     <div class="feedback-card display-none">
         <span role='img'></span>
         <p>
             <span class='type'></span>
             <span class='msg'></span>
         </p>
-        <button class="close-btn" type='button'>x</button>
-    </div>
-
-    <script>
-        const feedback_card = document.querySelector('.feedback-card');
-        feedback_card.querySelector('.close-btn').addEventListener('click', e => {
-            // console.log(e.target.parentElement); // Not .parentNode!
+        <button class="close-btn" type='button' onclick="
+            const feedback_card = this.parentElement; 
             feedback_card.className = 'card feedback-card';
             feedback_card.classList.add('display-none');
-        });
-    </script>
+        ">x</button>
+    </div>
 `;
+    // <script>
+    //     const feedback_card = document.querySelector('.feedback-card');
+    //     feedback_card.querySelector('.close-btn').addEventListener('click', e => {
+    //         // console.log(e.target.parentElement); // Not .parentNode!
+    //         feedback_card.className = 'card feedback-card';
+    //         feedback_card.classList.add('display-none');
+    //     });
+    // </script>
 
-//<link rel="stylesheet" href="../stylesheets/components/side-nav.css">
-components['universal-resources'] = 
-`
-    <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <script type="module" src="../scripts/components/side-nav.js"></script>
-`;
-
-components['#side-nav'] = function(logged_in, page)
+DOMElements['#side-nav'] = function(logged_in, page)
 {
     let menu_entries = logged_in ? 
         ['index', 'notifications', 'write-post', 'logout'] : 
@@ -152,10 +152,17 @@ components['#side-nav'] = function(logged_in, page)
     return side_nav + open_side_nav_btn;
 }
 
-components['.info-msg'] = function(msg) 
+DOMElements['.info-msg'] = function(msg) 
 {
     return `<p class='info-msg'>${msg}</p>`
 }
+
+//<link rel="stylesheet" href="../stylesheets/components/side-nav.css">
+code_snippets['universal-resources'] = 
+`
+    <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <script type="module" src="../scripts/components/side-nav.js"></script>
+`;
 
 /* fallback_page may be called (but not only) in case I'm not able to load the wanted page from disk using readFile().
 Therefore, I don't store this page as an HTML file because 
@@ -188,7 +195,7 @@ function fallback_page(status_code)
             <link rel="icon" type="image/webp" href="../assets/logo.webp">
             <link rel="stylesheet" href="../stylesheets/_universal.css">
 
-            ${components["universal-resources"]}
+            ${code_snippets["universal-resources"]}
             <style> 
                 h1 {
                     text-align: center;
@@ -203,13 +210,14 @@ function fallback_page(status_code)
                 </p>
             </main>
 
-            ${components['#side-nav'](false)}
+            ${DOMElements['#side-nav'](false)}
         </body>
         </html>
     `;
 }
 
 export {
-    components,
+    DOMElements,
+    code_snippets,
     fallback_page,
 };

@@ -16,7 +16,8 @@ import {
 } from './utils.mjs';
 
 import { 
-    components, 
+    DOMElements,
+    code_snippets, 
     fallback_page,
 } from "./templates.js";
 
@@ -73,20 +74,20 @@ page.index = async function(req_data, res_obj)
     const { posts, db_error } = db_op.select_posts_page(1, 20, 'desc');
 
     if (db_error) 
-        index_template = index_template.replace('{{ post-cards }}', components['.info-msg']('Sorry, unable to retrieve the posts :)'));
+        index_template = index_template.replace('{{ post-cards }}', DOMElements['.info-msg']('Sorry, unable to retrieve the posts :)'));
     else 
     {
         const post_cards = [];
         posts.forEach(post => {
-            post_cards.push(components['.post-card'](post, 2, true));
+            post_cards.push(DOMElements['.post-card'](post, 2, true));
         });
         index_template = index_template.replace('{{ post-cards }}', post_cards.join(''));
     }
     
     const index_page = index_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ .feedback-card }}', components['.feedback-card'])
-        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, 'index'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](user_id && true, 'index'))
     ;
 
     res_obj.page(200, index_page);
@@ -103,9 +104,9 @@ page['create-account'] = async function(req_data, res_obj)
     }
 
     const create_account_page = create_account_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ .feedback-card }}', components['.feedback-card'])
-        .replace('{{ #side-nav }}', components['#side-nav'](false, 'create-account'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'create-account'))
     ;
 
     res_obj.page(200, create_account_page);
@@ -122,9 +123,9 @@ page.login = async function(req_data, res_obj)
     }
 
     const login_page = login_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ .feedback-card }}', components['.feedback-card'])
-        .replace('{{ #side-nav }}', components['#side-nav'](false, 'login'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'login'))
     ;
 
     res_obj.page(200, login_page);
@@ -152,23 +153,23 @@ page.profile = async function(req_data, res_obj)
 
     if (db_error) {
         profile_template = profile_template.replace('{{ post-cards }}', 
-            components['.info-msg']('Sorry, unable to retrieve the posts :('));
+            DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
     }
     else
     {
         const post_cards = [];
         posts.forEach(post => {
-            post_cards.push(components['.post-card'](post, 1, true));
+            post_cards.push(DOMElements['.post-card'](post, 1, true));
         });
 
         profile_template = profile_template.replace('{{ post-cards }}', 
-            post_cards.length > 0 ? post_cards.join('') : components['.info-msg']('You didn\'t create any post yet.'));
+            post_cards.length > 0 ? post_cards.join('') : DOMElements['.info-msg']('You didn\'t create any post yet.'));
     }
 
     const profile_page = profile_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ .feedback-card }}', components['.feedback-card'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, 'profile'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'profile'))
     ;
 
     res_obj.page(200, profile_page);
@@ -195,22 +196,22 @@ page.notifications = async function(req_data, res_obj)
 
     if (db_error)
         notifications_template = notifications_template.replace('{{ notification-cards }}', 
-            components['.info-msg']('Sorry, unable to retrieve the posts :('));
+            DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
     else
     {
         const notification_cards = [];
         notifications.forEach(notification => {
-            notification_cards.push(components['.notification-card'](notification));
+            notification_cards.push(DOMElements['.notification-card'](notification));
         });
 
         notifications_template = notifications_template.replace('{{ notification-cards }}', 
-            notification_cards.length > 0 ? notification_cards.join('') : components['.info-msg']('You don\'t have any notification :)'));
+            notification_cards.length > 0 ? notification_cards.join('') : DOMElements['.info-msg']('You don\'t have any notification :)'));
     }
 
     const notifications_page = notifications_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ .feedback-card }}', components['.feedback-card'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, 'notifications'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'notifications'))
     ;
 
     res_obj.page(200, notifications_page);
@@ -235,9 +236,9 @@ page['write-post'] = async function(req_data, res_obj)
     }
 
     const write_post_page = write_post_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ .feedback-card }}', components['.feedback-card'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, 'write-post'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-post'))
     ;
 
     res_obj.page(200, write_post_page);
@@ -272,15 +273,15 @@ page['write-reply'] = async function(req_data, res_obj)
     }
 
     if (!post) {
-        write_reply_template = write_reply_template.replace('{{ .post-card }}', components['.info-msg'](`There is no post with id '${post_id}'`));
+        write_reply_template = write_reply_template.replace('{{ .post-card }}', DOMElements['.info-msg'](`There is no post with id '${post_id}'`));
     } else {
-        write_reply_template = write_reply_template.replace('{{ .post-card }}', components['.post-card'](post, 0, false));
+        write_reply_template = write_reply_template.replace('{{ .post-card }}', DOMElements['.post-card'](post, 0, false));
     }
 
     const write_reply_page = write_reply_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ .feedback-card }}', components['.feedback-card'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, 'write-reply'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-reply'))
     ;
 
     res_obj.page(200, write_reply_page);
@@ -308,9 +309,9 @@ page['read-post'] = async function(req_data, res_obj)
     const { user_id, status_code } = auth_user(req_data.cookies);
 
     if (!post) {
-        post_template = post_template.replace('{{ .post-card }}', components['.info-msg'](`There is no post with id '${post_id}'`));
+        post_template = post_template.replace('{{ .post-card }}', DOMElements['.info-msg'](`There is no post with id '${post_id}'`));
     } else {
-        post_template = post_template.replace('{{ .post-card }}', components['.post-card'](post, user_id ? 2 : 0, false));
+        post_template = post_template.replace('{{ .post-card }}', DOMElements['.post-card'](post, user_id ? 2 : 0, false));
     }
 
     /*
@@ -323,24 +324,24 @@ page['read-post'] = async function(req_data, res_obj)
 
         if (db_error)
             post_template = post_template.replace('{{ replies }}', 
-                components['.info-msg']('Sorry, unable to retrieve the replies :('));
+                DOMElements['.info-msg']('Sorry, unable to retrieve the replies :('));
         else
         {
             const reply_cards = [];
             replies.forEach(reply => {
-                reply_cards.push(components['.reply-card'](reply));
+                reply_cards.push(DOMElements['.reply-card'](reply));
             });
 
             post_template = post_template.replace('{{ replies }}',
-                reply_cards.length > 0 ? reply_cards.join('') : components['.info-msg']('There aren\'t replies.'));
+                reply_cards.length > 0 ? reply_cards.join('') : DOMElements['.info-msg']('There aren\'t replies.'));
         }
     }
     else
         post_template = post_template.replace('{{ replies }}', '');
 
     const post_page = post_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](user_id && true, 'read-post'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](user_id && true, 'read-post'))
     ;
 
     res_obj.page(200, post_page);
@@ -365,8 +366,8 @@ page.logout = async function(req_data, res_obj)
     }
 
     const logout_page = logout_template
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, 'logout'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'logout'))
     ;
 
     res_obj.page(200, logout_page);
@@ -391,9 +392,9 @@ page['delete-account'] = async function(req_data, res_obj)
     }
 
     delete_account_page = delete_account_page
-        .replace('{{ universal-resources }}', components['universal-resources'])
-        .replace('{{ .feedback-card }}', components['.feedback-card'])
-        .replace('{{ #side-nav }}', components['#side-nav'](true, 'delete-account'))
+        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'delete-account'))
     ;
 
     res_obj.page(200, delete_account_page);
