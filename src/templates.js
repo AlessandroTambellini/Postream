@@ -15,7 +15,7 @@ function prettify_date(date)
 
 const components = {};
 
-components['.post-card'] = function(post, reply_link_type = false, cut_post_content = false)
+components['.post-card'] = function(post, reply_link_type = 0, cut_post_content = false)
 {
     const { id, content, created_at } = post;
 
@@ -25,12 +25,16 @@ components['.post-card'] = function(post, reply_link_type = false, cut_post_cont
     const reply_link_types = ['', `<a href='read-post?id=${id}'>Read Replies</a>`, `<a href='write-reply?id=${id}'>Reply</a>`];    
 
     return `
-        <article class="card post-card">
+        <article id='post-card-${id}' class="card post-card">
             <p>${cut_post_content && content.length > 70*10 ? 
                 content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>read entirely</a>` : 
                 content}</p>
             <time datetime="${created_at}">${prettify_date(created_at)}</time>
-            ${reply_link_types[reply_link_type]}
+            <footer>
+                ${reply_link_types[reply_link_type]}
+                ${reply_link_type === 1 ? 
+                    `<button type='button' id='post-${id}' class='delete-post-btn secondary-btn'>Delete Post</button>` : ''}
+            </footer>
         </article>
     `;
 }
@@ -72,6 +76,15 @@ components['.feedback-card'] = `
         </p>
         <button class="close-btn" type='button'>x</button>
     </div>
+
+    <script>
+        const feedback_card = document.querySelector('.feedback-card');
+        feedback_card.querySelector('.close-btn').addEventListener('click', e => {
+            // console.log(e.target.parentElement); // Not .parentNode!
+            feedback_card.className = 'card feedback-card';
+            feedback_card.classList.add('display-none');
+        });
+    </script>
 `;
 
 //<link rel="stylesheet" href="../stylesheets/components/side-nav.css">

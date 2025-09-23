@@ -2,8 +2,6 @@ import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.j
 
 const feedback_card = document.querySelector('.feedback-card');
 
-feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
-
 document.querySelectorAll('.delete-notification-btn').forEach(btn => 
 {
     btn.addEventListener('click', async () => 
@@ -15,8 +13,6 @@ document.querySelectorAll('.delete-notification-btn').forEach(btn =>
     
         if (req_error) 
         {
-            notification_card.classList.remove('deleting');
-            btn.disabled = false;
             show_feedback_card(feedback_card, 'error', err_msg(status_code, 'notification', 'delete'));
         } 
         else {

@@ -1,4 +1,4 @@
-# Post Stream
+# Postream
 It is basically a website where posts are shared anonymously and they can receive replies,
 but the replies are only visible to the author of the post. 
 

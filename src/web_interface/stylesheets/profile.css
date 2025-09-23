@@ -3,16 +3,12 @@
 @import './components/cards.css';
 
 main {
-    /* display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%; */
     height: 100vh;
     overflow-y: scroll;
     scrollbar-width: none;
-    
     padding: 0;
     padding-bottom: 10vh;
+    position: relative;
 }
 
 #profile-picture {
@@ -58,4 +54,37 @@ h2 {
 .post-card {
     margin-bottom: .5em;
     max-width: min(var(--card-max-width), calc(100% - 4vw));
+
+    /* If overflow isn't set to hidden, 
+    the text would appear to spill out below the boundaries of the shrinking card
+    when the deleting class is set. */
+    overflow: hidden;
+}
+
+.delete-post-btn:hover {
+    background-color: #ff8282;
+}
+
+.post-card.deleting 
+{
+    transition: all .3s ease-out;
+    transform-origin: top;
+    opacity: 0;
+    transform: scaleY(0);
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    max-height: 0;
+}
+
+#feedback-card-wrapper {
+    position: sticky;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    padding-inline: var(--page-inline-padding);
+}
+
+.feedback-card {
+    margin-inline: auto;
 }

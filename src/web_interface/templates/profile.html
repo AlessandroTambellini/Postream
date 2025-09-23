@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Take a look at the posts you made">
     
-    <title>Post Stream / Profile</title>
+    <title>Postream / Profile</title>
     
     <link rel="stylesheet" href="../stylesheets/profile.css">
     <script type="module" src="../scripts/profile.js"></script>
@@ -19,6 +19,11 @@
         <span id="profile-picture" role="img"></span>
 
         <h2>Posts</h2>
+
+        <div id="feedback-card-wrapper">
+            {{ .feedback-card }}
+        </div>
+
         {{ post-cards }}
     </main>
 

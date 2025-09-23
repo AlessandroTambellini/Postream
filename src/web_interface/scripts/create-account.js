@@ -6,8 +6,6 @@ const password_container = document.querySelector('div:has(#password)');
 const password_p = document.querySelector('#password');
 const copy_password_btn = password_container.querySelector('button');
 
-feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
-
 create_account_form.addEventListener('submit', handle_registration);
 copy_password_btn.addEventListener('click', copy_password);
 

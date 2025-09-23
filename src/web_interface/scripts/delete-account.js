@@ -3,8 +3,6 @@ import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.j
 const delete_account_form = document.querySelector('form');
 const feedback_card = delete_account_form.querySelector('.feedback-card');
 
-feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
-
 delete_account_form.addEventListener('submit', handle_account_deletion);
 
 async function handle_account_deletion(e)

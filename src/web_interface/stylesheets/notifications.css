@@ -8,6 +8,8 @@ main {
     height: 100vh;
     padding-inline: 0;
     padding-top: 0;
+    position: relative;
+    padding-bottom: 10vh;
 }
 
 h1 {
@@ -18,6 +20,7 @@ h1 {
     top: 0;
     backdrop-filter: blur(10px);
     background-color: hsl(210, 17%, 98%, .5);
+    /* transition: all .3s ease-in-out; */
 }
 
 .notification-card 
@@ -27,7 +30,7 @@ h1 {
 
     /* If overflow isn't set to hidden, 
     the text would appear to spill out below the boundaries of the shrinking card
-    when the deleting class is set. */
+    while the card is deleted. See the 'deleting' class. */
     overflow: hidden;
 }
 
@@ -37,13 +40,24 @@ h1 {
 
 .notification-card.deleting 
 {
-    transition: all .3s ease-out;
-    transform-origin: top;
-
-    opacity: 0;
+    transition: all .3s cubic-bezier(0.4, 0, 1, 1);
+    /* transform-origin: top; */
     transform: scaleY(0);
+    opacity: 0;
     margin-bottom: 0;
     padding-top: 0;
     padding-bottom: 0;
     max-height: 0;
+}
+
+#feedback-card-wrapper {
+    position: sticky;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    padding-inline: var(--page-inline-padding);
+}
+
+.feedback-card {
+    margin-inline: auto;
 }

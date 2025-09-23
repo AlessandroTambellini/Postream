@@ -167,6 +167,7 @@ page.profile = async function(req_data, res_obj)
 
     const profile_page = profile_template
         .replace('{{ universal-resources }}', components['universal-resources'])
+        .replace('{{ .feedback-card }}', components['.feedback-card'])
         .replace('{{ #side-nav }}', components['#side-nav'](true, 'profile'))
     ;
 

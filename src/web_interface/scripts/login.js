@@ -4,7 +4,6 @@ const login_form = document.querySelector('form');
 const feedback_card = login_form.querySelector('.feedback-card');
 const password_input = login_form.querySelector('input[name=password]');
 
-feedback_card.querySelector('.close-btn').addEventListener('click', () => hide_feedback_card(feedback_card));
 login_form.addEventListener('submit', handle_login);
 
 async function handle_login(e) 

@@ -1,6 +1,6 @@
 {
-  "name": "post-stream",
-  "description": "Send a post in the stream",
+  "name": "postream",
+  "description": "Throw a post in the stream",
   "main": "src/server.mjs",
   "type": "module",
   "scripts": {

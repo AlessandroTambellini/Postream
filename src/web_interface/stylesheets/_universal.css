@@ -255,7 +255,7 @@ a, button, textarea, input {
 
     #side-nav:has(.minified-list) {
         border-left: unset;
-        padding-inline: 0;
+        padding-left: 0;
     }
 
     .minified-list li {
