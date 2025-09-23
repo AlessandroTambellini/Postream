@@ -28,6 +28,18 @@
     font-size: .9rem;
 }
 
+.card.deleting 
+{
+    transition: all .3s ease-out;
+    transform-origin: top;
+    opacity: 0;
+    transform: scaleY(0);
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    max-height: 0;
+}
+
 @media (min-width: 500px) {
     .card {
         font-size: 1.2rem;
