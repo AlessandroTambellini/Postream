@@ -6,3 +6,6 @@
     margin-inline: auto;
 }
 
+#replies-container:empty:after {
+    content: 'There aren\'t replies.';
+}

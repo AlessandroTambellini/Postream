@@ -73,15 +73,11 @@ page.index = async function(req_data, res_obj)
 
     const { posts, db_error } = db_op.select_posts_page(1, 20, 'desc');
 
-    if (db_error) 
+    if (db_error) {
         index_template = index_template.replace('{{ post-cards }}', DOMElements['.info-msg']('Sorry, unable to retrieve the posts :)'));
-    else 
-    {
-        const post_cards = [];
-        posts.forEach(post => {
-            post_cards.push(DOMElements['.post-card'](post, 2, true));
-        });
-        index_template = index_template.replace('{{ post-cards }}', post_cards.join(''));
+    } else {
+        const post_cards = posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
+        index_template = index_template.replace('{{ post-cards }}', post_cards);
     }
     
     const index_page = index_template
@@ -154,16 +150,9 @@ page.profile = async function(req_data, res_obj)
     if (db_error) {
         profile_template = profile_template.replace('{{ post-cards }}', 
             DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
-    }
-    else
-    {
-        const post_cards = [];
-        posts.forEach(post => {
-            post_cards.push(DOMElements['.post-card'](post, 1, true));
-        });
-
-        profile_template = profile_template.replace('{{ post-cards }}', 
-            post_cards.length > 0 ? post_cards.join('') : DOMElements['.info-msg']('You didn\'t create any post yet.'));
+    } else {
+        const post_cards = posts.map(post => DOMElements['.post-card'](post, 1, true)).join('');
+        profile_template = profile_template.replace('{{ post-cards }}', post_cards);
     }
 
     const profile_page = profile_template
@@ -194,18 +183,14 @@ page.notifications = async function(req_data, res_obj)
 
     const { notifications, db_error } = db_op.select_user_notifications(user_id);
 
-    if (db_error)
+    if (db_error) {
         notifications_template = notifications_template.replace('{{ notification-cards }}', 
             DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
-    else
-    {
-        const notification_cards = [];
-        notifications.forEach(notification => {
-            notification_cards.push(DOMElements['.notification-card'](notification));
-        });
+    } else {
+        const notification_cards  = notifications.map(notification => 
+            DOMElements['.notification-card'](notification)).join('');
 
-        notifications_template = notifications_template.replace('{{ notification-cards }}', 
-            notification_cards.length > 0 ? notification_cards.join('') : DOMElements['.info-msg']('You don\'t have any notification :)'));
+        notifications_template = notifications_template.replace('{{ notification-cards }}', notification_cards);
     }
 
     const notifications_page = notifications_template
@@ -322,18 +307,12 @@ page['read-post'] = async function(req_data, res_obj)
         // load replies
         const { replies, db_error } = db_op.select_post_replies(post_id);
 
-        if (db_error)
+        if (db_error) {
             post_template = post_template.replace('{{ replies }}', 
                 DOMElements['.info-msg']('Sorry, unable to retrieve the replies :('));
-        else
-        {
-            const reply_cards = [];
-            replies.forEach(reply => {
-                reply_cards.push(DOMElements['.reply-card'](reply));
-            });
-
-            post_template = post_template.replace('{{ replies }}',
-                reply_cards.length > 0 ? reply_cards.join('') : DOMElements['.info-msg']('There aren\'t replies.'));
+        } else {
+            const reply_cards = replies.map(reply => DOMElements['.reply-card'](reply)).join('');
+            post_template = post_template.replace('{{ replies }}', reply_cards);
         }
     }
     else

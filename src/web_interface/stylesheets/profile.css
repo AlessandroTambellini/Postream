@@ -51,6 +51,10 @@ h2 {
     /* border-bottom: 1px solid rgba(204, 204, 204, 0.3); */
 }
 
+#posts-container:empty:after {
+    content: 'You didn\'t create any post yet.';
+}
+
 .post-card {
     margin-bottom: .5em;
     max-width: min(var(--card-max-width), calc(100% - 4vw));

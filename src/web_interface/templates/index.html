@@ -36,9 +36,8 @@
             </button> 
         </nav>
 
-        <div id="posts-container">
-            {{ post-cards }}
-        </div>   
+        <!-- It's necessary for this div to not have empty spaces inside because of #posts-container:empty CSS property. -->
+        <div id="posts-container" class="cards-container">{{ post-cards }}</div>   
 
         {{ .feedback-card }}
         

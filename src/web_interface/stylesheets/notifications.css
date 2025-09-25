@@ -4,7 +4,7 @@
 
 main {
     overflow-y: scroll;
-    /* scrollbar-width: none; */
+    scrollbar-width: none;
     height: 100vh;
     padding-inline: 0;
     padding-top: 0;
@@ -21,6 +21,10 @@ h1 {
     backdrop-filter: blur(10px);
     background-color: hsl(210, 17%, 98%, .5);
     /* transition: all .3s ease-in-out; */
+}
+
+#notifications-container:empty:after {
+    content: 'You don\'t have any notification :)';
 }
 
 .notification-card 

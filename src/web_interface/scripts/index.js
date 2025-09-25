@@ -84,7 +84,8 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
 /* Keep track of the posts rendered from the server on first loading of the page. */
 function identify_displayed_posts(flags, displayed_posts)
 {
-    for (const post of posts_container.children)
+    const posts = posts_container.querySelectorAll('.post-card');
+    for (const post of posts)
     {
         const id = Number(post.querySelector('a').href.split('id=')[1]);
         displayed_posts.add(id);

@@ -27,6 +27,10 @@ main {
     padding-inline: var(--page-inline-padding);
 }
 
+#posts-container:empty:after {
+    content: 'There aren\'t posts yet.';
+}
+
 #posts-container > * {
     margin-inline: auto;
 }

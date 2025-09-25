@@ -58,6 +58,13 @@ a, button, textarea, input {
     text-align: center;
 }
 
+.cards-container:empty {
+    padding-top: 2rem;
+    margin-inline: auto;
+    max-width: 70ch;
+    font-size: 1.2rem;
+    text-align: center;
+}
 
 /*
  *
