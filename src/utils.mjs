@@ -44,14 +44,13 @@ function hash_password(password)
         .digest('hex');
 }
 
-// cached templates
-const templates = new Map();
+const cached_templates = new Map();
 
 async function read_template(template_name) 
 {
     // Only for production, otherwise isn't possible to update a page during development
-    if (process.env.NODE_ENV === 'production' && templates.has(template_name)) {
-        return { template: templates.get(template_name), fs_error: null };
+    if (process.env.NODE_ENV === 'production' && cached_templates.has(template_name)) {
+        return { template: cached_templates.get(template_name), fs_error: null };
     }
     
     // The args are all strings, so there is no way join can throw an error.
@@ -70,8 +69,8 @@ async function read_template(template_name)
         }
     }
 
-    if (template && process.env.NODE_ENV === 'production') {
-        templates.set(template_name, template);   
+    if (process.env.NODE_ENV === 'production' && template) {
+        cached_templates.set(template_name, template);   
     }
 
     return { template, fs_error };
