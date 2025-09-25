@@ -93,10 +93,25 @@ function log_error(error)
     console.error('Error:', error.message + '\n' + code_stack.join('\n'));
 }
 
+function sanitize_url(url)
+{
+    let sanitized_url = url;
+
+    // new URL('//.../') causes a crash. 
+    let forw_slash_instances = 0;
+    for (let i = 0; i < url.length; i++) {
+        if (url[i] === '/') forw_slash_instances++;
+    }
+    if (forw_slash_instances === url.length) sanitized_url = '/';
+
+    return sanitized_url;
+}
+
 export {
     JSON_to_obj,
     hash_password,
     read_template,
     generate_password,
     log_error,
+    sanitize_url,
 };

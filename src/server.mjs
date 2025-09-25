@@ -6,7 +6,7 @@ import 'dotenv/config';
 
 import * as handlers from './handlers.mjs';
 import { db_close } from './database.mjs';
-import { log_error } from './utils.mjs';
+import { log_error, sanitize_url } from './utils.mjs';
 
 const PROTOCOL = process.env.NODE_ENV === 'production' ? 'https' : 'http';
 
@@ -34,7 +34,7 @@ server.listen(PORT);
 
 function handle_request(req, res)
 {
-    const url_obj = new URL(req.url, `${PROTOCOL}://localhost:${PORT}`);
+    const url_obj = new URL(sanitize_url(req.url), `${PROTOCOL}://localhost:${PORT}`);
 
     const body = [];
     let buffer_size = 0;
@@ -72,10 +72,13 @@ function handle_request(req, res)
         };
 
         try {
-            const path = req_data.path;
+            let path = req_data.path;
+            if (path.endsWith('/') && path.length > 1) path = path.slice(0, url_obj.pathname.length-1);
+
             let page_path = path === '/' ? 'index' : path.replace('/', '');
             // allow for the specification of the html extension in a path
             if (page_path.endsWith('.html')) page_path = page_path.replace('.html', '');
+
             const api_path = path === '/api' ? 'list' : path.replace('/api/', '');
 
             if (handlers.page[page_path]) {
