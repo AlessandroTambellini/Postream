@@ -13,28 +13,8 @@
     {{ universal-resources }}    
 </head>
 <body>
-    <h1 class="hidden">Postream</h1>
-
     <main>
-        <!-- <button id="abc" class="abc" onclick="
-            const feedback_card = this.parentElement; 
-            feedback_card.className = 'card feedback-card';
-            feedback_card.classList.add('display-none');
-        ">ciao</button> -->
-        <nav id="controls-nav">
-            <button id="reload-posts-btn" class="secondary-btn" aria-label="reload">
-                &olarr;
-            </button>
-            <button id="load-posts-desc-btn" class="control secondary-btn selected" aria-label="load posts from newest to oldest" value="desc">
-                DESC
-            </button>
-            <button id="load-posts-asc-btn" class="control secondary-btn" aria-label="load posts from oldest to newest" value="asc">
-                ASC
-            </button>
-            <button id="load-posts-rand-btn" class="control secondary-btn" aria-label="load posts randomly" value="rand">
-                RAND
-            </button> 
-        </nav>
+        {{ #controls-nav }}
 
         <!-- It's necessary for this div to not have empty spaces inside because of #posts-container:empty CSS property. -->
         <div id="posts-container" class="cards-container">{{ post-cards }}</div>   

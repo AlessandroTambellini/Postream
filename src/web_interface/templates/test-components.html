@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Postream / Test Components</title>
+    
+    {{ universal-elements }}    
+
+    <link rel='stylesheet' href='../stylesheets/components/buttons.css'>
+    <link rel='stylesheet' href='../stylesheets/components/cards.css'>
+    <link rel='stylesheet' href='../stylesheets/components/form.css'>
+
+    <style>
+        .card {
+            margin-block: 1em;
+        }
+        
+        main > button {
+            display: block;
+            margin-block: 1em;
+        }
+
+        #profile-picture {
+            display: block;
+            margin-top: 2vh; 
+            margin-bottom: 1em;  
+            width: 225px;
+            aspect-ratio: 1;
+            background-color: white;
+            border-radius: 100%;
+            box-shadow: 0 0px 3px #ccc;
+
+            /* For the balls inside */
+            overflow: hidden;
+            position: relative;
+        }
+
+        @media (min-width: 500px) {
+            #profile-picture {
+                width: 300px;
+            }
+        }
+
+        #profile-picture .circle {
+            position: absolute;
+            aspect-ratio: 1;
+            border-radius: 100%;
+            box-shadow: 0 0px 3px #ccc;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        {{ #controls-nav }}
+        
+        {{ .post-card }}
+        {{ .reply-card }}
+        {{ .notification-card }}
+
+        {{ #profile-picture }}
+        
+        <button class="primary-btn">Load</button>
+        <button class="secondary-btn">DESC</button>
+        
+        {{ .feedback-card }}
+        {{ .feedback-card }}
+        {{ .feedback-card }}
+        {{ .feedback-card }}
+    </main>
+
+    {{ #side-nav }}
+
+    <script>
+        document.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', e => e.preventDefault());
+        });
+        const feedback_cards = document.querySelectorAll('.feedback-card');
+        
+        // feedback_cards.forEach(card => {
+        //     card.querySelector('.close-btn').addEventListener('click', () => {
+        //         show_feedback_card()
+        //     })
+        // });
+
+        show_feedback_card(feedback_cards[0], 'Info', 'All setup. Nothing to do.');
+        show_feedback_card(feedback_cards[1], 'Success', 'Action completed successfully!');
+        show_feedback_card(feedback_cards[2], 'Warn', 'Pay attention to the wall!');
+        show_feedback_card(feedback_cards[3], 'Error', 'The credentials are invalid. Please, update them.');
+
+        function show_feedback_card(feedback_card, type, msg) 
+        {
+            feedback_card.className = 'card feedback-card';
+
+            const icon = feedback_card.querySelector('span[role=img]');
+            const p_type = feedback_card.querySelector('.type');
+
+            if (type === 'Info') {
+                icon.textContent = 'i';
+            } else if (type === 'Success') {
+                icon.textContent = '✓';
+            } else if (type === 'Warn') { 
+                icon.textContent = '!';
+            } else if (type === 'Error') {
+                icon.textContent = '!';
+            } else {
+                console.error(`Invalid feedback type. Passed '${type}.'`);
+                return;
+            }
+
+            p_type.textContent = type;
+            feedback_card.classList.add(type);
+            feedback_card.classList.add('flex');
+            feedback_card.querySelector('p .msg').textContent = msg;
+        }
+    </script>
+</body>
+</html>

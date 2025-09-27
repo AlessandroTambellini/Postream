@@ -15,6 +15,9 @@ function prettify_date(date)
 
 // const components = {};
 
+/* Little Unimportant Note: for the name of objects I use snake_case, 
+but in this case I used the camelCase to reflect the Browser API convention 
+given I find this object related to it. */
 const DOMElements = {};
 
 const code_snippets = {};
@@ -57,34 +60,21 @@ DOMElements['.reply-card'] = function(reply)
 
 DOMElements['.notification-card'] = function(notification)
 {
-    const { id, post_id, post_content_snapshot, reply_id, created_at } = notification;
+    const { id, post_id, post_content_snapshot, first_new_reply_id, num_of_replies } = notification;
 
     return `
         <article id='notification-card-${id}' class='card notification-card'>
-            <time datetime="${created_at}">${prettify_date(created_at)}</time>
-            <p><b>New reply for:</b> "${post_content_snapshot}..."</p>
+            <p><b>${num_of_replies} new reply(s) for:</b> "${post_content_snapshot}..."</p>
             <footer>
-                <a href='read-post?id=${post_id}#reply-${reply_id}'>Read Reply</a>
+                <a href='read-post?id=${post_id}#reply-${first_new_reply_id}'>Read Reply</a>
                 <button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>
             </footer>
         </article>
     `;
 }
 
-DOMElements['.feedback-card'] = `
-    <div class="feedback-card display-none">
-        <span role='img'></span>
-        <p>
-            <span class='type'></span>
-            <span class='msg'></span>
-        </p>
-        <button class="close-btn" type='button' onclick="
-            const feedback_card = this.parentElement; 
-            feedback_card.className = 'card feedback-card';
-            feedback_card.classList.add('display-none');
-        ">x</button>
-    </div>
-`;
+DOMElements['.feedback-card'] = function() 
+{
     // <script>
     //     const feedback_card = document.querySelector('.feedback-card');
     //     feedback_card.querySelector('.close-btn').addEventListener('click', e => {
@@ -93,6 +83,98 @@ DOMElements['.feedback-card'] = `
     //         feedback_card.classList.add('display-none');
     //     });
     // </script>
+
+    //  onclick="
+    //             const feedback_card = this.parentElement; 
+    //             feedback_card.className = 'card feedback-card';
+    //             feedback_card.classList.add('display-none');
+    //         "
+
+    return `
+        <div class="feedback-card display-none">
+            <span role='img' alt='feedback-icon'></span>
+            <p>
+                <span class='type'></span>
+                <span class='msg'></span>
+            </p>
+            <button class="close-btn" type='button'>x</button>
+        </div>
+    `;
+}
+
+DOMElements['#profile-picture'] = function(max_num_of_circles, size)
+{
+    const rand_int = (max) => Math.floor(Math.random() * max + 1);
+
+    const num_of_circles = Math.max(20, rand_int(max_num_of_circles));
+
+    let circles = [];
+    for (let i = 0; i < num_of_circles; i++)
+    {
+        circles.push(`
+            <span class='circle' style="
+                width: ${rand_int(size/2.5)}px; 
+                background-color: rgb(${rand_int(256)}, ${rand_int(256)}, ${rand_int(256)}); 
+                top: ${rand_int(size/10*9)}px; 
+                left: ${rand_int(size/10*9)}px;"
+            ></span>`);
+    }
+
+    return `
+        <span id="profile-picture" role="img">${circles.join('')}</span>
+    `;
+};
+
+DOMElements['#controls-nav'] = function()
+{
+    /* I don't set: `
+        position: sticky;
+        top: 0;
+    ` with inline styling, 
+    because the position in the layout is up to the parent.
+    Therefore, that part of the styling is made in the page-specific css file. */
+
+    const style = `
+        padding-block: 1em;
+        backdrop-filter: blur(10px);
+        background-color: hsl(210, 17%, 98%, .5);
+        display: flex;
+        justify-content: center;
+        gap: .5rem;
+    `;
+
+    return `
+        <nav id="controls-nav" style="${style}">
+            <button id="load-posts-desc-btn" class="control secondary-btn selected" aria-label="load posts from newest to oldest" value="desc">
+                DESC
+            </button>
+            <button id="load-posts-asc-btn" class="control secondary-btn" aria-label="load posts from oldest to newest" value="asc">
+                ASC
+            </button>
+            <button id="load-posts-rand-btn" class="control secondary-btn" aria-label="load posts randomly" value="rand">
+                RAND
+            </button> 
+            <button id="reload-posts-btn" class="secondary-btn" aria-label="reload">
+                &olarr;
+            </button>
+        </nav>
+    `;
+};
+
+DOMElements['universal-elements'] = function(description)
+{
+    return `
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="${description}">
+
+        <link rel="icon" type="image/webp" href="../assets/logo.webp">
+
+        <link rel='stylesheet' href='../stylesheets/_universal.css'>
+
+        <script type="module" src="../scripts/_universal.js"></script>
+    `;
+}
 
 DOMElements['#side-nav'] = function(logged_in, page)
 {
@@ -109,7 +191,7 @@ DOMElements['#side-nav'] = function(logged_in, page)
                 ${(logged_in && page !== 'profile') ? 
                     `<li itemprop="profile">
                         <a href="profile">
-                            <span role='img'></span>
+                            ${DOMElements['#profile-picture'](50, 70)}
                         </a>
                     </li>` : ''}
                 ${menu_entries.reduce((accumulator, page) => {
@@ -121,23 +203,23 @@ DOMElements['#side-nav'] = function(logged_in, page)
                 }, '')}
             </ul>
             <button id='minify-nav-btn' aria-label='minify nav' class='display-block'>
-                <span role='img'>〈</span>
+                <span role='img' alt='minify nav'>〈</span>
             </button>
             <button id='expand-nav-btn' aria-label='expand nav' class='display-none'>
-                <span role='img'>〉</span>
+                <span role='img' alt='expand nav'>〉</span>
             </button>
         </nav>
     `;
 
-    // if (logged_in && page !== 'profile') 
-    //     menu_entries.unshift('profile');
+    /* This button that changes the bullet of the list based on the menu entry is mostly a shiny object.
+    Not sure I want it. */
 
     // Otherwise the button is too high
-    while (menu_entries.length > 4) menu_entries.pop();
+    while (menu_entries.length > 3) menu_entries.pop();
 
     const open_side_nav_btn = `
         <button id="open-side-nav-btn" class="secondary-btn display-block" aria-label='open side-nav'>
-            <span role='img'>
+            <span role='img' alt='open side-nav icon'>
                 ${menu_entries.reduce((accumulator, page) => {
                     return accumulator + `
                         <span itemprop=${page}>
@@ -161,7 +243,7 @@ DOMElements['.info-msg'] = function(msg)
 code_snippets['universal-resources'] = 
 `
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <script type="module" src="../scripts/components/side-nav.js"></script>
+    <script type="module" src="../scripts/_universal.js"></script>
 `;
 
 /* fallback_page may be called (but not only) in case I'm not able to load the wanted page from disk using readFile().
@@ -192,7 +274,6 @@ function fallback_page(status_code)
             
             <title>Page ${status_code}</title>
             
-            <link rel="icon" type="image/webp" href="../assets/logo.webp">
             <link rel="stylesheet" href="../stylesheets/_universal.css">
 
             ${code_snippets["universal-resources"]}

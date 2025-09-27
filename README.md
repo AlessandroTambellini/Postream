@@ -39,4 +39,12 @@ Note: the database will be created automatically on first run.
         * If you create an account, you create a new account and you are switched to it.
 
 3) **HTTPS**:
-It is required only for login and create-account because the password is transmitted in the payload of the request. See `API.user.POST` and `API.token.POST` in `handlers.js` for more info.
+    It is required only for login and create-account because the password is transmitted in the payload of the request. See `API.user.POST` and `API.token.POST` in `handlers.js` for more info.
+
+4) **A side not on git commits**:
+    My commit messages usually don't mean anything, for a couple of reasons:
+    * I develop alone
+    * I don't develop per fixed isolated chunks of changes. Usually I play around and a change has a domino effect
+    on other parts of the code and once I made the 'big' change, I commit it. 
+    Still, sometimes I don't even commit with a meaningful msg because I find it to be mostly useless.
+    I usually scroll the commit history to navigate the changes I made over time.

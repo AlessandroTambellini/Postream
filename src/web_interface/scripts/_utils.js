@@ -1,26 +1,32 @@
-function generate_profile_picture(element, max_num_of_circles, size)
+// This is a slightly more hard-coded version of the same function present inside templates.js
+function post_card(post)
 {
-    const rand_int = (max) => Math.floor(Math.random() * max + 1);
+    const { id, content, created_at } = post;
 
-    const profile_picture = document.querySelector(element);
-
-    // In the profile page or when logged out, there is no profile-icon in the side-nav
-    if (!profile_picture) return;
-    
-    const num_of_circles = Math.max(20, rand_int(max_num_of_circles));
-
-    for (let i = 0; i < num_of_circles; i++)
+    function prettify_date(date) 
     {
-        const circle = document.createElement('span');
-        circle.classList.add('circle');
+        const week_days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = [0, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        circle.style.width = `${rand_int(size/2.5)}px`;
-        circle.style.backgroundColor = `rgb(${rand_int(256)}, ${rand_int(256)}, ${rand_int(256)})`;
-        circle.style.top = `${rand_int(size/10*9)}px`;
-        circle.style.left = `${rand_int(size/10*9)}px`;
+        const week_day = new Date(date).getDay();
+        const [year_time, day_time] = date.split(', ');
+        const [month, day, year] = year_time.split('/');
 
-        profile_picture.appendChild(circle);
+        const [clock_time, am_pm] = day_time.split(' ');
+        const [hour, mins, secs] = clock_time.split(':');
+
+        return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
     }
+
+    return `
+        <article class="card post-card">
+            <p>${content.length > 70*10 ? 
+                content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>read entirely</a>` : 
+                content}</p>
+            <time datetime="${created_at}">${prettify_date(created_at)}</time>
+            <a href='write-reply?id=${id}'>Reply</a>
+        </article>
+    `;
 }
 
 async function req(path, method, search_params_obj = null, payload_obj = null) 
@@ -73,38 +79,33 @@ async function req(path, method, search_params_obj = null, payload_obj = null)
     return res_obj;
 }
 
-function show_feedback_card(feedback_card, type, msg) 
+function show_feedback_card(feedback_card, fdk_type, msg) 
 {
     // reset the classes
     feedback_card.className = 'card feedback-card';
 
     const icon = feedback_card.querySelector('span[role=img]');
-    const _type = feedback_card.querySelector('p .type');
+    const type = feedback_card.querySelector('p .type');
 
-    if (type === 'info') {
-        feedback_card.classList.add('feedback-info');
+    if (fdk_type === 'Info') {
         icon.textContent = 'i';
-        _type.textContent = 'Info';
         feedback_card.classList.add('vanish');
-    } else if (type === 'success') {
-        feedback_card.classList.add('feedback-success');
+    } else if (fdk_type === 'Success') {
         icon.textContent = '✓';
-        _type.textContent = 'Success';
         feedback_card.classList.add('vanish');
-    } else if (type === 'warn') { 
-        feedback_card.classList.add('feedback-warn');
+    } else if (fdk_type === 'Warn') { 
         icon.textContent = '!';
-        _type.textContent = 'Warning';
         feedback_card.classList.add('flex');
-    } else if (type === 'error') {
-        feedback_card.classList.add('feedback-error');
+    } else if (fdk_type === 'Error') {
         icon.textContent = '!';
-        _type.textContent = 'Error';
         feedback_card.classList.add('flex');
     } else {
-        console.error(`Invalid feedback type. Passed '${type}.'`);
+        console.error(`Invalid feedback fdk_type. Passed '${fdk_type}.'`);
+        return;
     }
 
+    type.textContent = fdk_type;
+    feedback_card.classList.add(fdk_type);
     feedback_card.querySelector('p .msg').textContent = msg;
 }
 
@@ -129,10 +130,10 @@ function switch_class(element, old, _new) {
 }
 
 export {
-    generate_profile_picture,
     req,
     show_feedback_card,
     hide_feedback_card,
     err_msg,
     switch_class,
+    post_card,
 };

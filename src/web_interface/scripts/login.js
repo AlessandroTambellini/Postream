@@ -27,7 +27,7 @@ async function handle_login(e)
         const { status_code, payload, req_error } = await req(path, 'PUT', null, { password });
         
         if (req_error) {
-            show_feedback_card(feedback_card, 'error', err_msg(status_code, 'password'));
+            show_feedback_card(feedback_card, 'Error', err_msg(status_code, 'password'));
         } else {
             document.cookie = `password_hash=${payload.password_hash}`;        
             /* I was thinking: "Why should I bother about automatically changing the location?
@@ -47,14 +47,14 @@ async function handle_login(e)
             const { status_code, payload, req_error } = await req(path, 'GET', { password });
             
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', err_msg(status_code, 'password'));
+                show_feedback_card(feedback_card, 'Error', err_msg(status_code, 'password'));
             } 
             else 
             {
                 const { status_code, payload, req_error } = await req(path, 'PUT', null, { password });
                     
                 if (req_error) {
-                   show_feedback_card(feedback_card, 'error', err_msg(status_code, 'password'));
+                   show_feedback_card(feedback_card, 'Error', err_msg(status_code, 'password'));
                 } else {
                     document.cookie = `password_hash=${payload.password_hash}`; 
                     location.href = '/';

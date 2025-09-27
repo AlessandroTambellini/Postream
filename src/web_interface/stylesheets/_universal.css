@@ -13,11 +13,6 @@
 {
     --clr-txt: #343A40;
     --clr-bkg: hsl(210, 17%, 98%);
-
-    --profile-pic-size: 70px;
-    --bullet-size: .3em;
-    --list-fs: 2rem;
-
     --page-inline-padding: 2vw;
 }
 
@@ -36,10 +31,15 @@ body {
 }
 
 main {
-   flex-grow: 2;
-   max-width: 1200px;
-   padding-block: 2vh;
-   padding-inline: var(--page-inline-padding);
+    flex-grow: 2;
+    max-width: 1200px;
+    padding-block: 2vh;
+    padding-inline: var(--page-inline-padding);
+    height: 100vh;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    /* Otherwise open-website-nav-btn may cover some content at the bottom of the page */
+    padding-bottom: 10vh;
 }
 
 main > * {
@@ -58,13 +58,17 @@ a, button, textarea, input {
     text-align: center;
 }
 
+.cards-container > * {
+    margin-inline: auto;
+}
+
 .cards-container:empty {
     padding-top: 2rem;
-    margin-inline: auto;
     max-width: 70ch;
     font-size: 1.2rem;
     text-align: center;
 }
+
 
 /*
  *
@@ -72,6 +76,10 @@ a, button, textarea, input {
  */
 
 #side-nav {
+    --profile-pic-size: 60px;
+    --bullet-size: .3em;
+    --list-fs: 1.5rem;
+
     font-size: var(--list-fs);
     padding: 1.2em;
     height: 100vh;
@@ -85,7 +93,7 @@ a, button, textarea, input {
     /* avoid 'create-account' link from wrapping onto two lines */
     white-space: nowrap;
 
-    /* Experiment. I saw that now it is possible to write nested CSS. */
+    /* Experiment: I saw that now it is possible to write nested CSS. */
     li {
         /* for the bullet made with ::before */
         position: relative;
@@ -128,21 +136,7 @@ a, button, textarea, input {
     aspect-ratio: 1;
     border-radius: 100%;
     background-color: var(--circle-color);
-    /* margin-left: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2); */
 }
-
-/* #side-nav li[itemprop=notifications].new-notification::after {
-    content: "";
-    position: absolute;
-    right: -.25em;
-    top: 30%;
-    transform: translateY(-50%);
-    
-    width: .5em;
-    aspect-ratio: 1;
-    border-radius: 100%;
-    background-color: red;
-} */
 
 #side-nav a[href=profile] > span {
     display: block;
@@ -191,12 +185,8 @@ a, button, textarea, input {
     background-color: rgb(237, 237, 237);
 }
 
-@media (max-width: 1189px) {
-    :root {
-        --list-fs: 1.5rem;
-        --profile-pic-size: 60px;
-    }
-
+@media (max-width: 1189px) 
+{    
     #side-nav {
         box-shadow: -2px 0px 8px #ccc;
         position: fixed;
@@ -251,6 +241,8 @@ a, button, textarea, input {
     }
 
     #side-nav {
+        --profile-pic-size: 70px;
+        --list-fs: 2rem;
         display: block;
         /* box-shadow: -1px 0 0 #ccc; */
         border-left: 1px solid #ccc;
@@ -351,7 +343,7 @@ a, button, textarea, input {
 /* I created these states because sometimes in JS you may write e.g. 'div.style.display = "flex"',
 but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
 that has higher priority compared to the CSS classes. 
-And so, sometimes elements are shown/hidden unexpectedly becuase of the usage different specificities (especially in a big codebase).
+And so, sometimes elements are shown/hidden unexpectedly because of the usage different specificities (especially in a big codebase).
 Therefore, I modify the state only via these CSS classes. */
 
 .display-block {
@@ -408,9 +400,10 @@ because it's pretty clear that's about displaying. */
 1) `create-account`, `delete-account`, `login`, `logout`, `read-post`, `write-post`, `write-reply` 
 have pretty much the same elements with the same positioning on the page 
 and the pages themselves are minimal. 
-Neverthless, I prefer to have a separate css file for each of them 
-to layout their components individually in case in the future I want to do page-specific customizations.
+Neverthless, I prefer to have a separate css file for each of them to layout their components individually.
 
 2) I use `@import` in the .css files instead of using `<link>` in the corresponding HTML file
 because I want to keep track of the styling priorities. Same reason for why I don't use inline-styling
-inside the html tags. Otherwise it can become messy and then you start relying on '!important' */
+inside the html tags. Otherwise it can become messy and then you start relying on '!important'
+TODO: this not has to be reviewed
+*/

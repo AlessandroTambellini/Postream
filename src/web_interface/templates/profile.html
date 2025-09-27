@@ -16,15 +16,16 @@
     <h1 class="hidden">Profile</h1>
 
     <main>
-        <span id="profile-picture" role="img"></span>
+        {{ #profile-picture }}
 
-        <h2>Posts</h2>
+        {{ #controls-nav }}
 
         <div id="feedback-card-wrapper">
             {{ .feedback-card }}
         </div>
 
         <div id="posts-container" class="cards-container">{{ post-cards }}</div>
+        <button id="load-more-posts-btn" class="primary-btn" aria-label="Load more posts">load more</button>
     </main>
 
     {{ #side-nav }}

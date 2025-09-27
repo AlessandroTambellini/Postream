@@ -17,6 +17,15 @@ The same is true for margin and display that have an influence on the layout out
         0 2px 0 #b8b8b8,
         0 4px 6px rgba(0, 0, 0, 0.1);
     transform: translateY(0);
+    font-size: 1rem;
+    padding-block: .67em;
+    padding-inline: 1.2em;
+}
+
+@media (min-width: 500px) {
+    .primary-btn {
+        font-size: 1.2rem;
+    }
 }
 
 .primary-btn:hover {

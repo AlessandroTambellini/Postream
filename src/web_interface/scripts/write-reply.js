@@ -22,9 +22,9 @@ async function handle_reply_submission(e)
     const { status_code, payload, req_error } = await req(path, method, null, { post_id, content, created_at });
 
     if (req_error) {
-        show_feedback_card(feedback_card, 'error', err_msg(status_code, 'reply', 'send'));
+        show_feedback_card(feedback_card, 'Error', err_msg(status_code, 'reply', 'send'));
     } else {
-        show_feedback_card(feedback_card, 'success', 'Reply created successfully');
+        show_feedback_card(feedback_card, 'Success', 'Reply created successfully');
     }
 }
 

@@ -17,7 +17,7 @@ async function handle_registration(e)
     const { status_code, payload, req_error } = await req('api/user', 'POST');
     
     if (req_error) {
-        show_feedback_card(feedback_card, 'error', err_msg(status_code, 'user'));
+        show_feedback_card(feedback_card, 'Error', err_msg(status_code, 'user'));
     } else {
         password_p.textContent = payload.password;
         // Once a registration happens, the previous cookie is deleted to avoid conflicts with a previous user while logging in 

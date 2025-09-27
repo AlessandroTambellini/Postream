@@ -13,7 +13,7 @@ document.querySelectorAll('.delete-notification-btn').forEach(btn =>
     
         if (req_error) 
         {
-            show_feedback_card(feedback_card, 'error', err_msg(status_code, 'notification', 'delete'));
+            show_feedback_card(feedback_card, 'Error', err_msg(status_code, 'notification', 'delete'));
         } 
         else {
             const notification_card = document.querySelector(`#notification-card-${notification_id}`);

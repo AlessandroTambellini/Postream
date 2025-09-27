@@ -3,24 +3,12 @@
 @import './components/cards.css';
 
 main {
-    overflow-y: scroll;
-    scrollbar-width: none;
-    height: 100vh;
-
-    padding-inline: 0;
-    padding-top: 0;
+    padding: 0;
 }
 
 #controls-nav {
     position: sticky;
     top: 0;
-    padding-block: 1em;
-    backdrop-filter: blur(10px);
-    background-color: hsl(210, 17%, 98%, .5);
-
-    display: flex;
-    justify-content: center;
-    gap: .5rem;
 }
 
 #posts-container {
@@ -47,13 +35,5 @@ main {
 
 #load-more-posts-btn {
     display: block;
-    font-size: 1rem;
-    padding: .8em;
     margin-block: 1em;
-}
-
-@media (min-width: 500px) {
-    #load-more-posts-btn {
-        font-size: 1.2rem;
-    }
 }

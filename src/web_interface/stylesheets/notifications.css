@@ -3,13 +3,8 @@
 @import './components/buttons.css';
 
 main {
-    overflow-y: scroll;
-    scrollbar-width: none;
-    height: 100vh;
-    padding-inline: 0;
-    padding-top: 0;
+    padding: 0;
     position: relative;
-    padding-bottom: 10vh;
 }
 
 h1 {
@@ -36,10 +31,6 @@ h1 {
     the text would appear to spill out below the boundaries of the shrinking card
     while the card is deleted. See the 'deleting' class. */
     overflow: hidden;
-}
-
-.delete-notification-btn:hover {
-    background-color: #ff8282;
 }
 
 #feedback-card-wrapper {

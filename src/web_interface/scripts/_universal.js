@@ -1,12 +1,10 @@
-import { generate_profile_picture, switch_class } from "../_utils.js";
+import { switch_class, hide_feedback_card } from "./_utils.js";
 
 const side_nav = document.querySelector('#side-nav');
 const open_side_nav_btn = document.querySelector('#open-side-nav-btn');
 const main = document.querySelector('main');
 const minify_nav_btn = side_nav.querySelector('#minify-nav-btn');
 const expand_nav_btn = side_nav.querySelector('#expand-nav-btn');
-
-generate_profile_picture('a[href=profile] span', 50, 70);
 
 open_side_nav_btn.addEventListener('click', () => 
 {    
@@ -36,19 +34,10 @@ main.addEventListener('click', e =>
     main.classList.remove('display-opaque');
 });
 
-// const eventSource = new EventSource('api/active-clients');
-
-// const notifications_item = side_nav.querySelector('li[itemprop=notifications]');
-
-// eventSource.onmessage = function(event) {
-//     console.log(event.data);
-//     notifications_item.classList.add('new-notification');
-// };
-
-// notifications_item?.addEventListener('click', () => {
-//     notifications_item.classList.remove('new-notification');
-// });
-
-// eventSource.onerror = function(err) {
-//     console.error("Event failed:", err);
-// };
+const feedback_cards = document.querySelectorAll('.feedback-card');
+        
+feedback_cards.forEach(card => {
+    card.querySelector('.close-btn').addEventListener('click', () => {
+        hide_feedback_card(card);
+    });
+});

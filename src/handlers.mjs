@@ -53,6 +53,43 @@ const MSG_UNKNOWN_DB_ERROR = (action, entity) => {
 
 const page = {};
 
+page['test-components'] = async function(req_data, res_obj)
+{
+    let { template: test_components_template, fs_error } = await read_template('test-components');
+
+    if (fs_error) 
+    {
+        res_obj.page(500, fallback_page(500));
+        return;
+    }
+
+    const card = {
+        id:'#',
+        content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        created_at: new Date().toLocaleString(),
+    };
+    const notif_card = {
+        id: '#',
+        post_id: '#', 
+        post_content_snapshot: card.content, 
+        first_new_reply_id: '#', 
+        num_of_replies: 2,
+    };
+
+    const test_components_page = test_components_template
+        .replace('{{ universal-elements }}', DOMElements['universal-elements']('Test the components of the website'))
+        .replace('{{ #controls-nav }}', DOMElements['#controls-nav']())
+        .replace('{{ #profile-picture }}', DOMElements['#profile-picture'](50, 300))
+        .replace('{{ .post-card }}', DOMElements['.post-card'](card))
+        .replace('{{ .reply-card }}', DOMElements['.reply-card'](card))
+        .replace('{{ .notification-card }}', DOMElements['.notification-card'](notif_card))
+        .replaceAll('{{ .feedback-card }}', DOMElements['.feedback-card']())
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'test-components'))
+    ;
+
+    res_obj.page(200, test_components_page);
+};  
+
 page.index = async function(req_data, res_obj) 
 {
     let { template: index_template, fs_error } = await read_template('index');
@@ -82,7 +119,8 @@ page.index = async function(req_data, res_obj)
     
     const index_page = index_template
         .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #controls-nav }}', DOMElements['#controls-nav']())
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](user_id && true, 'index'))
     ;
 
@@ -101,7 +139,7 @@ page['create-account'] = async function(req_data, res_obj)
 
     const create_account_page = create_account_template
         .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'create-account'))
     ;
 
@@ -120,7 +158,7 @@ page.login = async function(req_data, res_obj)
 
     const login_page = login_template
         .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'login'))
     ;
 
@@ -145,7 +183,7 @@ page.profile = async function(req_data, res_obj)
         return;
     }
 
-    const { posts, db_error } = db_op.select_user_posts(user_id);
+    const { posts, db_error } = db_op.select_user_posts_page(user_id, 1, 20, 'desc');
 
     if (db_error) {
         profile_template = profile_template.replace('{{ post-cards }}', 
@@ -157,7 +195,8 @@ page.profile = async function(req_data, res_obj)
 
     const profile_page = profile_template
         .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ #controls-nav }}', DOMElements['#controls-nav']())
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'profile'))
     ;
 
@@ -195,7 +234,7 @@ page.notifications = async function(req_data, res_obj)
 
     const notifications_page = notifications_template
         .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'notifications'))
     ;
 
@@ -222,7 +261,7 @@ page['write-post'] = async function(req_data, res_obj)
 
     const write_post_page = write_post_template
         .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-post'))
     ;
 
@@ -265,7 +304,7 @@ page['write-reply'] = async function(req_data, res_obj)
 
     const write_reply_page = write_reply_template
         .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-reply'))
     ;
 
@@ -372,7 +411,7 @@ page['delete-account'] = async function(req_data, res_obj)
 
     delete_account_page = delete_account_page
         .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card'])
+        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'delete-account'))
     ;
 
@@ -405,6 +444,7 @@ API.post = route_API_method('post');
 API.reply = route_API_method('reply');
 API['user/notifications'] = route_API_method('user/notifications');
 API['posts/page'] = route_API_method('posts/page');
+API['posts/user/page'] = route_API_method('posts/user/page');
 API['posts/all'] = route_API_method('posts/all');
 
 function route_API_method(api) {
@@ -733,15 +773,42 @@ API.reply.POST = function(req_data, res_obj)
         return;
     }
 
-    const notification_id = db_op.insert_notification(post.user_id, post.id, post.content.substring(0, 70), reply_id, created_at);
+    const { notification, db_error: notif_db_error } = db_op.select_notification(post_id);
 
-    if (!notification_id) {
-        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'notification'));
+    if (notif_db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('select', 'notification'));
         return;
     }
 
-    // const res = active_clients.get(req_data.cookies.password_hash);
-    // if (res) res.write(`data: new notification.\n\n`);
+    /* If a post is popular, it may get tons of replies and so, 
+    if I architect the database to create a new notification for each reply, 
+    there would be a couple of problems:
+    1) Huge notification feed
+    2) Noisy notification feed
+    So, to avoid it, I pile the notifications for new replies (on the same post) together.
+    The consequences are that:
+    1) On the web interface, when the user clicks on a notification, it is brought to the first new reply received
+    and can read all the new replies upwords.
+    2) After a notification is deleted, the first new reply will create a new notification. */
+
+    if (!notification) {
+        const notification_id = db_op.insert_notification(post.user_id, post.id, post.content.substring(0, 70), reply_id, created_at);
+        
+        if (!notification_id) {
+            res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'notification'));
+            return;
+        }
+    } else {
+        const { is_notification_updated, db_error } = db_op.update_notification(post_id);
+        if (db_error) {
+            res_obj.error(500, MSG_UNKNOWN_DB_ERROR('update', 'notification'));
+            return;
+        }
+        if (!is_notification_updated) {
+            res_obj.error(404, MSG_NOT_FOUND('notification', 'post_id'));
+            return; 
+        }
+    }
 
     res_obj.success(200, { reply_id });
 };
@@ -783,6 +850,7 @@ API['posts/page'].GET = function(req_data, res_obj)
     const page = parseInt(req_data.search_params.get('page')) || 1;
     const limit = parseInt(req_data.search_params.get('limit')) || 50;
     const sort = req_data.search_params.get('sort') || 'desc';
+    const format = req_data.search_params.get('format') || 'json';
 
     if (page < 1) {
         res_obj.error(400, `Page must be >= 1. Got ${page} instead`);
@@ -798,13 +866,58 @@ API['posts/page'].GET = function(req_data, res_obj)
         res_obj.error(400, `Invalid sorting option. Got '${sort}'. Valid options are: asc, desc, rand`);
         return;
     }
+    
+    if (!['json', 'html'].includes(format)) {
+        res_obj.error(400, `Invalid format option. Got '${sort}'. Valid options are: json, html`);
+        return;
+    }
 
-    const res = db_op.select_posts_page(page, limit, sort);
+    const { posts, num_of_posts, db_error } = db_op.select_posts_page(page, limit, sort);
 
-    if (res.db_error) {
+    console.log(posts);
+    
+    if (db_error) {
         res_obj.error(500, MSG_UNKNOWN_DB_ERROR('get', 'posts'));
     } else {
-        res_obj.success(200, res);
+        if (format === 'html') {
+            const post_cards = posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');            
+            res_obj.success(200, { post_cards, num_of_posts });
+        } else {
+            res_obj.success(200, { posts, num_of_posts });
+        }
+    }
+};
+
+API['posts/user/page'].GET = function(req_data, res_obj)
+{
+    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    
+    if (auth_error)
+    {
+        res_obj.error(status_code, auth_error);
+        return;
+    }  
+
+    const page = parseInt(req_data.search_params.get('page')) || 1;
+    const limit = parseInt(req_data.search_params.get('limit')) || 50;
+    const sort = 'desc'; // for now is just desc
+
+    if (page < 1) {
+        res_obj.error(400, `Page must be >= 1. Got ${page} instead`);
+        return;
+    }
+    
+    if (limit < 1 || limit > PAGE_LIMIT) {
+        res_obj.error(400, `Limit must be 1-100. Got ${limit} instead`);
+        return;
+    }
+
+    const { posts, db_error } = db_op.select_user_posts_page(user_id, page, limit, sort);
+
+    if (db_error) {
+        res_obj.error(500, MSG_UNKNOWN_DB_ERROR('get', 'user posts'));
+    } else {
+        res_obj.success(200, posts);
     }
 };
 

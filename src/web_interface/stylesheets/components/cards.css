@@ -71,11 +71,6 @@
     color: rgb(72, 72, 72);
 }
 
-.notification-card time {
-    display: inline-block;
-    margin-bottom: .5em;
-}
-
 .post-card a {
     display: inline-block;
     margin-top: .5em;
@@ -92,6 +87,10 @@
 .notification-card button,
 .post-card button {
     font-size: 1rem;
+}
+
+.notification-card > footer > button:hover {
+    background-color: #ff8282;
 }
 
 .feedback-card {    
@@ -186,43 +185,43 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.feedback-info {
+.Info {
     border-left-color: #3b82f6;
 }
-.feedback-info span[role=img] {
+.Info span[role=img] {
     background-color: #3b82f6;
 }
-.feedback-info p .type {
+.Info p .type {
     color: #1e40af;
 }
 
-.feedback-success {
+.Success {
     border-left-color: #10b981;
 }
-.feedback-success span[role=img] {
+.Success span[role=img] {
     background-color: #10b981;
 }
-.feedback-success p .type {
+.Success p .type {
     color: #047857;
 }
 
-.feedback-warn {
-    border-left-color: #ff8f3f;
+.Warn {
+    border-left-color: #ff8228;
 }
-.feedback-warn span[role=img] {
-    background-color: #ff8f3f;
+.Warn span[role=img] {
+    background-color: #ff8228;
 }
-.feedback-warn p .type {
-    color: #dd6713;
+.Warn p .type {
+    color: #e0640c;
 }
 
-.feedback-error {
+.Error {
     border-left-color: #ef4444;
 }
-.feedback-error span[role=img] {
+.Error span[role=img] {
     background-color: #ef4444;
 }
-.feedback-error p .type {
-    color: #dc2626;
+.Error p .type {
+    color: #d31a1a;
 }
 

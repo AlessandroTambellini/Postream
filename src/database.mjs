@@ -54,7 +54,8 @@ const create_tables = `
         user_id INTEGER NOT NULL,
         post_id INTEGER NOT NULL,
         post_content_snapshot TEXT NOT NULL,
-        reply_id INTEGER NOT NULL,
+        first_new_reply_id INTEGER NOT NULL,
+        num_of_replies INTEGER NOT NULL,
         created_at DATETIME NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
@@ -104,7 +105,9 @@ const delete_post = db.prepare('DELETE FROM posts WHERE id = ? AND user_id = ?')
 const insert_reply = db.prepare('INSERT INTO replies (post_id, content, created_at) VALUES (?, ?, ?)');
 const select_post_replies = db.prepare('SELECT * FROM replies WHERE post_id = ? ORDER BY created_at DESC');
 
-const insert_notification = db.prepare('INSERT INTO notifications (user_id, post_id, post_content_snapshot, reply_id, created_at) VALUES (?, ?, ?, ?, ?)');
+const select_notification = db.prepare('SELECT * FROM notifications WHERE post_id = ?');
+const insert_notification = db.prepare('INSERT INTO notifications (user_id, post_id, post_content_snapshot, first_new_reply_id, created_at, num_of_replies) VALUES (?, ?, ?, ?, ?, ?)');
+const update_notification = db.prepare('UPDATE notifications SET num_of_replies = num_of_replies + 1 WHERE post_id = ?');
 const delete_notification = db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?');
 
 // Used just for testing
@@ -115,6 +118,7 @@ const select_all_posts = db.prepare('SELECT id, content, created_at FROM posts O
 const select_posts_page_asc = db.prepare('SELECT id, content, created_at FROM posts ORDER BY created_at ASC LIMIT ? OFFSET ?');
 const select_posts_page_desc = db.prepare('SELECT id, content, created_at FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?');
 const select_posts_page_rand = db.prepare('SELECT id, content, created_at FROM posts ORDER BY RANDOM() LIMIT ?');
+const select_user_posts_page_desc = db.prepare('SELECT id, content, created_at FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
 
 /*
 NOTES:
@@ -125,8 +129,8 @@ They don't do anything more than that.
 but I don't find convenient to specify with 'UNIQUE' and instead I prefer to check it manually.
 
 - I don't think it's useful to report to the user the exact error message in case of a
-database exception because it's not releted wiht its request. 
-Therefore, I simply return a 500 status code and a made up message.
+database exception because it's not releted with its request. 
+Instead, I return a 500 status code and a made up message.
 */
 
 /*
@@ -189,10 +193,10 @@ db_op.insert_reply = function(post_id, content, created_at)
     }
 };
 
-db_op.insert_notification = function(user_id, post_id, post_content, reply_id, created_at)
+db_op.insert_notification = function(user_id, post_id, post_content, first_new_reply_id, created_at)
 {
     try {
-        const res = insert_notification.run(user_id, post_id, post_content, reply_id, created_at);
+        const res = insert_notification.run(user_id, post_id, post_content, first_new_reply_id, created_at, 1);
         return res.lastInsertRowid;
     } catch (error) {
         log_error(error);
@@ -270,6 +274,37 @@ db_op.select_user_posts = function(user_id)
     return { posts, db_error };
 };
 
+db_op.select_user_posts_page = function(user_id, page = 1, limit = 50, sort = 'desc')
+{
+    const offset = (page - 1) * limit;    
+    let posts = null, db_error = false;
+
+    try {
+        posts = select_user_posts_page_desc.all(user_id, limit, offset);
+    } catch (error) {
+        db_error = true;
+        log_error(error);
+    } 
+
+    return { 
+        posts, 
+        db_error,
+    };
+};
+
+db_op.select_notification = function(post_id)
+{
+    let notification = null, db_error = null;
+    try {
+        notification = select_notification.get(post_id);
+    } catch (error) {
+        db_error = true;
+        log_error(error);
+    }
+
+    return { notification, db_error };
+};
+
 db_op.select_user_notifications = function(user_id)
 {
     let notifications = null, db_error = false;
@@ -299,7 +334,6 @@ db_op.select_posts_page = function(page = 1, limit = 50, sort = 'desc')
 
     return { 
         posts, 
-        page, 
         num_of_posts: count_posts(),
         db_error
     };
@@ -340,6 +374,20 @@ db_op.update_token = function(expires_at, password_hash)
     } 
 
     return { is_token_updated, db_error };
+};
+
+db_op.update_notification = function(post_id)
+{
+    let is_notification_updated = false, db_error = false;
+    try {
+        const res = update_notification.run(post_id);
+        if (res.changes > 0) is_notification_updated = true;
+    } catch (error) {
+        db_error = true;
+        log_error(error);
+    }
+
+    return { is_notification_updated, db_error };
 };
 
 /*
