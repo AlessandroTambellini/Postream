@@ -4,13 +4,13 @@
 
 main {
     padding: 0;
+    padding-bottom: 10vh;
     position: relative;
 }
 
 #profile-picture {
     display: block;
-    margin-top: 2vh; 
-    margin-bottom: 1em;  
+    margin-block: 2.4rem; /* aligned with the side-nav padding-block */
     width: 225px;
     aspect-ratio: 1;
     background-color: white;
@@ -35,9 +35,15 @@ main {
     box-shadow: 0 0px 3px #ccc;
 }
 
-#controls-nav {
+h2 {
+    text-align: center;
+    padding-block: .5em;
+    margin-block: 1vh;
+    font-size: 2rem;
     position: sticky;
     top: 0;
+    backdrop-filter: blur(10px);
+    background-color: hsl(210, 17%, 98%, .5);
 }
 
 #posts-container:empty:after {
@@ -54,10 +60,6 @@ main {
     overflow: hidden;
 }
 
-.delete-post-btn:hover {
-    background-color: #ff8282;
-}
-
 #feedback-card-wrapper {
     position: sticky;
     top: 50%;
@@ -71,7 +73,3 @@ main {
     box-shadow: 0px 4px 11px 2px #b6b6b6;
 }
 
-#load-more-posts-btn {
-    display: block;
-    margin-block: 1em;
-}

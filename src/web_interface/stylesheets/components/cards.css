@@ -89,8 +89,10 @@
     font-size: 1rem;
 }
 
-.notification-card > footer > button:hover {
+.notification-card > footer > button:hover,
+.post-card > footer > button:hover {
     background-color: #ff8282;
+    color: #0a0a0a;
 }
 
 .feedback-card {    

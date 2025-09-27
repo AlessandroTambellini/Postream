@@ -1,33 +1,31 @@
-import { generate_profile_picture, req, hide_feedback_card, show_feedback_card, err_msg, post_card } from './_utils.js';
+import { req, hide_feedback_card, show_feedback_card, err_msg, post_card } from './_utils.js';
 
 const feedback_card = document.querySelector('.feedback-card');
 const load_more_posts_btn = document.querySelector('#load-more-posts-btn');
 const posts_container = document.querySelector('#posts-container');
-
-generate_profile_picture('#profile-picture', 50, 300);
 
 const flags = {
     sort: 'desc',
     page: 2,
 };
 
-load_more_posts_btn.addEventListener('click', async () => 
-{
-    const search_params = {};
-    search_params.page  = flags.page;
-    search_params.sort  = flags.sort;
-    search_params.limit = 2;
+// load_more_posts_btn.addEventListener('click', async () => 
+// {
+//     const search_params = {};
+//     search_params.page  = flags.page;
+//     search_params.sort  = flags.sort;
+//     search_params.limit = 2;
 
-    const { status_code, payload, req_error } = await req('api/posts/user/page', 'GET', search_params);
+//     const { status_code, payload, req_error } = await req('api/posts/user/page', 'GET', search_params);
 
-    const { posts } = payload;
+//     const { posts } = payload;
 
-    posts.forEach(post => {
-        posts_container.innerHTML += post_card(post);
-    });
+//     posts.forEach(post => {
+//         posts_container.innerHTML += post_card(post);
+//     });
 
-    flags.page++;
-});
+//     flags.page++;
+// });
 
 document.querySelectorAll('.delete-post-btn').forEach(btn => 
 {

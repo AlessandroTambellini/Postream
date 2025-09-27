@@ -40,7 +40,7 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
             <footer>
                 ${reply_link_types[reply_link_type]}
                 ${reply_link_type === 1 ? 
-                    `<button type='button' id='post-${id}' class='delete-post-btn secondary-btn'>Delete Post</button>` : ''}
+                    `<button type='button' id='post-${id}' class='delete-post-btn secondary-btn'>Delete</button>` : ''}
             </footer>
         </article>
     `;

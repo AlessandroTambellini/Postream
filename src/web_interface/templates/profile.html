@@ -18,14 +18,15 @@
     <main>
         {{ #profile-picture }}
 
-        {{ #controls-nav }}
+        <!-- {{ #controls-nav }} -->
 
         <div id="feedback-card-wrapper">
             {{ .feedback-card }}
         </div>
 
+        <h2>My Posts</h2>
         <div id="posts-container" class="cards-container">{{ post-cards }}</div>
-        <button id="load-more-posts-btn" class="primary-btn" aria-label="Load more posts">load more</button>
+        <!-- <button id="load-more-posts-btn" class="primary-btn" aria-label="Load more posts">load more</button> -->
     </main>
 
     {{ #side-nav }}
