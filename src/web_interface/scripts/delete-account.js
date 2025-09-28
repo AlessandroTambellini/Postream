@@ -16,7 +16,7 @@ async function handle_account_deletion(e)
     const { status_code, req_error } = await req(path, method);
 
     if (req_error) {
-        show_feedback_card(feedback_card, 'Error', err_msg(status_code, 'user', 'delete'));
+        show_feedback_card(feedback_card, 'error', err_msg(status_code, 'user', 'delete'));
     } else {
         document.cookie = 'password_hash=';
         location.href = '/';

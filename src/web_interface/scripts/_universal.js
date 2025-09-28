@@ -3,7 +3,9 @@ const open_side_nav_btn = document.querySelector('#open-side-nav-btn');
 const main = document.querySelector('main');
 const minify_nav_btn = side_nav.querySelector('#minify-nav-btn');
 const expand_nav_btn = side_nav.querySelector('#expand-nav-btn');
-const feedback_cards = document.querySelectorAll('.feedback-card');
+
+// I assume there isn't more than a single feedback-card per page.
+const feedback_card = document.querySelector('.feedback-card');
 
 open_side_nav_btn.addEventListener('click', () => 
 {    
@@ -33,10 +35,8 @@ main.addEventListener('click', e =>
     main.classList.remove('display-opaque');
 });
         
-feedback_cards.forEach(card => {
-    card.querySelector('.close-btn').addEventListener('click', () => {
-        hide_feedback_card(card);
-    });
+feedback_card.querySelector('.close-btn').addEventListener('click', () => {
+    hide_feedback_card(feedback_card);
 });
 
 // This is a slightly more hard-coded version of the same function present inside templates.js
@@ -128,17 +128,17 @@ function show_feedback_card(feedback_card, fdk_type, msg)
     const icon = feedback_card.querySelector('span[role=img]');
     const type = feedback_card.querySelector('p .type');
 
-    if (fdk_type === 'Info') {
+    if (fdk_type === 'info') {
         icon.textContent = 'i';
         feedback_card.classList.add('vanish');
-    } else if (fdk_type === 'Success') {
+    } else if (fdk_type === 'success') {
         icon.textContent = '✓';
         feedback_card.classList.add('vanish');
-    } else if (fdk_type === 'Warn') { 
+    } else if (fdk_type === 'warning') { 
         icon.textContent = '!';
         feedback_card.classList.add('flex');
-    } else if (fdk_type === 'Error') {
-        icon.textContent = '!';
+    } else if (fdk_type === 'error') {
+        icon.textContent = '✗';
         feedback_card.classList.add('flex');
     } else {
         console.error(`Invalid feedback fdk_type. Passed '${fdk_type}.'`);
@@ -151,8 +151,7 @@ function show_feedback_card(feedback_card, fdk_type, msg)
 }
 
 function hide_feedback_card(feedback_card) {
-    feedback_card.className = 'card feedback-card';
-    feedback_card.classList.add('display-none');
+    feedback_card.className = 'card feedback-card display-none';
 }
 
 /* This function is to give more meaning to the possible errors coming from the server 

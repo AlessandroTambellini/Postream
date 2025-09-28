@@ -64,7 +64,14 @@
         <h1>Notifications</h1>
         
         <div id="feedback-card-wrapper">
-            {{ .feedback-card }}
+            <div class="card feedback-card display-none">
+                <span role='img' alt='feedback icon'></span>
+                <p>
+                    <span class='type'></span>
+                    <span class='msg'></span>
+                </p>
+                <button class="close-btn" type='button'>x</button>
+            </div>
         </div>
         
         <div id="notifications-container" class="cards-container">{{ notification-cards }}</div>

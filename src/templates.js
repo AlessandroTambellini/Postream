@@ -54,21 +54,6 @@ DOMElements['.notification-card'] = function(notification)
     `;
 }
 
-// this is not a template and there is no point in having it here
-DOMElements['.feedback-card'] = function() 
-{
-    return `
-        <div class="feedback-card display-none">
-            <span role='img' alt='feedback-icon'></span>
-            <p>
-                <span class='type'></span>
-                <span class='msg'></span>
-            </p>
-            <button class="close-btn" type='button'>x</button>
-        </div>
-    `;
-}
-
 DOMElements['#profile-picture'] = function(max_num_of_circles, size)
 {
     const rand_int = (max) => Math.floor(Math.random() * max + 1);

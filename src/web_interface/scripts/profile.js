@@ -12,7 +12,7 @@ document.querySelectorAll('.delete-post-btn').forEach(btn =>
         const { status_code, payload, req_error } = await req('api/post', 'DELETE', { id: post_id });
     
         if (req_error) {
-            show_feedback_card(feedback_card, 'Error', err_msg(status_code, 'post', 'delete'));
+            show_feedback_card(feedback_card, 'error', err_msg(status_code, 'post', 'delete'));
         } 
         else {
             const post_card = document.querySelector(`#post-card-${post_id}`);

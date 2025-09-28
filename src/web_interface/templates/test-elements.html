@@ -9,6 +9,8 @@
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
+      
+    <script type='module' src="../scripts/_universal.js"></script>
 
     <style>
         .card {
@@ -60,56 +62,50 @@
         <button class="primary-btn">Load</button>
         <button class="secondary-btn">DESC</button>
         
-        {{ .feedback-card }}
-        {{ .feedback-card }}
-        {{ .feedback-card }}
-        {{ .feedback-card }}
+        <div class="card feedback-card flex info">
+            <span role='img' alt='feedback icon'>i</span>
+            <p>
+                <span class='type'>info</span>
+                <span class='msg'>All setup. Nothing to do.</span>
+            </p>
+            <button class="close-btn" type='button'>x</button>
+        </div>
+        
+        <div class="card feedback-card flex success">
+            <span role='img' alt='feedback icon'>✓</span>
+            <p>
+                <span class='type'>success</span>
+                <span class='msg'>Action completed successfully!</span>
+            </p>
+            <button class="close-btn" type='button'>x</button>
+        </div>
+
+        <div class="card feedback-card flex warning">
+            <span role='img' alt='feedback icon'>!</span>
+            <p>
+                <span class='type'>warning</span>
+                <span class='msg'>Pay attention to the wall!</span>
+            </p>
+            <button class="close-btn" type='button'>x</button>
+        </div>
+
+        <div class="card feedback-card flex error">
+            <span role='img' alt='feedback icon'>✗</span>
+            <p>
+                <span class='type'>error</span>
+                <span class='msg'>The credentials are invalid. Please, update them.</span>
+            </p>
+            <button class="close-btn" type='button'>x</button>
+        </div>
+
     </main>
 
     {{ #side-nav }}
 
     <script>
-        document.querySelectorAll('a').forEach(a => {
+        document.querySelectorAll('main a').forEach(a => {
             a.addEventListener('click', e => e.preventDefault());
         });
-        const feedback_cards = document.querySelectorAll('.feedback-card');
-        
-        // feedback_cards.forEach(card => {
-        //     card.querySelector('.close-btn').addEventListener('click', () => {
-        //         show_feedback_card()
-        //     })
-        // });
-
-        show_feedback_card(feedback_cards[0], 'Info', 'All setup. Nothing to do.');
-        show_feedback_card(feedback_cards[1], 'Success', 'Action completed successfully!');
-        show_feedback_card(feedback_cards[2], 'Warn', 'Pay attention to the wall!');
-        show_feedback_card(feedback_cards[3], 'Error', 'The credentials are invalid. Please, update them.');
-
-        function show_feedback_card(feedback_card, type, msg) 
-        {
-            feedback_card.className = 'card feedback-card';
-
-            const icon = feedback_card.querySelector('span[role=img]');
-            const p_type = feedback_card.querySelector('.type');
-
-            if (type === 'Info') {
-                icon.textContent = 'i';
-            } else if (type === 'Success') {
-                icon.textContent = '✓';
-            } else if (type === 'Warn') { 
-                icon.textContent = '!';
-            } else if (type === 'Error') {
-                icon.textContent = '!';
-            } else {
-                console.error(`Invalid feedback type. Passed '${type}.'`);
-                return;
-            }
-
-            p_type.textContent = type;
-            feedback_card.classList.add(type);
-            feedback_card.classList.add('flex');
-            feedback_card.querySelector('p .msg').textContent = msg;
-        }
     </script>
 </body>
 </html>

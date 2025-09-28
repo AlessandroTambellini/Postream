@@ -78,7 +78,14 @@
         <!-- It's necessary for this div to not have empty spaces inside because of #posts-container:empty CSS property. -->
         <div id="posts-container" class="cards-container">{{ post-cards }}</div>   
 
-        {{ .feedback-card }}
+        <div class="card feedback-card display-none">
+            <span role='img' alt='feedback icon'></span>
+            <p>
+                <span class='type'></span>
+                <span class='msg'></span>
+            </p>
+            <button class="close-btn" type='button'>x</button>
+        </div>
         
         <button id="load-more-posts-btn" class="primary-btn" aria-label="Load more posts">load more</button>
     </main>

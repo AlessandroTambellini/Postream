@@ -80,7 +80,6 @@ page['test-elements'] = async function(req_data, res_obj)
         .replace('{{ .post-card }}', DOMElements['.post-card'](card))
         .replace('{{ .reply-card }}', DOMElements['.reply-card'](card))
         .replace('{{ .notification-card }}', DOMElements['.notification-card'](notif_card))
-        .replaceAll('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'test-elements'))
     ;
 
@@ -115,7 +114,6 @@ page.index = async function(req_data, res_obj)
     }
     
     const index_page = index_template
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](user_id && true, 'index'))
     ;
 
@@ -133,7 +131,6 @@ page['create-account'] = async function(req_data, res_obj)
     }
 
     const create_account_page = create_account_template
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'create-account'))
     ;
 
@@ -151,7 +148,6 @@ page.login = async function(req_data, res_obj)
     }
 
     const login_page = login_template
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'login'))
     ;
 
@@ -189,7 +185,6 @@ page.profile = async function(req_data, res_obj)
 
     const profile_page = profile_template
         .replace('{{ #profile-picture }}', DOMElements['#profile-picture'](50, 300))
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'profile'))
     ;
 
@@ -226,7 +221,6 @@ page.notifications = async function(req_data, res_obj)
     }
 
     const notifications_page = notifications_template
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'notifications'))
     ;
 
@@ -252,7 +246,6 @@ page['write-post'] = async function(req_data, res_obj)
     }
 
     const write_post_page = write_post_template
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-post'))
     ;
 
@@ -294,7 +287,6 @@ page['write-reply'] = async function(req_data, res_obj)
     }
 
     const write_reply_page = write_reply_template
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-reply'))
     ;
 
@@ -398,7 +390,6 @@ page['delete-account'] = async function(req_data, res_obj)
     }
 
     delete_account_page = delete_account_page
-        .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'delete-account'))
     ;
 

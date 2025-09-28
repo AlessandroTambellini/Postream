@@ -88,7 +88,14 @@
                 Create Account
             </button>
 
-            {{ .feedback-card }}
+            <div class="card feedback-card display-none">
+                <span role='img' alt='feedback icon'></span>
+                <p>
+                    <span class='type'></span>
+                    <span class='msg'></span>
+                </p>
+                <button class="close-btn" type='button'>x</button>
+            </div>
         </form>
 
         <div class="display-none">

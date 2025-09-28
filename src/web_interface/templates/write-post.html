@@ -25,7 +25,14 @@
         <form action="api/post" method="POST">
             <textarea name="post-textarea" placeholder="_"></textarea>
             
-            {{ .feedback-card }}
+            <div class="card feedback-card display-none">
+                <span role='img' alt='feedback icon'></span>
+                <p>
+                    <span class='type'></span>
+                    <span class='msg'></span>
+                </p>
+                <button class="close-btn" type='button'>x</button>
+            </div>
         
             <button class="primary-btn" type="submit">
                 Upload 

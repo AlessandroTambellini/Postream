@@ -612,6 +612,7 @@ button {
     margin-bottom: .2em;
     line-height: initial;
     display: block;
+    text-transform: capitalize;
 }
 
 .feedback-card p .msg {
@@ -667,43 +668,43 @@ button {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.Info {
+.info {
     border-left-color: #3b82f6;
 }
-.Info span[role=img] {
+.info span[role=img] {
     background-color: #3b82f6;
 }
-.Info p .type {
+.info p .type {
     color: #1e40af;
 }
 
-.Success {
+.success {
     border-left-color: #10b981;
 }
-.Success span[role=img] {
+.success span[role=img] {
     background-color: #10b981;
 }
-.Success p .type {
+.success p .type {
     color: #047857;
 }
 
-.Warn {
+.warning {
     border-left-color: #ff8228;
 }
-.Warn span[role=img] {
+.warning span[role=img] {
     background-color: #ff8228;
 }
-.Warn p .type {
+.warning p .type {
     color: #e0640c;
 }
 
-.Error {
+.error {
     border-left-color: #ef4444;
 }
-.Error span[role=img] {
+.error span[role=img] {
     background-color: #ef4444;
 }
-.Error p .type {
+.error p .type {
     color: #d31a1a;
 }
 
