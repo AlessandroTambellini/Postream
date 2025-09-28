@@ -11,7 +11,6 @@
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
       
     <script type='module' src="../scripts/_universal.js"></script>
-    <script type="module" src="../scripts/logout.js"></script>
 
     <style>
         form {
@@ -27,14 +26,21 @@
     <h1 class="hidden">Logout</h1>
 
     <main>
-        <p class="info-msg">You'll be redirected to the index page.</p>
-    
         <form>
             <button class="primary-btn" type="submit">Logout</button>
         </form>
+        <p class="info-msg">You'll be redirected to the index page.</p>
     </main>
 
     {{ #side-nav }}
     
+    <script>
+        document.querySelector('form').addEventListener('submit', e => 
+        {
+            e.preventDefault();
+            document.cookie = 'password_hash=';
+            location.href = '/';
+        });
+    </script>
 </body>
 </html>

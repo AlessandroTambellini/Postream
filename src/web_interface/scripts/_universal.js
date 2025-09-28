@@ -35,7 +35,7 @@ main.addEventListener('click', e =>
     main.classList.remove('display-opaque');
 });
         
-feedback_card.querySelector('.close-btn').addEventListener('click', () => {
+feedback_card?.querySelector('.close-btn').addEventListener('click', () => {
     hide_feedback_card(feedback_card);
 });
 
