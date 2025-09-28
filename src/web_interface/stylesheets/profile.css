@@ -1,7 +1,3 @@
-@import './_universal.css';
-@import './components/buttons.css';
-@import './components/cards.css';
-
 main {
     padding: 0;
     padding-bottom: 10vh;

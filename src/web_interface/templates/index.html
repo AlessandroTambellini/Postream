@@ -6,15 +6,74 @@
     <meta name="description" content="Look at posts, make a post, possibly reply to some of them">
     
     <title>Postream</title>
-    
-    <link rel="stylesheet" href="../stylesheets/index.css">
+
+    <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <link rel='stylesheet' href='../stylesheets/_universal.css'>
+
+    <script type='module' src="../scripts/_universal.js"></script>
     <script type="module" src="../scripts/index.js"></script>
-    
-    {{ universal-resources }}    
+
+    <style>
+        main {
+            padding: 0;
+            padding-bottom: 10vh;
+        }
+
+        #controls-nav {
+            position: sticky;
+            top: 0;
+            padding-block: 1em;
+            backdrop-filter: blur(10px);
+            background-color: hsl(210, 17%, 98%, .5);
+            display: flex;
+            justify-content: center;
+            gap: .5rem;
+        }
+
+        #posts-container {
+            padding-inline: var(--page-inline-padding);
+        }
+
+        #posts-container:empty:after {
+            content: 'There aren\'t posts yet.';
+        }
+
+        #posts-container > * {
+            margin-inline: auto;
+        }
+
+        #posts-container .post-card {
+            /* margin-bottom: 1vh; */
+            margin-bottom: .5em;
+        }
+
+        .feedback-card {
+            margin-top: .75rem;
+            max-width: min(var(--card-max-width), calc(100% - 2*var(--page-inline-padding)));
+        }
+
+        #load-more-posts-btn {
+            display: block;
+            margin-block: 1em;
+        }
+    </style>
 </head>
 <body>
     <main>
-        {{ #controls-nav }}
+        <nav id="controls-nav">
+            <button id="load-posts-desc-btn" class="control secondary-btn selected" aria-label="load posts from newest to oldest" value="desc">
+                DESC
+            </button>
+            <button id="load-posts-asc-btn" class="control secondary-btn" aria-label="load posts from oldest to newest" value="asc">
+                ASC
+            </button>
+            <button id="load-posts-rand-btn" class="control secondary-btn" aria-label="load posts randomly" value="rand">
+                RAND
+            </button> 
+            <button id="reload-posts-btn" class="secondary-btn" aria-label="reload">
+                &olarr;
+            </button>
+        </nav>
 
         <!-- It's necessary for this div to not have empty spaces inside because of #posts-container:empty CSS property. -->
         <div id="posts-container" class="cards-container">{{ post-cards }}</div>   

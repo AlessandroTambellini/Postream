@@ -1,26 +1,7 @@
-function prettify_date(date) 
-{
-    const week_days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = [0, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    const week_day = new Date(date).getDay();
-    const [year_time, day_time] = date.split(', ');
-    const [month, day, year] = year_time.split('/');
-
-    const [clock_time, am_pm] = day_time.split(' ');
-    const [hour, mins, secs] = clock_time.split(':');
-
-    return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
-}
-
-// const components = {};
-
 /* Little Unimportant Note: for the name of objects I use snake_case, 
 but in this case I used the camelCase to reflect the Browser API convention 
 given I find this object related to it. */
 const DOMElements = {};
-
-const code_snippets = {};
 
 DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content = false)
 {
@@ -73,23 +54,9 @@ DOMElements['.notification-card'] = function(notification)
     `;
 }
 
+// this is not a template and there is no point in having it here
 DOMElements['.feedback-card'] = function() 
 {
-    // <script>
-    //     const feedback_card = document.querySelector('.feedback-card');
-    //     feedback_card.querySelector('.close-btn').addEventListener('click', e => {
-    //         // console.log(e.target.parentElement); // Not .parentNode!
-    //         feedback_card.className = 'card feedback-card';
-    //         feedback_card.classList.add('display-none');
-    //     });
-    // </script>
-
-    //  onclick="
-    //             const feedback_card = this.parentElement; 
-    //             feedback_card.className = 'card feedback-card';
-    //             feedback_card.classList.add('display-none');
-    //         "
-
     return `
         <div class="feedback-card display-none">
             <span role='img' alt='feedback-icon'></span>
@@ -124,57 +91,6 @@ DOMElements['#profile-picture'] = function(max_num_of_circles, size)
         <span id="profile-picture" role="img">${circles.join('')}</span>
     `;
 };
-
-DOMElements['#controls-nav'] = function()
-{
-    /* I don't set: `
-        position: sticky;
-        top: 0;
-    ` with inline styling, 
-    because the position in the layout is up to the parent.
-    Therefore, that part of the styling is made in the page-specific css file. */
-
-    const style = `
-        padding-block: 1em;
-        backdrop-filter: blur(10px);
-        background-color: hsl(210, 17%, 98%, .5);
-        display: flex;
-        justify-content: center;
-        gap: .5rem;
-    `;
-
-    return `
-        <nav id="controls-nav" style="${style}">
-            <button id="load-posts-desc-btn" class="control secondary-btn selected" aria-label="load posts from newest to oldest" value="desc">
-                DESC
-            </button>
-            <button id="load-posts-asc-btn" class="control secondary-btn" aria-label="load posts from oldest to newest" value="asc">
-                ASC
-            </button>
-            <button id="load-posts-rand-btn" class="control secondary-btn" aria-label="load posts randomly" value="rand">
-                RAND
-            </button> 
-            <button id="reload-posts-btn" class="secondary-btn" aria-label="reload">
-                &olarr;
-            </button>
-        </nav>
-    `;
-};
-
-DOMElements['universal-elements'] = function(description)
-{
-    return `
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="${description}">
-
-        <link rel="icon" type="image/webp" href="../assets/logo.webp">
-
-        <link rel='stylesheet' href='../stylesheets/_universal.css'>
-
-        <script type="module" src="../scripts/_universal.js"></script>
-    `;
-}
 
 DOMElements['#side-nav'] = function(logged_in, page)
 {
@@ -211,9 +127,6 @@ DOMElements['#side-nav'] = function(logged_in, page)
         </nav>
     `;
 
-    /* This button that changes the bullet of the list based on the menu entry is mostly a shiny object.
-    Not sure I want it. */
-
     // Otherwise the button is too high
     while (menu_entries.length > 3) menu_entries.pop();
 
@@ -239,12 +152,6 @@ DOMElements['.info-msg'] = function(msg)
     return `<p class='info-msg'>${msg}</p>`
 }
 
-//<link rel="stylesheet" href="../stylesheets/components/side-nav.css">
-code_snippets['universal-resources'] = 
-`
-    <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <script type="module" src="../scripts/_universal.js"></script>
-`;
 
 /* fallback_page may be called (but not only) in case I'm not able to load the wanted page from disk using readFile().
 Therefore, I don't store this page as an HTML file because 
@@ -274,9 +181,10 @@ function fallback_page(status_code)
             
             <title>Page ${status_code}</title>
             
+            <link rel="icon" type="image/webp" href="../assets/logo.webp">
             <link rel="stylesheet" href="../stylesheets/_universal.css">
+            <script type="module" src="../scripts/_universal.js"></script>
 
-            ${code_snippets["universal-resources"]}
             <style> 
                 h1 {
                     text-align: center;
@@ -286,19 +194,31 @@ function fallback_page(status_code)
         <body>
             <main>
                 <h1>${reason} | ${status_code}</h1>
-                <p class="info-msg">
-                    ${msg}
-                </p>
+                ${DOMElements['.info-msg'](msg)}
             </main>
 
-            ${DOMElements['#side-nav'](false)}
+            ${DOMElements['#side-nav'](false, 'fallback-page')}
         </body>
         </html>
     `;
 }
 
+function prettify_date(date) 
+{
+    const week_days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = [0, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const week_day = new Date(date).getDay();
+    const [year_time, day_time] = date.split(', ');
+    const [month, day, year] = year_time.split('/');
+
+    const [clock_time, am_pm] = day_time.split(' ');
+    const [hour, mins, secs] = clock_time.split(':');
+
+    return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
+}
+
 export {
     DOMElements,
-    code_snippets,
     fallback_page,
 };

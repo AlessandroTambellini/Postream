@@ -3,20 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <meta name="description" content="Page to create an account">
+
     <title>Postream / Create Account</title>
-    
-    <link rel="stylesheet" href="../stylesheets/create-account.css">
+
+    <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <link rel='stylesheet' href='../stylesheets/_universal.css'>
+            
+    <script type='module' src="../scripts/_universal.js"></script>
     <script type="module" src="../scripts/create-account.js"></script>
-    
-    {{ universal-resources }}
+
+    <style>
+        form {
+            padding-block: 1em;
+        }
+
+        div:has(#password) {
+            position: relative;
+            background-color: rgb(251, 248, 233);
+            border: 2px solid rosybrown;
+            border-radius: 8px;
+            width: fit-content;
+            margin-inline: auto;
+            margin-block: 1rem;
+        }
+
+        div:has(#password) button {
+            font-family: sans-serif;
+            display: block;
+            letter-spacing: 1px;
+            padding: .4em 1em;
+            margin-left: auto;
+            border-top-right-radius: 8px;
+            font-size: .9rem;
+            border: none;
+            transition: background-color .25s ease;
+        }
+
+        div:has(#password) button.btn-unclicked {
+            background-color: transparent;
+        }
+
+        div:has(#password) button.btn-unclicked:hover {
+            background-color: buttonface;
+        }
+
+        div:has(#password) button.btn-clicked {
+            color: darkgreen;
+            background-color: rgb(219, 255, 199);
+        }
+
+        #password {
+            font-size: 1.2rem;
+            font-weight: 500;
+            padding: .25em 1.25em .75em 1.25em;
+        }
+
+        button[type=submit] {
+            margin: auto;
+        }
+
+        main > a[href=login] {
+            display: block;
+            margin: auto;
+            margin-top: 1em;
+            width: fit-content;
+            font-size: 1.2rem;
+        }
+    </style>
 </head>
 <body>
     <main>
         <h1 class="hidden">Create Account</h1>
 
         <p class="info-msg">
-            The password is generated automatically and there isn't an username.
+            The password is generated automatically and you don't have any username.
             Once you click on 'Create Account', you'll receive the password. 
             That's the password you'll have to use to then login.
         </p>

@@ -1,4 +1,4 @@
-import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.js';
+import { req, show_feedback_card, hide_feedback_card, err_msg } from './_universal.js';
 
 const feedback_card = document.querySelector('.feedback-card');
 

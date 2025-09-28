@@ -17,7 +17,6 @@ import {
 
 import { 
     DOMElements,
-    code_snippets, 
     fallback_page,
 } from "./templates.js";
 
@@ -53,9 +52,9 @@ const MSG_UNKNOWN_DB_ERROR = (action, entity) => {
 
 const page = {};
 
-page['test-components'] = async function(req_data, res_obj)
+page['test-elements'] = async function(req_data, res_obj)
 {
-    let { template: test_components_template, fs_error } = await read_template('test-components');
+    let { template: test_components_template, fs_error } = await read_template('test-elements');
 
     if (fs_error) 
     {
@@ -77,14 +76,12 @@ page['test-components'] = async function(req_data, res_obj)
     };
 
     const test_components_page = test_components_template
-        .replace('{{ universal-elements }}', DOMElements['universal-elements']('Test the components of the website'))
-        .replace('{{ #controls-nav }}', DOMElements['#controls-nav']())
         .replace('{{ #profile-picture }}', DOMElements['#profile-picture'](50, 300))
         .replace('{{ .post-card }}', DOMElements['.post-card'](card))
         .replace('{{ .reply-card }}', DOMElements['.reply-card'](card))
         .replace('{{ .notification-card }}', DOMElements['.notification-card'](notif_card))
         .replaceAll('{{ .feedback-card }}', DOMElements['.feedback-card']())
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'test-components'))
+        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'test-elements'))
     ;
 
     res_obj.page(200, test_components_page);
@@ -118,8 +115,6 @@ page.index = async function(req_data, res_obj)
     }
     
     const index_page = index_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ #controls-nav }}', DOMElements['#controls-nav']())
         .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](user_id && true, 'index'))
     ;
@@ -138,7 +133,6 @@ page['create-account'] = async function(req_data, res_obj)
     }
 
     const create_account_page = create_account_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
         .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'create-account'))
     ;
@@ -157,7 +151,6 @@ page.login = async function(req_data, res_obj)
     }
 
     const login_page = login_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
         .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'login'))
     ;
@@ -183,7 +176,8 @@ page.profile = async function(req_data, res_obj)
         return;
     }
 
-    const { posts, db_error } = db_op.select_user_posts_page(user_id, 1, 20, 'desc');
+    // const { posts, db_error } = db_op.select_user_posts_page(user_id, 1, 20, 'desc');
+    const { posts, db_error } = db_op.select_user_posts(user_id);
 
     if (db_error) {
         profile_template = profile_template.replace('{{ post-cards }}', 
@@ -194,8 +188,7 @@ page.profile = async function(req_data, res_obj)
     }
 
     const profile_page = profile_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
-        .replace('{{ #controls-nav }}', DOMElements['#controls-nav']())
+        .replace('{{ #profile-picture }}', DOMElements['#profile-picture'](50, 300))
         .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'profile'))
     ;
@@ -233,7 +226,6 @@ page.notifications = async function(req_data, res_obj)
     }
 
     const notifications_page = notifications_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
         .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'notifications'))
     ;
@@ -260,7 +252,6 @@ page['write-post'] = async function(req_data, res_obj)
     }
 
     const write_post_page = write_post_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
         .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-post'))
     ;
@@ -303,7 +294,6 @@ page['write-reply'] = async function(req_data, res_obj)
     }
 
     const write_reply_page = write_reply_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
         .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-reply'))
     ;
@@ -358,7 +348,6 @@ page['read-post'] = async function(req_data, res_obj)
         post_template = post_template.replace('{{ replies }}', '');
 
     const post_page = post_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](user_id && true, 'read-post'))
     ;
 
@@ -384,7 +373,6 @@ page.logout = async function(req_data, res_obj)
     }
 
     const logout_page = logout_template
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'logout'))
     ;
 
@@ -410,7 +398,6 @@ page['delete-account'] = async function(req_data, res_obj)
     }
 
     delete_account_page = delete_account_page
-        .replace('{{ universal-resources }}', code_snippets['universal-resources'])
         .replace('{{ .feedback-card }}', DOMElements['.feedback-card']())
         .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'delete-account'))
     ;
@@ -873,8 +860,6 @@ API['posts/page'].GET = function(req_data, res_obj)
     }
 
     const { posts, num_of_posts, db_error } = db_op.select_posts_page(page, limit, sort);
-
-    console.log(posts);
     
     if (db_error) {
         res_obj.error(500, MSG_UNKNOWN_DB_ERROR('get', 'posts'));

@@ -6,10 +6,22 @@
     <meta name="description" content="Read the entire post">        
     
     <title>Postream / Read Post</title>
-        
-    <link rel="stylesheet" href="../stylesheets/read-post.css">
 
-    {{ universal-resources }}
+    <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <link rel='stylesheet' href='../stylesheets/_universal.css'>
+      
+    <script type='module' src="../scripts/_universal.js"></script>
+
+    <style>
+        .reply-card {
+            margin-top: .5em;
+            margin-inline: auto;
+        }
+
+        #replies-container:empty:after {
+            content: 'There aren\'t replies.';
+        }
+    </style>
 </head>
 <body>
     <h1 class="hidden">Read Post</h1>

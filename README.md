@@ -48,3 +48,6 @@ Note: the database will be created automatically on first run.
     on other parts of the code and once I made the 'big' change, I commit it. 
     Still, sometimes I don't even commit with a meaningful msg because I find it to be mostly useless.
     I usually scroll the commit history to navigate the changes I made over time.
+
+## TODO
+Implement pagination for user posts in the profile page and for the notifications (in the notifications page)

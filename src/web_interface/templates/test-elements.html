@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Postream / Test Components</title>
-    
-    {{ universal-elements }}    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Test the elements of the website">
 
-    <link rel='stylesheet' href='../stylesheets/components/buttons.css'>
-    <link rel='stylesheet' href='../stylesheets/components/cards.css'>
-    <link rel='stylesheet' href='../stylesheets/components/form.css'>
+    <title>Postream / Test Elements</title>
+
+    <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <link rel='stylesheet' href='../stylesheets/_universal.css'>
 
     <style>
         .card {
@@ -49,9 +50,7 @@
     </style>
 </head>
 <body>
-    <main>
-        {{ #controls-nav }}
-        
+    <main>        
         {{ .post-card }}
         {{ .reply-card }}
         {{ .notification-card }}

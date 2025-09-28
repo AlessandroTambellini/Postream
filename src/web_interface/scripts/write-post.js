@@ -1,4 +1,4 @@
-import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.js';
+import { req, show_feedback_card, hide_feedback_card, err_msg } from './_universal.js';
 
 const write_post_form = document.querySelector('form');
 const textarea = write_post_form.querySelector('textarea');

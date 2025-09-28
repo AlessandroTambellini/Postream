@@ -1,4 +1,4 @@
-import { req, show_feedback_card, hide_feedback_card, err_msg, switch_class } from './_utils.js';
+import { req, show_feedback_card, hide_feedback_card, err_msg, switch_class } from './_universal.js';
 
 const create_account_form = document.querySelector('form');
 const feedback_card = create_account_form.querySelector('.feedback-card');

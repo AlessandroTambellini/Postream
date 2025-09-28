@@ -1,5 +1,3 @@
-@import './components/buttons.css';
-
 @font-face { 
     src:
         local('Libertinus Mono'), 
@@ -69,6 +67,9 @@ a, button, textarea, input {
     text-align: center;
 }
 
+p {
+    line-height: 1.4;
+}
 
 /*
  *
@@ -168,7 +169,7 @@ a, button, textarea, input {
     background: unset;
     border: unset;
     font-size: 2rem;
-    color: rgb(164, 164, 164);
+    color: rgb(106 106 106);
     border-radius: 8px;
 } 
 
@@ -396,14 +397,351 @@ because it's pretty clear that's about displaying. */
     background-color: rgb(255, 185, 56);
 }
 
-/* A couple of considerations:
-1) `create-account`, `delete-account`, `login`, `logout`, `read-post`, `write-post`, `write-reply` 
-have pretty much the same elements with the same positioning on the page 
-and the pages themselves are minimal. 
-Neverthless, I prefer to have a separate css file for each of them to layout their components individually.
 
-2) I use `@import` in the .css files instead of using `<link>` in the corresponding HTML file
-because I want to keep track of the styling priorities. Same reason for why I don't use inline-styling
-inside the html tags. Otherwise it can become messy and then you start relying on '!important'
-TODO: this not has to be reviewed
-*/
+/*
+ *
+ *  Buttons
+ */
+
+button {
+    cursor: pointer;
+    color: var(--clr-txt);
+}
+
+.primary-btn {
+    border-radius: 12px;
+    border-width: 1px;
+    background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
+    border: 1px solid #ababab;
+    transition: all 0.035s ease;
+    user-select: none;
+    box-shadow: 
+        0 2px 0 #b8b8b8,
+        0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
+    font-size: 1rem;
+    padding-block: .67em;
+    padding-inline: 1.2em;
+}
+
+@media (min-width: 500px) {
+    .primary-btn {
+        font-size: 1.2rem;
+    }
+}
+
+.primary-btn:hover {
+    background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
+    transform: translateY(-1px);
+    box-shadow: 
+        0 3px 0 #b8b8b8,
+        0 6px 8px rgba(0, 0, 0, 0.12);
+}
+
+.primary-btn:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 1px 0 #b8b8b8,
+        0 2px 4px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(180deg, #e8e8e8 0%, #d8d8d8 100%);
+}
+
+.secondary-btn {
+    font-size: 1.1rem;
+    padding: .25em .5em;
+    border-radius: 8px;
+    border: 1px solid #ababab;
+    transition: all 0.035s ease;
+    user-select: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.secondary-btn:hover {
+    border-color: #999;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.secondary-btn:active {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transform: translateY(1px);
+}
+
+@media (min-width: 500px) {
+    .secondary-btn {
+        font-size: 1.2rem;
+    }
+}
+
+
+/*
+ *
+ *  Cards
+ */
+
+.card {
+    --text-line-length: 70ch;
+    --padding: 1em;
+    --border-thickness: 1px;
+    --card-max-width: calc(var(--text-line-length) + var(--padding)*2 + var(--border-thickness)*2);
+
+    font-size: 1rem;
+    padding: var(--padding);
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: var(--card-max-width);
+}
+
+.card p {
+    color: var(--clr-txt);
+    line-height: 1.4;
+    /* max-width: var(--text-line-length); */
+    /* width: 100%; */
+
+    /* Keep extra whitespaces and newlines.
+    A side-effect of this property is that if the text is selected,
+    the selection overflows a bit the card. */
+    white-space: pre-wrap; 
+}
+
+.card time,
+.card a {
+    font-size: .9rem;
+}
+
+.card.deleting 
+{
+    transition: all .3s ease-out;
+    transform-origin: top;
+    opacity: 0;
+    transform: scaleY(0);
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    max-height: 0;
+}
+
+@media (min-width: 500px) {
+    .card {
+        font-size: 1.2rem;
+    }
+
+    .card time,
+    .card a {
+        font-size: initial;
+    }
+}
+
+.post-card {
+    background-color: #f5f5f5;
+}
+
+.reply-card {
+    background-color: #fcfcfc;
+}
+
+.notification-card {
+    background-color: #f1f1f1;
+}
+
+.post-card time,
+.reply-card time {
+    display: block;
+    text-align: right;
+    padding-top: 1em;
+    color: rgb(72, 72, 72);
+}
+
+.post-card a {
+    display: inline-block;
+    margin-top: .5em;
+}
+
+.notification-card footer,
+.post-card footer {
+    margin-top: 1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-card button,
+.post-card button {
+    font-size: 1rem;
+}
+
+.notification-card > footer > button:hover,
+.post-card > footer > button:hover {
+    background-color: #ff8282;
+    color: #0a0a0a;
+}
+
+.feedback-card {    
+    border-radius: 8px;
+    border: unset;
+    border-left: 4px solid;
+    background-color: white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    /* For the close button ('x') that has position absolute. */
+    position: relative;
+}
+
+.feedback-card span[role=img] {
+    /* I don't want the text inside the icon to be regulated based on user rem. */
+    font-size: 13px;
+    height: 22px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    user-select: none;
+}
+
+.feedback-card p {
+    padding-inline: 1em;
+    /* Override */
+    white-space: unset;
+}
+
+.feedback-card p .type {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: .2em;
+    line-height: initial;
+    display: block;
+}
+
+.feedback-card p .msg {
+    font-size: 1rem;
+    opacity: 0.8;
+    max-width: 70ch;
+    white-space: pre-wrap; 
+    color: #374151;
+}
+
+.feedback-card .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    opacity: 0.5;
+    font-size: 16px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.feedback-card .close-btn:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 500px) 
+{
+    .feedback-card span[role=img] {
+        font-size: 16px;
+        height: 25px;
+    }
+
+    .feedback-card p .type {
+        font-size: 1.3rem;
+    }
+
+    .feedback-card p .msg {
+        font-size: 1.1rem;
+    }
+}
+
+.feedback-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.Info {
+    border-left-color: #3b82f6;
+}
+.Info span[role=img] {
+    background-color: #3b82f6;
+}
+.Info p .type {
+    color: #1e40af;
+}
+
+.Success {
+    border-left-color: #10b981;
+}
+.Success span[role=img] {
+    background-color: #10b981;
+}
+.Success p .type {
+    color: #047857;
+}
+
+.Warn {
+    border-left-color: #ff8228;
+}
+.Warn span[role=img] {
+    background-color: #ff8228;
+}
+.Warn p .type {
+    color: #e0640c;
+}
+
+.Error {
+    border-left-color: #ef4444;
+}
+.Error span[role=img] {
+    background-color: #ef4444;
+}
+.Error p .type {
+    color: #d31a1a;
+}
+
+
+/*
+ *
+ *  Form
+ */
+
+form {
+    --text-line-length: 70ch;
+    --input-padding: 1.2rem;
+    --border-thickness: 1px;
+
+    font-size: 1.2rem;
+    max-width: calc(var(--text-line-length) + var(--input-padding)*2 + var(--border-thickness)*2);
+}
+
+form > input {
+    padding: var(--input-padding);
+    font-size: inherit;
+    line-height: 1.4;
+    width: 100%;
+}
+
+form > textarea {
+    padding: var(--input-padding);
+    font-size: inherit;
+    line-height: 1.4;
+    width: 100%;
+    resize: vertical;
+}
+
+form > button[type=submit] {
+    display: block;
+    margin-top: .5rem;
+}
+
+form > .feedback-card {
+    margin-block: 5px;
+}

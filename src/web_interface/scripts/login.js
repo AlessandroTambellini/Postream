@@ -1,4 +1,4 @@
-import { req, show_feedback_card, hide_feedback_card, err_msg } from './_utils.js';
+import { req, err_msg, hide_feedback_card, show_feedback_card } from "./_universal.js";
 
 const login_form = document.querySelector('form');
 const feedback_card = login_form.querySelector('.feedback-card');
