@@ -56,16 +56,63 @@ h2 {
     overflow: hidden;
 }
 
-#feedback-card-wrapper {
-    position: sticky;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    padding-inline: 1vw;
-}
-
 .feedback-card {
     margin-inline: auto;
     box-shadow: 0px 4px 11px 2px #b6b6b6;
 }
 
+#delete-post-dialog {
+    padding: 1em;
+    border-radius: 8px;
+    border: 1px solid #b8b8b8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 10vh;
+}
+
+#close-dialog-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    opacity: 0.5;
+    font-size: 16px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+#close-dialog-btn:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+#delete-post-dialog form p {
+    margin: 1em .5em;
+}
+
+#delete-post-dialog form footer {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    margin-top: 1em;
+}
+
+#delete-post-dialog button[type=submit] {
+    color: #F8F9FA;
+    background-color: #a40c0c;
+}
+
+#delete-post-dialog  button[type=submit]:active {
+    background-color: #620000;
+}
+
+.feedback-card {
+    margin-top: 1em;
+}

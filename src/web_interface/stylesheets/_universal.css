@@ -87,7 +87,7 @@ p {
     background-color: var(--clr-bkg);
 }
 
-#side-nav ul {
+#side-nav menu {
     font-size: inherit;
     line-height: 1.4;
     list-style: none;

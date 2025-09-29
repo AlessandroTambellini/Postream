@@ -20,7 +20,20 @@
     <main>
         {{ #profile-picture }}
 
-        <div id="feedback-card-wrapper">
+        <h2>My Posts</h2>
+        
+        <div id="posts-container" class="cards-container">{{ post-cards }}</div>
+        
+        <dialog id="delete-post-dialog">
+            <form method="dialog">
+                <button type="button" id="close-dialog-btn" aria-label="close dialog" formnovalidate>✗</button>
+                <p>Are you sure you want to delete the post?</p>
+                <footer>
+                    <button type="reset" class="secondary-btn">Cancel</button>
+                    <button type="submit" class="secondary-btn">Delete</button>
+                </footer>
+            </form>
+
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
                 <p>
@@ -29,17 +42,7 @@
                 </p>
                 <button class="close-btn" type='button'>x</button>
             </div>
-        </div>
-
-        <h2>My Posts</h2>
-        <!-- <dialog open>
-            <p>Are you sure you want to delete the post?</p>
-            <form method="dialog">
-                <button>Cancel</button>
-            </form>
-            <button>Delete</button>
-        </dialog> -->
-        <div id="posts-container" class="cards-container">{{ post-cards }}</div>
+        </dialog>
     </main>
 
     {{ #side-nav }}

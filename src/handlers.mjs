@@ -444,7 +444,7 @@ API.user.POST = function(req_data, res_obj)
 {
     const password = generate_password();
     /* I might check if an user with the generated password already exists,
-    but, given the probability of generating two times the same password
+    but, given that the probability of generating two times the same password
     in my life time is 0, I don't do it. */
     const password_hash = hash_password(password);
 
@@ -929,11 +929,9 @@ async function get_asset(req_data, res_obj)
         js: 'text/javascript',
         mjs: 'text/javascript',
         json: 'application/json',
-        // images
         svg: 'image/svg+xml',
         png: 'image/png',
         webp: 'image/webp',
-        // font
         ttf: 'font/ttf',
     };
 

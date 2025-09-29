@@ -88,7 +88,7 @@ DOMElements['#side-nav'] = function(logged_in, page)
 
     const side_nav = `
         <nav id='side-nav' class="display-none">
-            <ul>
+            <menu>
                 ${(logged_in && page !== 'profile') ? 
                     `<li itemprop="profile">
                         <a href="profile">
@@ -102,7 +102,7 @@ DOMElements['#side-nav'] = function(logged_in, page)
                         </li>
                     `;
                 }, '')}
-            </ul>
+            </menu>
             <button id='minify-nav-btn' aria-label='minify nav' class='display-block'>
                 <span role='img' alt='minify nav'>〈</span>
             </button>
