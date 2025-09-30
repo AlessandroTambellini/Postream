@@ -20,9 +20,9 @@ identify_displayed_posts(flags, displayed_posts);
 controls.forEach(ctrl => {
     ctrl.addEventListener('click', function() {
         flags.sort = this.value;
-        controls.forEach(_ctrl => _ctrl.classList.remove('selected'));
+        controls.forEach(ctrl => ctrl.classList.remove('selected'));
         this.classList.add('selected');
-    })
+    });
 });
 
 reload_posts_btn.addEventListener('click', () => 

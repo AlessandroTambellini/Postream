@@ -109,7 +109,7 @@
     {{ #side-nav }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, err_msg, switch_class } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, err_msg } from '../scripts/_universal.js';
 
         const create_account_form = document.querySelector('form');
         const feedback_card = create_account_form.querySelector('.feedback-card');
@@ -134,7 +134,8 @@
                 // Once a registration happens, the previous cookie is deleted to avoid conflicts with a previous user while logging in 
                 document.cookie = 'password_hash=';
 
-                switch_class(password_container, 'display-none', 'display-block');
+                // TODO should password_container also be hidden in case of error?
+                password_container.classList.replace('display-none', 'display-block');
             }
         }
 
@@ -145,12 +146,10 @@
             navigator.clipboard.writeText(password_p.textContent);
 
             copy_password_btn.innerHTML = '&#10004; Copied';
-            copy_password_btn.classList.remove('btn-unclicked');
-            copy_password_btn.classList.add("btn-clicked");
+            copy_password_btn.classList.replace('btn-unclicked', 'btn-clicked');
             
             timeout_id = setTimeout(() => {
-                copy_password_btn.classList.remove("btn-clicked");
-                copy_password_btn.classList.add('btn-unclicked');
+                copy_password_btn.classList.replace('btn-clicked', 'btn-unclicked');
                 copy_password_btn.textContent = 'Copy';
             }, 3000);
         }

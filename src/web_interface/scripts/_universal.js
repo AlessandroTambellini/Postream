@@ -1,43 +1,55 @@
+/*
+ *
+ *  Side-Nav
+ */
+
 const side_nav = document.querySelector('#side-nav');
 const open_side_nav_btn = document.querySelector('#open-side-nav-btn');
-const main = document.querySelector('main');
 const minify_nav_btn = side_nav.querySelector('#minify-nav-btn');
 const expand_nav_btn = side_nav.querySelector('#expand-nav-btn');
+const main = document.querySelector('main');
+const menu = side_nav.querySelector('menu');
 
 // I assume there isn't more than a single feedback-card per page.
 const feedback_card = document.querySelector('.feedback-card');
 
 open_side_nav_btn.addEventListener('click', () => 
 {    
-    switch_class(side_nav, 'display-none', 'display-block');
-    switch_class(open_side_nav_btn, 'display-block', 'display-none');    
+    side_nav.classList.replace('display-none', 'display-block');
+    open_side_nav_btn.classList.replace('display-block', 'display-none');
     main.classList.add('display-opaque');
-});
-
-minify_nav_btn.addEventListener('click', () => 
-{
-    side_nav.querySelector('menu').classList.add('minified-list');
-    switch_class(minify_nav_btn, 'display-block', 'display-none');
-    switch_class(expand_nav_btn, 'display-none', 'display-block');
-});
-
-expand_nav_btn.addEventListener('click', () => 
-{
-    side_nav.querySelector('menu').classList.remove('minified-list');
-    switch_class(expand_nav_btn, 'display-block', 'display-none');
-    switch_class(minify_nav_btn, 'display-none', 'display-block');
 });
 
 main.addEventListener('click', e => 
 {
-    switch_class(side_nav, 'display-block', 'display-none');    
-    switch_class(open_side_nav_btn, 'display-none', 'display-block');
+    side_nav.classList.replace('display-block', 'display-none');
+    open_side_nav_btn.classList.replace('display-none', 'display-block');
     main.classList.remove('display-opaque');
+});
+
+minify_nav_btn.addEventListener('click', () => 
+{
+    minify_nav_btn.classList.replace('display-block', 'display-none');
+    expand_nav_btn.classList.replace('display-none', 'display-block');
+    menu.classList.add('minified-list');
+});
+
+expand_nav_btn.addEventListener('click', () => 
+{
+    minify_nav_btn.classList.replace('display-none', 'display-block');
+    expand_nav_btn.classList.replace('display-block', 'display-none');
+    menu.classList.remove('minified-list');
 });
         
 feedback_card?.querySelector('.close-btn').addEventListener('click', () => {
     hide_feedback_card(feedback_card);
 });
+
+
+/*
+ * 
+ *  Utils 
+ */
 
 // This is a slightly more hard-coded version of the same function present inside templates.js
 function post_card(post)
@@ -164,16 +176,10 @@ function err_msg(status_code, entity, action)
     else return `Invalid ${entity}`;
 }
 
-function switch_class(element, old, _new) {
-    element.classList.remove(old);
-    element.classList.add(_new)
-}
-
 export {
     post_card,
     req,
     show_feedback_card,
     hide_feedback_card,
     err_msg,
-    switch_class,
 };
