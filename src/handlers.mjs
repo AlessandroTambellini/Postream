@@ -18,7 +18,7 @@ import {
 import { 
     DOMElements,
     fallback_page,
-} from "./templates.js";
+} from "./templates.mjs";
 
 const WEB_INTERFACE_PATH = join(import.meta.dirname, 'web_interface');
 

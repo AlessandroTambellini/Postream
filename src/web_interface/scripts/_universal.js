@@ -51,7 +51,7 @@ feedback_card?.querySelector('.close-btn').addEventListener('click', () => {
  *  Utils 
  */
 
-// This is a slightly more hard-coded version of the same function present inside templates.js
+// This is a slightly more hard-coded version of the same function present inside templates.mjs
 function post_card(post)
 {
     const { id, content, created_at } = post;
