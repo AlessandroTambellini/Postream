@@ -74,7 +74,7 @@ function post_card(post)
     return `
         <article class="card post-card">
             <p>${content.length > 70*10 ? 
-                content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>read entirely</a>` : 
+                content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>Read-Entirely</a>` : 
                 content}</p>
             <time datetime="${created_at}">${prettify_date(created_at)}</time>
             <a href='write-reply?id=${id}'>Reply</a>
@@ -132,33 +132,18 @@ async function req(path, method, search_params_obj = null, payload_obj = null)
     return res_obj;
 }
 
-function show_feedback_card(feedback_card, fdk_type, msg) 
+function show_feedback_card(feedback_card, type, msg) 
 {
-    // reset the classes
-    feedback_card.className = 'card feedback-card';
-
-    const icon = feedback_card.querySelector('span[role=img]');
-    const type = feedback_card.querySelector('p .type');
-
-    if (fdk_type === 'info') {
-        icon.textContent = 'i';
-        feedback_card.classList.add('vanish');
-    } else if (fdk_type === 'success') {
-        icon.textContent = '✓';
-        feedback_card.classList.add('vanish');
-    } else if (fdk_type === 'warning') { 
-        icon.textContent = '!';
-        feedback_card.classList.add('flex');
-    } else if (fdk_type === 'error') {
-        icon.textContent = '✗';
-        feedback_card.classList.add('flex');
-    } else {
-        console.error(`Invalid feedback fdk_type. Passed '${fdk_type}.'`);
+    if (!['info', 'success', 'warning', 'error'].includes(type)) {
+        console.error(`Invalid feedback type. Passed '${type}.'`);
         return;
     }
 
-    type.textContent = fdk_type;
-    feedback_card.classList.add(fdk_type);
+    // reset the classes
+    feedback_card.className = 'card feedback-card';
+
+    feedback_card.classList.add(type);
+    feedback_card.querySelector('p .type').textContent = type;
     feedback_card.querySelector('p .msg').textContent = msg;
 }
 

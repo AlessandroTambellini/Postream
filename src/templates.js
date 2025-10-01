@@ -10,12 +10,12 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
     /* Sometimes I don't want the reply link to be shown. 
     E.g. if you are the author of the post and you are simply visualizing it in the profile page
     (even though, you can reply to your own posts) */
-    const reply_link_types = ['', `<a href='read-post?id=${id}'>Read Replies</a>`, `<a href='write-reply?id=${id}'>Reply</a>`];    
+    const reply_link_types = ['', `<a href='read-post?id=${id}'>Read-Replies</a>`, `<a href='write-reply?id=${id}'>Reply</a>`];    
 
     return `
         <article id='post-card-${id}' class="card post-card">
             <p>${cut_post_content && content.length > 70*10 ? 
-                content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>read entirely</a>` : 
+                content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>Read-Entirely</a>` : 
                 content}</p>
             <time datetime="${created_at}">${prettify_date(created_at)}</time>
             <footer>
@@ -47,7 +47,7 @@ DOMElements['.notification-card'] = function(notification)
         <article id='notification-card-${id}' class='card notification-card'>
             <p><b>${num_of_replies} new reply(s) for:</b> "${post_content_snapshot}..."</p>
             <footer>
-                <a href='read-post?id=${post_id}#reply-${first_new_reply_id}'>Read Reply</a>
+                <a href='read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-Reply</a>
                 <button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>
             </footer>
         </article>
@@ -153,7 +153,7 @@ function fallback_page(status_code)
     else if (status_code === 401) {
         reason = 'Unauthorized Access';
         msg = `You cannot access the content of this page because you are logged out. 
-            Please, <a href='login'>login</a> or <a href='create-account'>create an account</a> :)`
+            Please, <a href='login'>Login</a> or <a href='create-account'>Create-Account</a> :)`
     }
 
     return `

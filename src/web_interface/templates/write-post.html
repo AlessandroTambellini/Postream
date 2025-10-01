@@ -19,7 +19,7 @@
 </head>
 <body>
     <main>
-        <h1 class="hidden">Write Post</h1>
+        <h1 class="display-hidden">Write Post</h1>
     
         <form action="api/post" method="POST">
             <textarea name="post-textarea" placeholder="_"></textarea>
@@ -30,7 +30,7 @@
                     <span class='type'></span>
                     <span class='msg'></span>
                 </p>
-                <button class="close-btn" type='button'>x</button>
+                <button class="close-btn" type='button'>🗙</button>
             </div>
         
             <button class="primary-btn" type="submit">
@@ -46,6 +46,7 @@
 
         const write_post_form = document.querySelector('form');
         const textarea = write_post_form.querySelector('textarea');
+        const upload_btn = write_post_form.querySelector('button[type=submit]');
         const feedback_card = write_post_form.querySelector('.feedback-card');
 
         write_post_form.addEventListener('submit', handle_post_submission);
@@ -53,6 +54,7 @@
         async function handle_post_submission(e)
         {
             e.preventDefault();
+            upload_btn.disabled = true;
             hide_feedback_card(feedback_card);
 
             const path = write_post_form.attributes.action.value;
@@ -68,6 +70,8 @@
             } else {
                 show_feedback_card(feedback_card, 'success', 'Post created successfully');
             }
+
+            upload_btn.disabled = false;
         }
     </script>
 </body>

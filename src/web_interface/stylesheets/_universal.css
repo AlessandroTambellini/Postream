@@ -48,6 +48,15 @@ a, button, textarea, input {
     font-family: inherit;
 }
 
+a {
+    text-decoration: none;
+    text-transform: capitalize;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
 .info-msg {
     padding-top: 2rem;
     margin-inline: auto;
@@ -93,20 +102,11 @@ p {
     list-style: none;
     /* avoid 'create-account' link from wrapping onto two lines */
     white-space: nowrap;
+}
 
-    /* Experiment: I saw that now it is possible to write nested CSS. */
-    li {
-        /* for the bullet made with ::before */
-        position: relative;
-
-        a {
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-    }
+#side-nav menu li {
+    /* for the bullet made with ::before */
+    position: relative;
 }
 
 #side-nav li[itemprop=profile] {
@@ -345,20 +345,17 @@ p {
 but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
 that has higher priority compared to the CSS classes. 
 And so, sometimes elements are shown/hidden unexpectedly because of the usage different specificities (especially in a big codebase).
-Therefore, I modify the state only via these CSS classes. */
+Therefore, I modify the state only via CSS classes. */
 
 .display-block {
     display: block;
 }
 
-/* to 'flex' and 'hidden' I don't add the prefix 'display'
-because it's pretty clear that's about displaying. */
-
-.flex {
+.display-flex {
     display: flex;
 }
 
-.hidden {
+.display-hidden {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -374,27 +371,12 @@ because it's pretty clear that's about displaying. */
     display: none;
 }
 
-.vanish {
-    animation: vanish 3s ease-in-out;
-    animation-fill-mode: forwards;
-}
-
-@keyframes vanish {
-      0% { display: flex; opacity: 1; }
-     50% { opacity: 1; }
-    100% { display: none; opacity: 0; }
-}
-
 .display-opaque {
     opacity: .5;
 }
 .display-opaque a,
 .display-opaque button {
     pointer-events: none;
-}
-
-.selected {
-    background-color: rgb(255, 185, 56);
 }
 
 
@@ -430,7 +412,7 @@ button {
     }
 }
 
-.primary-btn:hover {
+.primary-btn:not(:disabled):hover {
     background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
     transform: translateY(-1px);
     box-shadow: 
@@ -438,7 +420,7 @@ button {
         0 6px 8px rgba(0, 0, 0, 0.12);
 }
 
-.primary-btn:active {
+.primary-btn:not(:disabled):active {
     transform: translateY(1px);
     box-shadow: 
         0 1px 0 #b8b8b8,
@@ -446,24 +428,32 @@ button {
     background: linear-gradient(180deg, #e8e8e8 0%, #d8d8d8 100%);
 }
 
+.primary-btn:disabled {
+    opacity: .7;
+}
+
 .secondary-btn {
     font-size: 1.1rem;
     padding: .25em .5em;
     border-radius: 8px;
-    border: 1px solid #ababab;
+    border: 2px solid #c2c2c2;
     transition: all 0.035s ease;
     user-select: none;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .secondary-btn:hover {
-    border-color: #999;
+    border-color: #adadad;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .secondary-btn:active {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     transform: translateY(1px);
+}
+
+.secondary-btn.selected {
+    background-color: #ffd17c;
 }
 
 @media (min-width: 500px) {
@@ -569,12 +559,6 @@ button {
     font-size: 1rem;
 }
 
-.notification-card > footer > button:hover,
-.post-card > footer > button:hover {
-    background-color: #ff8282;
-    color: #0a0a0a;
-}
-
 .feedback-card {    
     border-radius: 8px;
     border: unset;
@@ -597,7 +581,6 @@ button {
     justify-content: center;
     font-weight: bold;
     color: white;
-    user-select: none;
 }
 
 .feedback-card p {
@@ -634,6 +617,7 @@ button {
     width: 25px;
     height: 25px;
     border-radius: 50%;
+    user-select: none;
     
     display: flex;
     align-items: center;
@@ -670,9 +654,14 @@ button {
 
 .info {
     border-left-color: #3b82f6;
+    animation: vanish 3s ease-in-out;
+    animation-fill-mode: forwards;
 }
 .info span[role=img] {
     background-color: #3b82f6;
+}
+.info span[role=img]:after {
+    content: 'i';
 }
 .info p .type {
     color: #1e40af;
@@ -680,9 +669,14 @@ button {
 
 .success {
     border-left-color: #10b981;
+    animation: vanish 3s ease-in-out;
+    animation-fill-mode: forwards;
 }
 .success span[role=img] {
     background-color: #10b981;
+}
+.success span[role=img]:after {
+    content: '✓';
 }
 .success p .type {
     color: #047857;
@@ -690,9 +684,13 @@ button {
 
 .warning {
     border-left-color: #ff8228;
+    display: flex;
 }
 .warning span[role=img] {
     background-color: #ff8228;
+}
+.warning span[role=img]:after {
+    content: '!';
 }
 .warning p .type {
     color: #e0640c;
@@ -700,12 +698,22 @@ button {
 
 .error {
     border-left-color: #ef4444;
+    display: flex;
 }
 .error span[role=img] {
     background-color: #ef4444;
 }
+.error span[role=img]:after {
+    content: '✗';
+}
 .error p .type {
     color: #d31a1a;
+}
+
+@keyframes vanish {
+      0% { display: flex; opacity: 1; }
+     50% { opacity: 1; }
+    100% { display: none; opacity: 0; }
 }
 
 
