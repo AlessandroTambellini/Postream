@@ -61,9 +61,8 @@
             const method = write_post_form.attributes.method.value;
             
             const content = textarea.value;
-            const created_at = new Date().toLocaleString();
             
-            const { status_code, req_error } = await req(path, method, null, { content, created_at });
+            const { status_code, req_error } = await req(path, method, null, { content });
 
             if (req_error) {
                 show_feedback_card(feedback_card, 'error', err_msg(status_code, 'post', 'send'));

@@ -1,4 +1,4 @@
-import { req, show_feedback_card, hide_feedback_card, post_card } from './_universal.js';
+import { req, show_feedback_card, hide_feedback_card, post_card, prettify_date } from './_universal.js';
 
 const controls = document.querySelectorAll('.control');
 const reload_posts_btn = document.querySelector('#reload-posts-btn');
@@ -58,7 +58,7 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
     
     if (f_reload) posts_container.replaceChildren(); // Empty the stream
 
-    let posts_html = [];
+    const posts_html = [];
     posts.forEach(post => {
         if (!displayed_posts.has(post.id)) {
             displayed_posts.add(post.id);

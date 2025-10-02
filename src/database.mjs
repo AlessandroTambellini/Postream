@@ -172,9 +172,9 @@ db_op.insert_token = function(user_id, password_hash)
     }
 };
 
-db_op.insert_post = function(user_id, content, created_at) {
+db_op.insert_post = function(user_id, content) {
     try {
-        const res = insert_post.run(user_id, content, created_at);
+        const res = insert_post.run(user_id, content, new Date().toISOString());
         return res.lastInsertRowid;
     } catch (error) {
         log_error(error);
@@ -182,10 +182,10 @@ db_op.insert_post = function(user_id, content, created_at) {
     }
 };
 
-db_op.insert_reply = function(post_id, content, created_at) 
+db_op.insert_reply = function(post_id, content) 
 {
     try {
-        const res = insert_reply.run(post_id, content, created_at);
+        const res = insert_reply.run(post_id, content, new Date().toISOString());
         return res.lastInsertRowid;
     } catch (error) {
         log_error(error);
@@ -193,10 +193,10 @@ db_op.insert_reply = function(post_id, content, created_at)
     }
 };
 
-db_op.insert_notification = function(user_id, post_id, post_content, first_new_reply_id, created_at)
+db_op.insert_notification = function(user_id, post_id, post_content, first_new_reply_id)
 {
     try {
-        const res = insert_notification.run(user_id, post_id, post_content, first_new_reply_id, created_at, 1);
+        const res = insert_notification.run(user_id, post_id, post_content, first_new_reply_id, new Date().toISOString(), 1);
         return res.lastInsertRowid;
     } catch (error) {
         log_error(error);

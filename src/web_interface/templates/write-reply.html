@@ -69,10 +69,8 @@
             
             const post_id = document.URL.split('?id=')[1];
             const content = textarea.value;
-            // I have to create the date on the client because it has to be locale to the latter
-            const created_at = new Date().toLocaleString();
 
-            const { status_code, payload, req_error } = await req(path, method, null, { post_id, content, created_at });
+            const { status_code, payload, req_error } = await req(path, method, null, { post_id, content });
 
             if (req_error) {
                 show_feedback_card(feedback_card, 'error', err_msg(status_code, 'reply', 'send'));

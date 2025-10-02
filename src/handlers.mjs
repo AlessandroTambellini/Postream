@@ -647,18 +647,14 @@ API.post.POST = function(req_data, res_obj)
         return; 
     }
 
-    let { content, created_at } = post;
+    const { content } = post;
 
     if (!content || typeof content !== 'string') { 
         res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
         return; 
     }
 
-    if (!created_at || typeof created_at !== 'string') {
-        created_at = new Date().toLocaleString(); // Locale to the server
-    }
-
-    const post_id = db_op.insert_post(user_id, content, created_at);
+    const post_id = db_op.insert_post(user_id, content);
     
     if (!post_id) {
         res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'post'))
@@ -716,7 +712,7 @@ API.reply.POST = function(req_data, res_obj)
         return; 
     }
 
-    let { post_id, content, created_at } = reply_obj;
+    const { post_id, content } = reply_obj;
 
     if (!post_id) {
         res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('post_id'));
@@ -726,10 +722,6 @@ API.reply.POST = function(req_data, res_obj)
     if (!content || typeof content !== 'string') {
         res_obj.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
         return;
-    }
-
-    if (!created_at || typeof created_at !== 'string') {
-        created_at = new Date().toLocaleString();
     }
 
     const { post, db_error } = db_op.select_post(post_id);
@@ -744,7 +736,7 @@ API.reply.POST = function(req_data, res_obj)
         return; 
     }
 
-    const reply_id = db_op.insert_reply(post_id, content, created_at);
+    const reply_id = db_op.insert_reply(post_id, content);
 
     if (!reply_id) {
         res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'reply'));
@@ -770,7 +762,7 @@ API.reply.POST = function(req_data, res_obj)
     2) After a notification is deleted, the first new reply will create a new notification. */
 
     if (!notification) {
-        const notification_id = db_op.insert_notification(post.user_id, post.id, post.content.substring(0, 70), reply_id, created_at);
+        const notification_id = db_op.insert_notification(post.user_id, post.id, post.content.substring(0, 70), reply_id);
         
         if (!notification_id) {
             res_obj.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'notification'));
