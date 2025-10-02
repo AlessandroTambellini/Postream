@@ -355,7 +355,7 @@ Therefore, I modify the state only via CSS classes. */
     display: flex;
 }
 
-.display-hidden {
+.visually-hidden {
     position: absolute;
     width: 1px;
     height: 1px;

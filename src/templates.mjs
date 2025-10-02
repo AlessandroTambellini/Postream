@@ -104,11 +104,11 @@ DOMElements['#side-nav'] = function(logged_in, page)
                     `;
                 }, '')}
             </menu>
-            <button id='minify-nav-btn' aria-label='minify nav' class='display-block'>
-                <span role='img' alt='minify nav'>〈</span>
+            <button id='minify-nav-btn' aria-label='minify side-nav' class='display-block'>
+                <span role='img' alt='minify side-nav icon'>〈</span>
             </button>
-            <button id='expand-nav-btn' aria-label='expand nav' class='display-none'>
-                <span role='img' alt='expand nav'>〉</span>
+            <button id='expand-nav-btn' aria-label='expand side-nav' class='display-none'>
+                <span role='img' alt='expand side-nav icon'>〉</span>
             </button>
         </nav>
     `;
