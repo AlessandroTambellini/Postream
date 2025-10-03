@@ -139,7 +139,7 @@ p {
     background-color: var(--circle-color);
 }
 
-#side-nav a[href=profile] > span {
+#side-nav li[itemprop=profile] a > span {
     display: block;
     width: var(--profile-pic-size);
     /* I don't use aspect-ratio, so I can regulate them separately.
@@ -152,11 +152,11 @@ p {
     box-shadow: 0 0px 3px #ccc;
 }
 
-#side-nav a[href=profile] > span:hover {
+#side-nav li[itemprop=profile] a > span:hover {
     box-shadow: 0 2px 4px 1px #ccc;
 }
 
-#side-nav a[href=profile] > span .circle {
+#side-nav li[itemprop=profile] a > span .circle {
     position: absolute;
     aspect-ratio: 1;
     border-radius: 100%;
@@ -217,7 +217,7 @@ p {
     #open-side-nav-btn .bullet {
         --circle-color: #676767;
         display: inline-block;
-        height: 7px;
+        height: 6px;
         aspect-ratio: 1;
         background-color: var(--circle-color);
         border-radius: 100%;
@@ -263,7 +263,7 @@ p {
         margin-inline: 0 !important;
     }
 
-    #side-nav:has(.minified-list) a[href=profile] > span {
+    #side-nav:has(.minified-list) li[itemprop=profile] a > span {
         width: 0;
     }
 
@@ -436,7 +436,7 @@ button {
     font-size: 1.1rem;
     padding: .25em .5em;
     border-radius: 8px;
-    border: 2px solid #c2c2c2;
+    border: 1px solid #c2c2c2;
     transition: all 0.035s ease;
     user-select: none;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);

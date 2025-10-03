@@ -276,7 +276,7 @@ page['write-reply'] = async function(req_data, res_obj)
     
     if (db_error) 
     {
-        res_obj.page(500, fallback_page(500));
+        res_obj.page(500, fallback_page(500, "You can't reply because you are logged out."));
         return;
     }
 

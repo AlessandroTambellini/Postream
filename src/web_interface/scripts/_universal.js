@@ -67,15 +67,19 @@ function post_card(post)
 {
     const { id, content, created_at } = post;
 
-    return `
-        <article class="card post-card">
-            <p>${content.length > 70*10 ? 
-                content.substring(0, 70*10) + `...<a href='read-post?id=${id}'>Read-Entirely</a>` : 
-                content}</p>
-            <time datetime="${created_at}">${prettify_date(created_at)}</time>
-            <a href='write-reply?id=${id}'>Reply</a>
-        </article>
-    `;
+    const card = 
+        `<article class="card post-card">` +
+            `<p>` +
+                `${content.length > 70*10 ? 
+                    content.substring(0, 70*10) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>` : 
+                    content}` + 
+            `</p>` +
+            `<time datetime="${created_at}">${prettify_date(created_at)}</time>` +
+            `<a href='/write-reply?id=${id}'>Reply</a>` +
+        `</article>`
+    ;
+
+    return card;
 }
 
 function prettify_date(date) 
