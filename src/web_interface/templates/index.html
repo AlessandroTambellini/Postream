@@ -9,10 +9,10 @@
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
-
-    <script type='module' src="../scripts/_universal.js"></script>
+    
+    <script type="module" src="../scripts/_universal.js"></script>
     <script type="module" src="../scripts/index.js"></script>
-
+    
     <style>
         main {
             padding: 0;
@@ -24,7 +24,7 @@
             top: 0;
             padding-block: 1em;
             backdrop-filter: blur(10px);
-            background-color: hsl(210, 17%, 98%, .5);
+            background-color: hsl(var(--hsl-f9), .5);
             display: flex;
             justify-content: center;
             gap: .5rem;
@@ -43,7 +43,6 @@
         }
 
         #posts-container .post-card {
-            /* margin-bottom: 1vh; */
             margin-bottom: .5em;
         }
 
@@ -59,6 +58,14 @@
     </style>
 </head>
 <body>
+    <script>
+        const light_mode = localStorage.getItem('light-mode');
+        if (light_mode === 'moon-mode')
+        {
+            document.querySelector('html').classList.add('moon-mode');
+        }
+    </script>
+
     <main>
         <nav id="controls-nav">
             <button id="load-posts-desc-btn" class="control secondary-btn selected" aria-label="load posts from newest to oldest" value="desc">

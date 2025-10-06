@@ -39,7 +39,7 @@ h2 {
     position: sticky;
     top: 0;
     backdrop-filter: blur(10px);
-    background-color: hsl(210, 17%, 98%, .5);
+    background-color: hsl(var(--hsl-f9), .5);
 }
 
 #posts-container:empty:after {

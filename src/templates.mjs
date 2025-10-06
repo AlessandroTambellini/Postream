@@ -38,9 +38,9 @@ DOMElements['.reply-card'] = function(reply)
     const { id, content, created_at } = reply;
 
     const reply_card = 
-        `<article id='reply-${id}' class='card reply-card'>`
-            `<p>${content}</p>`
-            `<time datetime="${created_at}"></time>`
+        `<article id='reply-${id}' class='card reply-card'>` +
+            `<p>${content}</p>` + 
+            `<time datetime="${created_at}"></time>` +
         `</article>`
     ;
 
@@ -52,12 +52,12 @@ DOMElements['.notification-card'] = function(notification)
     const { id, post_id, post_content_snapshot, first_new_reply_id, num_of_replies } = notification;
 
     const notification_card = 
-        `<article id='notification-card-${id}' class='card notification-card'>`
-            `<p><b>${num_of_replies} new reply(s) for:</b> "${post_content_snapshot}..."</p>`
-            `<footer>`
-                `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-Reply</a>`
-                `<button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>`
-            `</footer>`
+        `<article id='notification-card-${id}' class='card notification-card'>` +
+            `<p><b>${num_of_replies} new reply(s) for:</b> "${post_content_snapshot}..."</p>` +
+            `<footer>` +
+                `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-Reply</a>` +
+                `<button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>` +
+            `</footer>` +
         `</article>`
     ;
 
@@ -97,6 +97,37 @@ DOMElements['#side-nav'] = function(logged_in, page)
 
     const side_nav = 
         `<nav id='side-nav' class="display-none">` +
+
+            `<button id="moon-mode-btn">` +
+                `<span id="moon" role="img"></span>` +
+                `<span id="sky"></span>` +
+            `</button>` +
+
+            `<button id="sun-mode-btn">` +
+                `<span class="ray"></span>` +
+                `<span class="ray"></span>` +
+                `<span class="ray"></span>` +
+                `<span class="ray"></span>` +
+                `<span id="sun"></span>` +
+                `<span class="ray"></span>` +
+                `<span class="ray"></span>` +
+                `<span class="ray"></span>` +
+                `<span class="ray"></span>` +
+            `</button>` +
+
+            `<script>` +
+                `const sun_mode_btn = document.querySelector('#sun-mode-btn');` +
+                `const moon_mode_btn = document.querySelector('#moon-mode-btn');` +
+
+                `if (light_mode === 'moon-mode') {` +
+                    `sun_mode_btn.classList.add('display-block');` +
+                    `moon_mode_btn.classList.add('display-none');` +
+                `} else {` +
+                    `sun_mode_btn.classList.add('display-none');` +
+                    `moon_mode_btn.classList.add('display-block');` +
+                `}` +
+            `</script>` +
+
             `<menu>` +
                 `${(logged_in && page !== 'profile') ? 
                     `<li itemprop="profile">` +
@@ -111,12 +142,14 @@ DOMElements['#side-nav'] = function(logged_in, page)
                         `</li>`;
                 }, '')}` +
             `</menu>` +
+
             `<button id='minify-nav-btn' aria-label='minify side-nav' class='display-block'>` +
                 `<span role='img' alt='minify side-nav icon'>〈</span>` +
             `</button>` +
             `<button id='expand-nav-btn' aria-label='expand side-nav' class='display-none'>` +
                 `<span role='img' alt='expand side-nav icon'>〉</span>` +
             `</button>` +
+
         `</nav>`
     ;
 

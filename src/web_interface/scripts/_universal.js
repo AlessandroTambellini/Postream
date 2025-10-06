@@ -20,6 +20,9 @@ const minify_nav_btn = side_nav.querySelector('#minify-nav-btn');
 const expand_nav_btn = side_nav.querySelector('#expand-nav-btn');
 const main = document.querySelector('main');
 const menu = side_nav.querySelector('menu');
+const sun_mode_btn = side_nav.querySelector('#sun-mode-btn');
+const moon_mode_btn = side_nav.querySelector('#moon-mode-btn');
+const html = document.querySelector('html');
 
 // I assume there isn't more than a single feedback-card per page.
 const feedback_card = document.querySelector('.feedback-card');
@@ -54,6 +57,22 @@ expand_nav_btn.addEventListener('click', () =>
         
 feedback_card?.querySelector('.close-btn').addEventListener('click', () => {
     hide_feedback_card(feedback_card);
+});
+
+sun_mode_btn.addEventListener('click', () => 
+{
+    html.classList.remove('moon-mode');
+    sun_mode_btn.classList.replace('display-block', 'display-none');
+    moon_mode_btn.classList.replace('display-none', 'display-block');
+    localStorage.removeItem('light-mode');
+});
+
+moon_mode_btn.addEventListener('click', () => 
+{
+    html.classList.add('moon-mode');
+    sun_mode_btn.classList.replace('display-none', 'display-block');
+    moon_mode_btn.classList.replace('display-block', 'display-none');
+    localStorage.setItem("light-mode", "moon-mode");
 });
 
 

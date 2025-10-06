@@ -7,11 +7,78 @@
     font-style: normal;
 }
 
-:root 
-{
-    --clr-txt: #343A40;
-    --clr-bkg: hsl(210, 17%, 98%);
+:root {
     --page-inline-padding: 2vw;
+}
+
+:root
+{    
+    --hsl-f9: 0, 0%, 98%;
+
+    --clr-ff: #ffffff;
+    --clr-f9: #f9f9f9;
+    --clr-e8: #e8e8e8;
+    --clr-d8: #d8d8d8;
+    --clr-cc: #cccccc;
+    --clr-b8: #b8b8b8;
+    --clr-ab: #ababab;
+    --clr-6a: #6a6a6a;
+    --clr-48: #484848;
+    
+    --clr-index: #10b981;
+    --clr-write-post: #ffdf29;
+    --clr-write-reply: #a2ff29;
+    --clr-notifications: #ff2929;
+    --clr-login: #4affc3;
+    --clr-create-account: #ff8725;
+    --clr-profile: #d359f8;
+    --clr-logout: #ac3fff;
+    --clr-delete-account: #840000;
+    
+    --rgb-00: 0, 0, 0;
+    
+    --bkg-post-card: #fffdf2;
+    --bkg-reply-card: #fbfff5;
+    --bkg-notification-card: #fff6f6;
+    
+    --clr-txt: #343A40;
+    --clr-link: #551a8b;
+    --clr-selected: #ffd17c; 
+}
+
+:root.moon-mode 
+{
+    --hsl-f9: 0, 0%, 2%;
+
+    --clr-ff: #000000;
+    --clr-f9: #060606;
+    --clr-e8: #171717;
+    --clr-d8: #272727;
+    --clr-cc: #333333;
+    --clr-b8: #474747;
+    --clr-ab: #545454;
+    --clr-6a: #959595;
+    --clr-48: #b7b7b7;
+    
+    --clr-index: #ef467e;
+    --clr-write-post: #0020d6;
+    --clr-write-reply: #5d00d6;
+    --clr-notifications: #00d6d6;
+    --clr-login: #b5003c;
+    --clr-create-account: #0078da;
+    --clr-profile: #2ca607;
+    --clr-logout: #53c000;
+    --clr-delete-account: #7bffff;
+    
+    --rgb-00: 255, 255, 255;
+    
+    --bkg-post-card: #00020d;
+    --bkg-reply-card: #04000a;
+    --bkg-notification-card: #000909;
+    
+    --clr-txt: #f9fafb;
+    --clr-link: #aae574;
+    --clr-selected: #002e83;
 }
 
 *,
@@ -23,9 +90,10 @@
 }
 
 body {
-    background-color: var(--clr-bkg);
     font-family: 'Libertinus Mono', monospace;
     display: flex;    
+    background-color: var(--clr-f9);
+    color: var(--clr-txt);
 }
 
 main {
@@ -51,6 +119,7 @@ a, button, textarea, input {
 a {
     text-decoration: none;
     text-transform: capitalize;
+    color: var(--clr-link);
 }
 
 a:hover {
@@ -91,9 +160,9 @@ p {
     --list-fs: 1.5rem;
 
     font-size: var(--list-fs);
-    padding: 1.2em;
+    padding: .6em 1.2em;
     height: 100vh;
-    background-color: var(--clr-bkg);
+    background-color: var(--clr-f9);
 }
 
 #side-nav menu {
@@ -137,6 +206,7 @@ p {
     aspect-ratio: 1;
     border-radius: 100%;
     background-color: var(--circle-color);
+    border: 1px solid var(--clr-48);
 }
 
 #side-nav li[itemprop=profile] a > span {
@@ -145,15 +215,15 @@ p {
     /* I don't use aspect-ratio, so I can regulate them separately.
     E.g. when I collapse the nav. */
     height: var(--profile-pic-size);
-    background-color: white;
+    background-color: var(--clr-ff);
     border-radius: 100%;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 0px 3px #ccc;
+    box-shadow: 0 0px 3px var(--clr-cc);
 }
 
 #side-nav li[itemprop=profile] a > span:hover {
-    box-shadow: 0 2px 4px 1px #ccc;
+    box-shadow: 0 2px 4px 1px var(--clr-cc);
 }
 
 #side-nav li[itemprop=profile] a > span .circle {
@@ -162,16 +232,21 @@ p {
     border-radius: 100%;
 }
 
-#side-nav > button {
-    /* only for desktop */
+#minify-nav-btn,
+#expand-nav-btn {
     display: none;
     margin-top: 5vh;
     background: unset;
     border: unset;
     font-size: 2rem;
-    color: rgb(106 106 106);
     border-radius: 8px;
-} 
+    color: var(--clr-6a);
+}
+
+#minify-nav-btn:hover,
+#expand-nav-btn:hover {
+    background-color: var(--clr-e8);
+}
 
 #minify-nav-btn {
     padding-right: .5em;
@@ -182,14 +257,90 @@ p {
     margin-inline: auto;
 }
 
-#side-nav > button:hover {
-    background-color: rgb(237, 237, 237);
+#sun-mode-btn,
+#moon-mode-btn {
+    margin-left: auto;
+}
+
+#sun-mode-btn {
+    width: fit-content;
+    padding: 0;
+    border: unset;
+    background-color: transparent;
+    position: relative;
+}
+
+#sun-mode-btn span {
+    display: block;
+}
+
+#sun {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--clr-txt);
+    border: 4px solid var(--clr-f9);
+    position: relative;
+    z-index: 1;
+}
+
+.ray {
+    --ray-length: 30px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    border-radius: 4px;
+    height: var(--ray-length);
+    background: var(--clr-txt);
+    transform-origin: center var(--ray-length);
+    z-index: 0;
+}
+
+.ray:nth-child(1) { transform: translate(-50%, -100%) rotate(0deg); }
+.ray:nth-child(2) { transform: translate(-50%, -100%) rotate(45deg); }
+.ray:nth-child(3) { transform: translate(-50%, -100%) rotate(90deg); }
+.ray:nth-child(4) { transform: translate(-50%, -100%) rotate(135deg); }
+.ray:nth-child(5) { transform: translate(-50%, -100%) rotate(180deg); }
+.ray:nth-child(6) { transform: translate(-50%, -100%) rotate(225deg); }
+.ray:nth-child(7) { transform: translate(-50%, -100%) rotate(270deg); }
+.ray:nth-child(8) { transform: translate(-50%, -100%) rotate(315deg); }
+
+#moon-mode-btn {
+    width: fit-content;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    border: unset;
+    background-color: var(--clr-f9);
+}
+
+#moon-mode-btn span {
+    display: block;
+}
+
+#moon {
+    border-radius: 100%;
+    background-color: var(--clr-txt);
+    width: 50px;
+    aspect-ratio: 1;
+}
+
+#sky {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    z-index: 2;
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+    background-color: var(--clr-f9);
 }
 
 @media (max-width: 1189px) 
 {    
     #side-nav {
-        box-shadow: -2px 0px 8px #ccc;
+        box-shadow: -2px 0px 8px var(--clr-cc);
         position: fixed;
         bottom: 0;
         right: 0;
@@ -215,13 +366,14 @@ p {
     }
 
     #open-side-nav-btn .bullet {
-        --circle-color: #676767;
+        --circle-color: var(--clr-6a);
         display: inline-block;
         height: 6px;
         aspect-ratio: 1;
-        background-color: var(--circle-color);
-        border-radius: 100%;
         margin-right: .25em;
+        border-radius: 100%;
+        background-color: var(--circle-color);
+        border: 1px solid var(--clr-48);
     }
 
     #open-side-nav-btn .row {
@@ -245,11 +397,11 @@ p {
         --profile-pic-size: 70px;
         --list-fs: 2rem;
         display: block;
-        /* box-shadow: -1px 0 0 #ccc; */
-        border-left: 1px solid #ccc;
+        border-left: 1px solid var(--clr-cc);
     }
 
-    #side-nav > button.display-block {
+    #minify-nav-btn.display-block,
+    #expand-nav-btn.display-block {
         display: block;
     }
 
@@ -267,13 +419,9 @@ p {
         width: 0;
     }
 
-    /* .minified-list li a:not(a[href=profile]) { */
     .minified-list li a {
         visibility: hidden;
         font-size: 0;
-        /* display: inline-block; */
-        /* width: 0; */
-        /* overflow: hidden; */
     }  
 
     .minified-list li::before {
@@ -294,45 +442,42 @@ p {
 
 #open-side-nav-btn span[itemprop=index] .bullet,
 #side-nav li[itemprop=index]::before {
-    --circle-color: #10b981;
+    --circle-color: var(--clr-index);
 }
 
 #open-side-nav-btn span[itemprop=write-post] .bullet,
 #side-nav li[itemprop=write-post]::before {
-    --circle-color: #1ec8de;
-}
-
-#open-side-nav-btn span[itemprop=login] .bullet,
-#side-nav li[itemprop=login]::before {
-    --circle-color: #4affc3;
-}
-
-#open-side-nav-btn span[itemprop=create-account] .bullet,
-#side-nav li[itemprop=create-account]::before {
-    --circle-color: #ff8725;
+    --circle-color: var(--clr-write-post);
 }
 
 #open-side-nav-btn span[itemprop=notifications] .bullet,
 #side-nav li[itemprop=notifications]::before {
-    --circle-color: #3b82f6;
+    --circle-color: var(--clr-notifications);
+}
+
+#open-side-nav-btn span[itemprop=login] .bullet,
+#side-nav li[itemprop=login]::before {
+    --circle-color: var(--clr-login);
+}
+
+#open-side-nav-btn span[itemprop=create-account] .bullet,
+#side-nav li[itemprop=create-account]::before {
+    --circle-color: var(--clr-create-account);
 }
 
 #open-side-nav-btn span[itemprop=profile] .bullet,
 #side-nav li[itemprop=profile]::before {
-    --circle-color: #d359f8;
-}
-#side-nav li[itemprop=profile]::before {
-    border: none;
+    --circle-color: var(--clr-profile);
 }
 
 #open-side-nav-btn span[itemprop=logout] .bullet,
 #side-nav li[itemprop=logout]::before {
-    --circle-color: #ff793f;
+    --circle-color: var(--clr-logout);
 }
 
 #open-side-nav-btn span[itemprop=delete-account] .bullet,
 #side-nav li[itemprop=delete-account]::before {
-    --circle-color: #840000;
+    --circle-color: var(--clr-delete-account);
 } 
 
 
@@ -393,17 +538,20 @@ button {
 .primary-btn {
     border-radius: 12px;
     border-width: 1px;
-    background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
-    border: 1px solid #ababab;
     transition: all 0.035s ease;
     user-select: none;
     box-shadow: 
-        0 2px 0 #b8b8b8,
-        0 4px 6px rgba(0, 0, 0, 0.1);
+        0 2px 0 var(--clr-b8),
+        0 4px 6px rgba(var(--rgb-00), 0.1);
     transform: translateY(0);
     font-size: 1rem;
     padding-block: .67em;
     padding-inline: 1.2em;
+}
+
+.primary-btn {
+    background: linear-gradient(180deg, var(--clr-ff) 0%, var(--clr-e8) 100%);
+    border: 1px solid var(--clr-ab);
 }
 
 @media (min-width: 500px) {
@@ -413,19 +561,19 @@ button {
 }
 
 .primary-btn:not(:disabled):hover {
-    background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
     transform: translateY(-1px);
+    background: linear-gradient(180deg, var(--clr-f9) 0%, var(--clr-e8) 100%);
     box-shadow: 
-        0 3px 0 #b8b8b8,
-        0 6px 8px rgba(0, 0, 0, 0.12);
+        0 3px 0 var(--clr-b8),
+        0 6px 8px rgba(var(--rgb-00), 0.12);
 }
 
 .primary-btn:not(:disabled):active {
     transform: translateY(1px);
+    background: linear-gradient(180deg, var(--clr-e8) 0%, var(--clr-d8) 100%);
     box-shadow: 
-        0 1px 0 #b8b8b8,
-        0 2px 4px rgba(0, 0, 0, 0.15);
-    background: linear-gradient(180deg, #e8e8e8 0%, #d8d8d8 100%);
+        0 1px 0 var(--clr-b8),
+        0 2px 4px rgba(var(--rgb-00), 0.15);
 }
 
 .primary-btn:disabled {
@@ -436,25 +584,26 @@ button {
     font-size: 1.1rem;
     padding: .25em .5em;
     border-radius: 8px;
-    border: 1px solid #c2c2c2;
     transition: all 0.035s ease;
     user-select: none;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(var(--rgb-00), 0.05);
+    background-color: var(--clr-e8);
+    border: 1px solid var(--clr-cc);
 }
 
 .secondary-btn:hover {
-    border-color: #adadad;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    border-color: var(--clr-ab);
+    box-shadow: 0 2px 4px rgba(var(--rgb-00), 0.08);
 }
 
 .secondary-btn:active {
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(var(--rgb-00), 0.1);
     transform: translateY(1px);
 }
 
 .secondary-btn.selected {
-    border-color: #adadad;
-    background-color: #ffd17c;
+    border-color: var(--clr-ab);
+    background-color: var(--clr-selected);
 }
 
 @media (min-width: 500px) {
@@ -477,8 +626,8 @@ button {
 
     font-size: 1rem;
     padding: var(--padding);
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--clr-cc);
+    box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
     max-width: var(--card-max-width);
 }
 
@@ -523,15 +672,15 @@ button {
 }
 
 .post-card {
-    background-color: #f5f5f5;
+    background-color: var(--bkg-post-card);
 }
 
 .reply-card {
-    background-color: #fcfcfc;
+    background-color: var(--bkg-reply-card);
 }
 
 .notification-card {
-    background-color: #f1f1f1;
+    background-color: var(--bkg-notification-card);
 }
 
 .post-card time,
@@ -539,7 +688,7 @@ button {
     display: block;
     text-align: right;
     padding-top: 1em;
-    color: rgb(72, 72, 72);
+    color: var(--clr-48);
 }
 
 .post-card a {
@@ -564,7 +713,7 @@ button {
     border-radius: 8px;
     border: unset;
     border-left: 4px solid;
-    background-color: white;
+    background-color: var(--clr-ff);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     /* For the close button ('x') that has position absolute. */
@@ -581,7 +730,7 @@ button {
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: white;
+    color: var(--clr-ff);
 }
 
 .feedback-card p {
@@ -604,7 +753,6 @@ button {
     opacity: 0.8;
     max-width: 70ch;
     white-space: pre-wrap; 
-    color: #374151;
 }
 
 .feedback-card .close-btn {
@@ -629,7 +777,7 @@ button {
 
 .feedback-card .close-btn:hover {
     opacity: 1;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(var(--rgb-00), 0.1);
 }
 
 @media (min-width: 500px) 
@@ -650,7 +798,7 @@ button {
 
 .feedback-card:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 8px rgba(var(--rgb-00), 0.15);
 }
 
 .info {
