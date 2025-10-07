@@ -109,10 +109,6 @@ DOMElements['#side-panel'] = function(logged_in, page)
                 `<span class="ray"></span>` +
                 `<span class="ray"></span>` +
                 `<span id="sun"></span>` +
-                `<span class="ray"></span>` +
-                `<span class="ray"></span>` +
-                `<span class="ray"></span>` +
-                `<span class="ray"></span>` +
             `</button>` +
 
             `<script>` +
@@ -211,6 +207,14 @@ function fallback_page(status_code, custom_msg)
             `</style>` +
         `</head>` +
         `<body>` +
+            `<script>` +
+                `const light_mode = localStorage.getItem('light-mode');` +
+                `if (light_mode === 'moon-mode')` +
+                `{` +
+                    `document.querySelector('html').classList.add('moon-mode');` +
+                `}` +
+            `</script>` +
+            
             `<main>` +
                 `<h1>${reason} | ${status_code}</h1>` +
                 `${DOMElements['.info-msg'](msg)}` +

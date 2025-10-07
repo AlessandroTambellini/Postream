@@ -23,6 +23,14 @@
     </style>
 </head>
 <body>
+    <script>
+        const light_mode = localStorage.getItem('light-mode');
+        if (light_mode === 'moon-mode')
+        {
+            document.querySelector('html').classList.add('moon-mode');
+        }
+    </script>
+    
     <h1 class="visually-hidden">Logout</h1>
 
     <main>

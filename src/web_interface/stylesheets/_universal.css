@@ -14,6 +14,7 @@
 :root
 {    
     --hsl-f9: 0, 0%, 98%;
+    --hsl-6a: 0, 0%, 42%;
 
     --clr-ff: #ffffff;
     --clr-f9: #f9f9f9;
@@ -49,6 +50,7 @@
 :root.moon-mode 
 {
     --hsl-f9: 0, 0%, 2%;
+    --hsl-6a: 0, 0%, 58%;
 
     --clr-ff: #000000;
     --clr-f9: #060606;
@@ -161,6 +163,8 @@ p {
     --profile-pic-size: 60px;
     --bullet-size: .3em;
     --list-fs: 1.5rem;
+
+    /* display: block; */
 
     position: fixed;
     bottom: 0;
@@ -323,15 +327,26 @@ p {
 #sun-mode-btn,
 #moon-mode-btn {
     margin-left: auto;
+    /* border-radius: 100%; */
+    --icon-size: 40px;
+}
+#sun-mode-btn:hover,
+#moon-mode-btn:hover {
+    /* background-color: hsl(var(--hsl-6a), .25);
+    box-shadow: 0px 0px 0px calc(var(--icon-size)/4) hsl(var(--hsl-6a), .25); */
 }
 
+/* #moon-mode-btn:hover #sky {
+    background-color: hsl(var(--hsl-6a), 1);
+} */
+
 #sun-mode-btn {
-    width: fit-content;
     padding: 0;
     border: unset;
-    background-color: transparent;
+    background-color: var(--clr-f9);
     position: relative;
-    --sun-size: 35px;
+    --ray-length: var(--icon-size);
+    --sun-diameter: calc(var(--icon-size) * 2/3);
 }
 
 #sun-mode-btn span {
@@ -339,45 +354,37 @@ p {
 }
 
 #sun {
-    width: var(--sun-size);
+    width: var(--sun-diameter);
     aspect-ratio: 1;
-    border-radius: 50%;
-    background: var(--clr-txt);
+    border-radius: 100%;
+    background-color: var(--clr-txt);
     border: 3px solid var(--clr-f9);
     position: relative;
-    z-index: 1;
 }
 
 .ray {
-    --ray-length: calc(var(--sun-size)*(2/3));
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: -25%;
+    left: calc(50% - 2px);
     width: 4px;
     border-radius: 4px;
     height: var(--ray-length);
-    background: var(--clr-txt);
-    transform-origin: center var(--ray-length);
-    z-index: 0;
+    background-color: var(--clr-txt);
+    transform-origin: center;
 }
 
-.ray:nth-child(1) { transform: translate(-50%, -100%) rotate(0deg); }
-.ray:nth-child(2) { transform: translate(-50%, -100%) rotate(45deg); }
-.ray:nth-child(3) { transform: translate(-50%, -100%) rotate(90deg); }
-.ray:nth-child(4) { transform: translate(-50%, -100%) rotate(135deg); }
-.ray:nth-child(5) { transform: translate(-50%, -100%) rotate(180deg); }
-.ray:nth-child(6) { transform: translate(-50%, -100%) rotate(225deg); }
-.ray:nth-child(7) { transform: translate(-50%, -100%) rotate(270deg); }
-.ray:nth-child(8) { transform: translate(-50%, -100%) rotate(315deg); }
+.ray:nth-child(1) { transform: rotate(0deg); }
+.ray:nth-child(2) { transform: rotate(45deg); }
+.ray:nth-child(3) { transform: rotate(90deg); }
+.ray:nth-child(4) { transform: rotate(135deg); } 
 
 #moon-mode-btn {
-    width: fit-content;
+    /* Otherwise there is the little line crossing the top of the moon */
     padding: 0;
     position: relative;
     overflow: hidden;
     border: unset;
     background-color: var(--clr-f9);
-    --moon-size: 40px;
 }
 
 #moon-mode-btn span {
@@ -387,17 +394,17 @@ p {
 #moon {
     border-radius: 100%;
     background-color: var(--clr-txt);
-    width: var(--moon-size);
+    width: var(--icon-size);
     aspect-ratio: 1;
 }
 
 #sky {
     position: absolute;
-    top: calc(var(--moon-size) / (-3));
-    right: calc(var(--moon-size) / (-3));
+    top: calc(var(--icon-size) / (-3));
+    right: calc(var(--icon-size) / (-3));
     z-index: 2;
-    width: var(--moon-size);
-    height: var(--moon-size);
+    width: var(--icon-size);
+    height: var(--icon-size);
     border-radius: 100%;
     background-color: var(--clr-f9);
 }

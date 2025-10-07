@@ -18,6 +18,14 @@
     </style>
 </head>
 <body>
+    <script>
+        const light_mode = localStorage.getItem('light-mode');
+        if (light_mode === 'moon-mode')
+        {
+            document.querySelector('html').classList.add('moon-mode');
+        }
+    </script>
+
     <main>
         <h1 class="visually-hidden">Write Post</h1>
     
