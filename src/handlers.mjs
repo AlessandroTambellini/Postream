@@ -80,7 +80,7 @@ page['test-elements'] = async function(req_data, res_obj)
         .replace('{{ .post-card }}', DOMElements['.post-card'](card))
         .replace('{{ .reply-card }}', DOMElements['.reply-card'](card))
         .replace('{{ .notification-card }}', DOMElements['.notification-card'](notif_card))
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'test-elements'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'test-elements'))
     ;
 
     res_obj.page(200, test_components_page);
@@ -114,7 +114,7 @@ page.index = async function(req_data, res_obj)
     }
     
     const index_page = index_template
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](user_id && true, 'index'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id && true, 'index'))
     ;
 
     res_obj.page(200, index_page);
@@ -131,7 +131,7 @@ page['create-account'] = async function(req_data, res_obj)
     }
 
     const create_account_page = create_account_template
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'create-account'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](false, 'create-account'))
     ;
 
     res_obj.page(200, create_account_page);
@@ -148,7 +148,7 @@ page.login = async function(req_data, res_obj)
     }
 
     const login_page = login_template
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](false, 'login'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](false, 'login'))
     ;
 
     res_obj.page(200, login_page);
@@ -185,7 +185,7 @@ page.profile = async function(req_data, res_obj)
 
     const profile_page = profile_template
         .replace('{{ #profile-picture }}', DOMElements['#profile-picture'](50, 300))
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'profile'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'profile'))
     ;
 
     res_obj.page(200, profile_page);
@@ -221,7 +221,7 @@ page.notifications = async function(req_data, res_obj)
     }
 
     const notifications_page = notifications_template
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'notifications'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'notifications'))
     ;
 
     res_obj.page(200, notifications_page);
@@ -246,7 +246,7 @@ page['write-post'] = async function(req_data, res_obj)
     }
 
     const write_post_page = write_post_template
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-post'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'write-post'))
     ;
 
     res_obj.page(200, write_post_page);
@@ -287,7 +287,7 @@ page['write-reply'] = async function(req_data, res_obj)
     }
 
     const write_reply_page = write_reply_template
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'write-reply'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'write-reply'))
     ;
 
     res_obj.page(200, write_reply_page);
@@ -340,7 +340,7 @@ page['read-post'] = async function(req_data, res_obj)
         post_template = post_template.replace('{{ replies }}', '');
 
     const post_page = post_template
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](user_id && true, 'read-post'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id && true, 'read-post'))
     ;
 
     res_obj.page(200, post_page);
@@ -365,7 +365,7 @@ page.logout = async function(req_data, res_obj)
     }
 
     const logout_page = logout_template
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'logout'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'logout'))
     ;
 
     res_obj.page(200, logout_page);
@@ -390,7 +390,7 @@ page['delete-account'] = async function(req_data, res_obj)
     }
 
     delete_account_page = delete_account_page
-        .replace('{{ #side-nav }}', DOMElements['#side-nav'](true, 'delete-account'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'delete-account'))
     ;
 
     res_obj.page(200, delete_account_page);

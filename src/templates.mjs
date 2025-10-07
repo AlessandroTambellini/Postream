@@ -86,7 +86,7 @@ DOMElements['#profile-picture'] = function(max_num_of_circles, size)
     return `<span id="profile-picture" role="img">${circles.join('')}</span>`;
 };
 
-DOMElements['#side-nav'] = function(logged_in, page)
+DOMElements['#side-panel'] = function(logged_in, page)
 {
     let menu_entries = logged_in ? 
         ['index', 'notifications', 'write-post', 'logout'] : 
@@ -96,7 +96,7 @@ DOMElements['#side-nav'] = function(logged_in, page)
     if (page === 'profile') menu_entries.push('delete-account');
 
     const side_nav = 
-        `<nav id='side-nav' class="display-none">` +
+        `<aside id='side-panel' class="display-none">` +
 
             `<button id="moon-mode-btn">` +
                 `<span id="moon" role="img"></span>` +
@@ -142,34 +142,16 @@ DOMElements['#side-nav'] = function(logged_in, page)
                         `</li>`;
                 }, '')}` +
             `</menu>` +
-
-            `<button id='minify-nav-btn' aria-label='minify side-nav' class='display-block'>` +
-                `<span role='img' alt='minify side-nav icon'>〈</span>` +
-            `</button>` +
-            `<button id='expand-nav-btn' aria-label='expand side-nav' class='display-none'>` +
-                `<span role='img' alt='expand side-nav icon'>〉</span>` +
-            `</button>` +
-
-        `</nav>`
+        `</aside>`
     ;
 
-    // Otherwise the button is too high
-    while (menu_entries.length > 3) menu_entries.pop();
-
-    const open_side_nav_btn = 
-        `<button id="open-side-nav-btn" class="secondary-btn display-block" aria-label='open side-nav'>` +
-            `<span role='img' alt='open side-nav icon'>` +
-                `${menu_entries.reduce((accumulator, page) => { 
-                    return accumulator +  
-                        `<span itemprop=${page}>` +
-                            `<span class='bullet'></span><span class='row'></span>` +
-                        `</span>`; 
-                }, '')}` +  
-            `</span>` +
+    const show_side_nav_btn = 
+        `<button id="show-side-panel-btn" aria-label='show side-panel' class='display-block'>` +
+            `<span role='img' alt='show side-panel icon'>〈</span>` +
         `</button>`
     ;
 
-    return side_nav + open_side_nav_btn;
+    return side_nav + show_side_nav_btn;
 }
 
 DOMElements['.info-msg'] = function(msg) 
@@ -234,7 +216,7 @@ function fallback_page(status_code, custom_msg)
                 `${DOMElements['.info-msg'](msg)}` +
             `</main>` +
 
-            `${DOMElements['#side-nav'](false, 'fallback-page')}` +
+            `${DOMElements['#side-panel'](false, 'fallback-page')}` +
         `</body>` +
         `</html>`
     ;

@@ -6,7 +6,7 @@ main {
 
 #profile-picture {
     display: block;
-    margin-block: 2.4rem; /* aligned with the side-nav padding-block */
+    margin-block: 2.4rem; /* aligned with the side-panel padding-block */
     width: 225px;
     aspect-ratio: 1;
     background-color: white;

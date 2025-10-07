@@ -27,13 +27,13 @@ Note: the database will be created automatically on first run.
 
 2) **Navigation of the website**:
     The website is composed of 10 pages, 6 of which are basically forms.
-    * The links that can be present in the side-nav are: 
+    * The links that can be present in the side-panel are: 
         * if logged-in: 
             `[profile, index, notifications, write-post, logout, delete-account] - current-page`
         * if logged-out: 
             `[index, login, create-account] - current-page`
         * delete-account is present only if the current-page is profile.
-    * There are also read-post and write-reply, but these pages are accessible from the post-card itself, not from the side-nav.
+    * There are also read-post and write-reply, but these pages are accessible from the post-card itself, not from the side-panel.
     * I don't show the login and create-account links while you are logged-in because it would be confusing, but it's still possible to access them:
         * If you login again, you simply extend the session.
         * If you create an account, you create a new account and you are switched to it.

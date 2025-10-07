@@ -14,49 +14,28 @@ document.querySelectorAll('.reply-card').forEach(post => {
  *  Side-Nav
  */
 
-const side_nav = document.querySelector('#side-nav');
-const open_side_nav_btn = document.querySelector('#open-side-nav-btn');
-const minify_nav_btn = side_nav.querySelector('#minify-nav-btn');
-const expand_nav_btn = side_nav.querySelector('#expand-nav-btn');
+const side_panel = document.querySelector('#side-panel');
+const show_side_panel_btn = document.querySelector('#show-side-panel-btn');
 const main = document.querySelector('main');
-const menu = side_nav.querySelector('menu');
-const sun_mode_btn = side_nav.querySelector('#sun-mode-btn');
-const moon_mode_btn = side_nav.querySelector('#moon-mode-btn');
+const sun_mode_btn = side_panel.querySelector('#sun-mode-btn');
+const moon_mode_btn = side_panel.querySelector('#moon-mode-btn');
 const html = document.querySelector('html');
 
 // I assume there isn't more than a single feedback-card per page.
 const feedback_card = document.querySelector('.feedback-card');
 
-open_side_nav_btn.addEventListener('click', () => 
+show_side_panel_btn.addEventListener('click', () => 
 {    
-    side_nav.classList.replace('display-none', 'display-block');
-    open_side_nav_btn.classList.replace('display-block', 'display-none');
+    side_panel.classList.replace('display-none', 'display-block');
+    // show_side_panel_btn.classList.replace('display-block', 'display-none');
     main.classList.add('display-opaque');
 });
 
-main.addEventListener('click', e => 
+main.addEventListener('click', () => 
 {
-    side_nav.classList.replace('display-block', 'display-none');
-    open_side_nav_btn.classList.replace('display-none', 'display-block');
+    side_panel.classList.replace('display-block', 'display-none');
+    show_side_panel_btn.classList.replace('display-none', 'display-block');
     main.classList.remove('display-opaque');
-});
-
-minify_nav_btn.addEventListener('click', () => 
-{
-    minify_nav_btn.classList.replace('display-block', 'display-none');
-    expand_nav_btn.classList.replace('display-none', 'display-block');
-    menu.classList.add('minified-list');
-});
-
-expand_nav_btn.addEventListener('click', () => 
-{
-    minify_nav_btn.classList.replace('display-none', 'display-block');
-    expand_nav_btn.classList.replace('display-block', 'display-none');
-    menu.classList.remove('minified-list');
-});
-        
-feedback_card?.querySelector('.close-btn').addEventListener('click', () => {
-    hide_feedback_card(feedback_card);
 });
 
 sun_mode_btn.addEventListener('click', () => 
@@ -73,6 +52,10 @@ moon_mode_btn.addEventListener('click', () =>
     sun_mode_btn.classList.replace('display-none', 'display-block');
     moon_mode_btn.classList.replace('display-block', 'display-none');
     localStorage.setItem("light-mode", "moon-mode");
+});
+
+feedback_card?.querySelector('.close-btn').addEventListener('click', () => {
+    hide_feedback_card(feedback_card);
 });
 
 

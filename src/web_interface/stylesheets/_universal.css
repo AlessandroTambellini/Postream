@@ -92,6 +92,8 @@
 body {
     font-family: 'Libertinus Mono', monospace;
     display: flex;    
+    align-items: center;
+    justify-content: center;
     background-color: var(--clr-f9);
     color: var(--clr-txt);
 }
@@ -154,18 +156,25 @@ p {
  *  Side Nav
  */
 
-#side-nav {
+#side-panel 
+{
     --profile-pic-size: 60px;
     --bullet-size: .3em;
     --list-fs: 1.5rem;
 
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    height: 100vh;
+
     font-size: var(--list-fs);
     padding: .6em 1.2em;
-    height: 100vh;
     background-color: var(--clr-f9);
+    border-left: 1px solid var(--clr-cc);
+    box-shadow: -2px 0px 8px var(--clr-cc);
 }
 
-#side-nav menu {
+#side-panel menu {
     font-size: inherit;
     line-height: 1.4;
     list-style: none;
@@ -173,29 +182,29 @@ p {
     white-space: nowrap;
 }
 
-#side-nav menu li {
+#side-panel menu li {
     /* for the bullet made with ::before */
     position: relative;
 }
 
-#side-nav li[itemprop=profile] {
+#side-panel li[itemprop=profile] {
     margin-bottom: .5em;
     width: fit-content;
 }
 
-#side-nav li:not(li[itemprop=profile]) {
+#side-panel li:not(li[itemprop=profile]) {
     margin-bottom: .25em;
     padding-left: calc(var(--bullet-size)*3); 
 }
 
 /* Apply this margin only when the profile-pic is present. */
-#side-nav:has(li[itemprop=profile]) li:not(li[itemprop=profile]) {
+#side-panel:has(li[itemprop=profile]) li:not(li[itemprop=profile]) {
     /* This margin is to align the bullets with the profile pic 
     and equally space left and right of the list items. */
     margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);
 }
 
-#side-nav li:not(li[itemprop=profile])::before {
+#side-panel li:not(li[itemprop=profile])::before {
     content: "";
     position: absolute;
     left: 0;
@@ -209,7 +218,7 @@ p {
     border: 1px solid var(--clr-48);
 }
 
-#side-nav li[itemprop=profile] a > span {
+#side-panel li[itemprop=profile] a > span {
     display: block;
     width: var(--profile-pic-size);
     /* I don't use aspect-ratio, so I can regulate them separately.
@@ -222,40 +231,94 @@ p {
     box-shadow: 0 0px 3px var(--clr-cc);
 }
 
-#side-nav li[itemprop=profile] a > span:hover {
+#side-panel li[itemprop=profile] a > span:hover {
     box-shadow: 0 2px 4px 1px var(--clr-cc);
 }
 
-#side-nav li[itemprop=profile] a > span .circle {
+#side-panel li[itemprop=profile] a > span .circle {
     position: absolute;
     aspect-ratio: 1;
     border-radius: 100%;
 }
 
-#minify-nav-btn,
-#expand-nav-btn {
-    display: none;
-    margin-top: 5vh;
+#show-side-panel-btn {
+    --bottom: 5vh;
+    position: fixed;
+    bottom: var(--bottom);
+    right: 3vw;
     background: unset;
     border: unset;
     font-size: 2rem;
     border-radius: 8px;
     color: var(--clr-6a);
+    padding: .25em;
+    padding-right: .75em;
 }
 
-#minify-nav-btn:hover,
-#expand-nav-btn:hover {
+#show-side-panel-btn:hover {
     background-color: var(--clr-e8);
 }
 
-#minify-nav-btn {
-    padding-right: .5em;
-    margin-left: auto;
+@media (min-width: 1300px) 
+{
+    #side-panel {
+        --profile-pic-size: 70px;
+        --list-fs: 2rem;
+    }
+
+    #show-side-panel-btn {
+        position: static;
+        align-self: flex-end;
+        margin-bottom: var(--bottom);
+    }
 }
-#expand-nav-btn {
-    padding-left: .5em;
-    margin-inline: auto;
+
+/* 
+ * Color-specific customization */
+
+#open-side-panel-btn span[itemprop=index] .bullet,
+#side-panel li[itemprop=index]::before {
+    --circle-color: var(--clr-index);
 }
+
+#open-side-panel-btn span[itemprop=write-post] .bullet,
+#side-panel li[itemprop=write-post]::before {
+    --circle-color: var(--clr-write-post);
+}
+
+#open-side-panel-btn span[itemprop=notifications] .bullet,
+#side-panel li[itemprop=notifications]::before {
+    --circle-color: var(--clr-notifications);
+}
+
+#open-side-panel-btn span[itemprop=login] .bullet,
+#side-panel li[itemprop=login]::before {
+    --circle-color: var(--clr-login);
+}
+
+#open-side-panel-btn span[itemprop=create-account] .bullet,
+#side-panel li[itemprop=create-account]::before {
+    --circle-color: var(--clr-create-account);
+}
+
+#open-side-panel-btn span[itemprop=profile] .bullet,
+#side-panel li[itemprop=profile]::before {
+    --circle-color: var(--clr-profile);
+}
+
+#open-side-panel-btn span[itemprop=logout] .bullet,
+#side-panel li[itemprop=logout]::before {
+    --circle-color: var(--clr-logout);
+}
+
+#open-side-panel-btn span[itemprop=delete-account] .bullet,
+#side-panel li[itemprop=delete-account]::before {
+    --circle-color: var(--clr-delete-account);
+} 
+
+
+/* 
+    Sun and Moon icons */
 
 #sun-mode-btn,
 #moon-mode-btn {
@@ -336,149 +399,6 @@ p {
     border-radius: 100%;
     background-color: var(--clr-f9);
 }
-
-@media (max-width: 1189px) 
-{    
-    #side-nav {
-        box-shadow: -2px 0px 8px var(--clr-cc);
-        position: fixed;
-        bottom: 0;
-        right: 0;
-        min-width: 35vw;
-    }
-
-    #open-side-nav-btn {
-        position: fixed;
-        bottom: 2vh;
-        right: 3vw;
-        /* Override default padding of .secondary-btn */
-        padding: .75rem .65rem;
-    }
-
-    #open-side-nav-btn span[role=img] > span {
-        margin-bottom: .55rem;   
-        display: flex;
-        align-items: center;
-    }
-
-    #open-side-nav-btn span[role=img] > span:last-child {
-        margin-bottom: 0;
-    }
-
-    #open-side-nav-btn .bullet {
-        --circle-color: var(--clr-6a);
-        display: inline-block;
-        height: 6px;
-        aspect-ratio: 1;
-        margin-right: .25em;
-        border-radius: 100%;
-        background-color: var(--circle-color);
-        border: 1px solid var(--clr-48);
-    }
-
-    #open-side-nav-btn .row {
-        display: inline-block;
-        width: 32px;
-        height: 3px;
-        border-radius: 8px;
-        background-color: var(--clr-txt);
-    }
-}
-
-@media (min-width: 1190px) 
-{
-    body {
-        display: flex;
-        align-items: start;
-        justify-content: center;
-    }
-
-    #side-nav {
-        --profile-pic-size: 70px;
-        --list-fs: 2rem;
-        display: block;
-        border-left: 1px solid var(--clr-cc);
-    }
-
-    #minify-nav-btn.display-block,
-    #expand-nav-btn.display-block {
-        display: block;
-    }
-
-    #side-nav:has(.minified-list) {
-        border-left: unset;
-        padding-left: 0;
-    }
-
-    .minified-list li {
-        padding-inline: 0 !important;
-        margin-inline: 0 !important;
-    }
-
-    #side-nav:has(.minified-list) li[itemprop=profile] a > span {
-        width: 0;
-    }
-
-    .minified-list li a {
-        visibility: hidden;
-        font-size: 0;
-    }  
-
-    .minified-list li::before {
-        display: none;
-    }  
-
-    #side-nav:has(.minified-list) > button {
-        margin-inline: 0;
-    }
-    
-    #open-side-nav-btn {
-        display: none;
-    }
-}
-
-/* 
- * Color-specific customization */
-
-#open-side-nav-btn span[itemprop=index] .bullet,
-#side-nav li[itemprop=index]::before {
-    --circle-color: var(--clr-index);
-}
-
-#open-side-nav-btn span[itemprop=write-post] .bullet,
-#side-nav li[itemprop=write-post]::before {
-    --circle-color: var(--clr-write-post);
-}
-
-#open-side-nav-btn span[itemprop=notifications] .bullet,
-#side-nav li[itemprop=notifications]::before {
-    --circle-color: var(--clr-notifications);
-}
-
-#open-side-nav-btn span[itemprop=login] .bullet,
-#side-nav li[itemprop=login]::before {
-    --circle-color: var(--clr-login);
-}
-
-#open-side-nav-btn span[itemprop=create-account] .bullet,
-#side-nav li[itemprop=create-account]::before {
-    --circle-color: var(--clr-create-account);
-}
-
-#open-side-nav-btn span[itemprop=profile] .bullet,
-#side-nav li[itemprop=profile]::before {
-    --circle-color: var(--clr-profile);
-}
-
-#open-side-nav-btn span[itemprop=logout] .bullet,
-#side-nav li[itemprop=logout]::before {
-    --circle-color: var(--clr-logout);
-}
-
-#open-side-nav-btn span[itemprop=delete-account] .bullet,
-#side-nav li[itemprop=delete-account]::before {
-    --circle-color: var(--clr-delete-account);
-} 
 
 
 /*
