@@ -20,6 +20,10 @@
         button[type=submit] {
             margin-left: auto;
         }
+
+        textarea {
+            background-color: var(--bkg-reply-card);
+        }
     </style>
 </head>
 <body>
@@ -29,7 +33,7 @@
         {{ .post-card }}
 
         <form id="reply-form" action="api/reply" method="POST">
-            <textarea name="reply-textarea" placeholder="_"></textarea>
+            <textarea name="reply-textarea" placeholder="_" rows="20"></textarea>
             
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>

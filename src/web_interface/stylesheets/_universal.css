@@ -824,6 +824,8 @@ form > textarea {
     line-height: 1.4;
     width: 100%;
     resize: vertical;
+    border: 1px solid var(--clr-cc);
+    box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
 }
 
 input:focus-visible,
