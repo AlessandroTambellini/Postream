@@ -9,6 +9,7 @@
 
 :root {
     --page-inline-padding: 2vw;
+    --page-padding-bottom: 15vh;
 }
 
 :root
@@ -109,7 +110,7 @@ main {
     overflow-y: scroll;
     scrollbar-width: none;
     /* Otherwise open-website-nav-btn may cover some content at the bottom of the page */
-    padding-bottom: 10vh;
+    padding-bottom: var(--page-padding-bottom);
 }
 
 main > * {
@@ -250,13 +251,14 @@ p {
     position: fixed;
     bottom: var(--bottom);
     right: 3vw;
-    background: unset;
     border: unset;
     font-size: 2rem;
     border-radius: 8px;
     color: var(--clr-6a);
     padding: .25em;
     padding-right: .75em;
+    backdrop-filter: blur(10px);
+    background-color: hsl(var(--hsl-f9), .5);
 }
 
 #show-side-panel-btn:hover {
@@ -822,6 +824,11 @@ form > textarea {
     line-height: 1.4;
     width: 100%;
     resize: vertical;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+    outline: none;
 }
 
 form > button[type=submit] {

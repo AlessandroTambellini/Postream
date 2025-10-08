@@ -98,17 +98,17 @@ DOMElements['#side-panel'] = function(logged_in, page)
     const side_nav = 
         `<aside id='side-panel' class="display-none">` +
 
-            `<button id="moon-mode-btn">` +
-                `<span id="moon" role="img"></span>` +
-                `<span id="sky"></span>` +
+            `<button id="moon-mode-btn" aria-label='toggle moon-mode'>` +
+                `<span id="moon" role="img" alt='moon'></span>` +
+                `<span id="sky" role='img' alt='sky'></span>` +
             `</button>` +
 
-            `<button id="sun-mode-btn">` +
-                `<span class="ray"></span>` +
-                `<span class="ray"></span>` +
-                `<span class="ray"></span>` +
-                `<span class="ray"></span>` +
-                `<span id="sun"></span>` +
+            `<button id="sun-mode-btn" aria-label='toggle sun-mode'>` +
+                `<span class="ray" role=img alt='ray'></span>` +
+                `<span class="ray" role=img alt='ray'></span>` +
+                `<span class="ray" role=img alt='ray'></span>` +
+                `<span class="ray" role=img alt='ray'></span>` +
+                `<span id="sun" role=img alt='sun'></span>` +
             `</button>` +
 
             `<script>` +

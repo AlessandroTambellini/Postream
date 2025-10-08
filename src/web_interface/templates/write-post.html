@@ -15,6 +15,12 @@
         button[type=submit] {
             margin-left: auto;
         }
+
+        textarea {
+            background-color: var(--bkg-post-card);
+            border: 1px solid var(--clr-cc);
+            box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
+        }
     </style>
 </head>
 <body>
@@ -30,7 +36,8 @@
         <h1 class="visually-hidden">Write Post</h1>
     
         <form action="api/post" method="POST">
-            <textarea name="post-textarea" placeholder="_"></textarea>
+                
+            <textarea name="post-textarea" placeholder="_" rows="20"></textarea>
             
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
