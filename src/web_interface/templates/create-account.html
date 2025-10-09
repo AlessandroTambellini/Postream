@@ -10,9 +10,6 @@
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
             
-    <script type='module' src="../scripts/_universal.js"></script>
-    <!-- <script type="module" src="../scripts/create-account.js"></script> -->
-
     <style>
         form {
             padding-block: 1em;
@@ -20,7 +17,7 @@
 
         div:has(#password) {
             position: relative;
-            background-color: rgb(251, 248, 233);
+            background-color: var(--clr-e8);
             border: 2px solid rosybrown;
             border-radius: 8px;
             width: fit-content;
@@ -45,7 +42,7 @@
         }
 
         div:has(#password) button.btn-unclicked:hover {
-            background-color: buttonface;
+            background-color: var(--clr-cc);
         }
 
         div:has(#password) button.btn-clicked {

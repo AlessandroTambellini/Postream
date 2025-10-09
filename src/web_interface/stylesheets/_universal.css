@@ -62,6 +62,8 @@
     --clr-ab: #545454;
     --clr-6a: #959595;
     --clr-48: #b7b7b7;
+
+    --clr-light-blue: #c47d09;
     
     --clr-index: #ef467e;
     --clr-write-post: #0020d6;
@@ -99,6 +101,13 @@ body {
     justify-content: center;
     background-color: var(--clr-f9);
     color: var(--clr-txt);
+    font-size: 1rem;
+}
+
+@media (min-width: 500px) {
+    body {
+        font-size: 1.2rem;
+    }
 }
 
 main {
@@ -118,7 +127,10 @@ main > * {
 }
 
 a, button, textarea, input {
-    font-family: inherit;
+    font: inherit;
+}
+button, textarea, input {
+    color: inherit;
 }
 
 a {
@@ -135,7 +147,6 @@ a:hover {
     padding-top: 2rem;
     margin-inline: auto;
     max-width: 70ch;
-    font-size: 1.2rem;
     text-align: center;
 }
 
@@ -146,7 +157,6 @@ a:hover {
 .cards-container:empty {
     padding-top: 2rem;
     max-width: 70ch;
-    font-size: 1.2rem;
     text-align: center;
 }
 
@@ -162,21 +172,43 @@ p {
 #side-panel 
 {
     --profile-pic-size: 60px;
-    --bullet-size: .3em;
     --list-fs: 1.5rem;
-
-    /* display: block; */
+    --bullet-size: .3em;
 
     position: fixed;
     bottom: 0;
-    right: 0;
+    right: -100%;
     height: 100vh;
+    max-width: 80vw;
 
     font-size: var(--list-fs);
     padding: 1.2em;
     background-color: var(--clr-f9);
     border-left: 1px solid var(--clr-cc);
     box-shadow: -2px 0px 8px var(--clr-cc);
+
+    /* In this way, #show-side-panel-btn is behind #side-panel
+    ==> No need to set #show-side-panel-btn to display-none.
+    Moreover, there isn't movement of the layout. */
+    z-index: 2;
+
+    transition: right 0.3s ease;
+}
+
+@media (min-width: 600px) {
+    #side-panel {
+        --profile-pic-size: 70px;
+        --list-fs: 2rem;
+    }
+}
+
+#side-panel.shown {
+    right: 0;
+}
+
+#side-panel:not(:has(li[itemprop=profile])) {
+    /* When the profile icon is absent, the sun-mode/moon-mode button feels too attached to the menu */
+    padding-top: 2.4em;
 }
 
 #side-panel menu {
@@ -267,11 +299,7 @@ p {
 
 @media (min-width: 1300px) 
 {
-    #side-panel {
-        --profile-pic-size: 70px;
-        --list-fs: 2rem;
-    }
-
+    /* Avoid the button to go too far at the edge of the page */
     #show-side-panel-btn {
         position: static;
         align-self: flex-end;
@@ -282,56 +310,48 @@ p {
 /* 
  * Color-specific customization */
 
-#open-side-panel-btn span[itemprop=index] .bullet,
-#side-panel li[itemprop=index]::before {
+li[itemprop=index]::before {
     --circle-color: var(--clr-index);
 }
-
-#open-side-panel-btn span[itemprop=write-post] .bullet,
-#side-panel li[itemprop=write-post]::before {
+li[itemprop=write-post]::before {
     --circle-color: var(--clr-write-post);
 }
-
-#open-side-panel-btn span[itemprop=notifications] .bullet,
-#side-panel li[itemprop=notifications]::before {
+li[itemprop=notifications]::before {
     --circle-color: var(--clr-notifications);
 }
-
-#open-side-panel-btn span[itemprop=login] .bullet,
-#side-panel li[itemprop=login]::before {
+li[itemprop=login]::before {
     --circle-color: var(--clr-login);
 }
-
-#open-side-panel-btn span[itemprop=create-account] .bullet,
-#side-panel li[itemprop=create-account]::before {
+li[itemprop=create-account]::before {
     --circle-color: var(--clr-create-account);
 }
-
-#open-side-panel-btn span[itemprop=profile] .bullet,
-#side-panel li[itemprop=profile]::before {
+li[itemprop=profile]::before {
     --circle-color: var(--clr-profile);
 }
-
-#open-side-panel-btn span[itemprop=logout] .bullet,
-#side-panel li[itemprop=logout]::before {
+li[itemprop=logout]::before {
     --circle-color: var(--clr-logout);
 }
-
-#open-side-panel-btn span[itemprop=delete-account] .bullet,
-#side-panel li[itemprop=delete-account]::before {
+li[itemprop=delete-account]::before {
     --circle-color: var(--clr-delete-account);
 } 
-
 
 /* 
     Sun and Moon icons */
 
 #sun-mode-btn,
-#moon-mode-btn {
-    margin-left: auto;
-    /* border-radius: 100%; */
+#moon-mode-btn 
+{
+    border: unset;
+    background: unset;
+
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+
     --icon-size: 40px;
 }
+
 #sun-mode-btn:hover,
 #moon-mode-btn:hover {
     /* background-color: hsl(var(--hsl-6a), .25);
@@ -343,15 +363,19 @@ p {
 } */
 
 #sun-mode-btn {
-    padding: 0;
-    border: unset;
-    background-color: var(--clr-f9);
+    width: var(--icon-size);
+    aspect-ratio: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+#sun-icon {
     position: relative;
     --ray-length: var(--icon-size);
     --sun-diameter: calc(var(--icon-size) * 2/3);
 }
 
-#sun-mode-btn span {
+#sun-icon span {
     display: block;
 }
 
@@ -380,33 +404,31 @@ p {
 .ray:nth-child(3) { transform: rotate(90deg); }
 .ray:nth-child(4) { transform: rotate(135deg); } 
 
-#moon-mode-btn {
-    /* Otherwise there is the little line crossing the top of the moon */
-    padding: 0;
+#moon-icon {
     position: relative;
     overflow: hidden;
-    border: unset;
     background-color: var(--clr-f9);
+    --moon-size: calc(var(--icon-size) - 5px);
 }
 
-#moon-mode-btn span {
+#moon-icon span {
     display: block;
 }
 
 #moon {
     border-radius: 100%;
     background-color: var(--clr-txt);
-    width: var(--icon-size);
+    width: var(--moon-size);
     aspect-ratio: 1;
 }
 
 #sky {
     position: absolute;
-    top: calc(var(--icon-size) / (-3));
-    right: calc(var(--icon-size) / (-3));
+    top: calc(var(--moon-size) / (-3));
+    right: calc(var(--moon-size) / (-3));
     z-index: 2;
-    width: var(--icon-size);
-    height: var(--icon-size);
+    width: var(--moon-size);
+    height: var(--moon-size);
     border-radius: 100%;
     background-color: var(--clr-f9);
 }
@@ -475,7 +497,6 @@ button {
         0 2px 0 var(--clr-b8),
         0 4px 6px rgba(var(--rgb-00), 0.1);
     transform: translateY(0);
-    font-size: 1rem;
     padding-block: .67em;
     padding-inline: 1.2em;
 }
@@ -483,12 +504,6 @@ button {
 .primary-btn {
     background: linear-gradient(180deg, var(--clr-ff) 0%, var(--clr-e8) 100%);
     border: 1px solid var(--clr-ab);
-}
-
-@media (min-width: 500px) {
-    .primary-btn {
-        font-size: 1.2rem;
-    }
 }
 
 .primary-btn:not(:disabled):hover {
@@ -512,7 +527,6 @@ button {
 }
 
 .secondary-btn {
-    font-size: 1.1rem;
     padding: .25em .5em;
     border-radius: 8px;
     transition: all 0.035s ease;
@@ -520,6 +534,7 @@ button {
     box-shadow: 0 1px 2px rgba(var(--rgb-00), 0.05);
     background-color: var(--clr-e8);
     border: 1px solid var(--clr-cc);
+    font-size: 1.1rem;
 }
 
 .secondary-btn:hover {
@@ -537,12 +552,6 @@ button {
     background-color: var(--clr-selected);
 }
 
-@media (min-width: 500px) {
-    .secondary-btn {
-        font-size: 1.2rem;
-    }
-}
-
 
 /*
  *
@@ -555,11 +564,14 @@ button {
     --border-thickness: 1px;
     --card-max-width: calc(var(--text-line-length) + var(--padding)*2 + var(--border-thickness)*2);
 
-    font-size: 1rem;
     padding: var(--padding);
     border: 1px solid var(--clr-cc);
     box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
     max-width: var(--card-max-width);
+
+    /* If overflow isn't set to hidden, when the card is deleted, 
+    the text would appear to spill out the boundaries of the shrinking card (See card.deleting) */
+    overflow: hidden;
 }
 
 .card p {
@@ -592,10 +604,6 @@ button {
 }
 
 @media (min-width: 500px) {
-    .card {
-        font-size: 1.2rem;
-    }
-
     .card time,
     .card a {
         font-size: initial;
@@ -744,7 +752,7 @@ button {
     content: 'i';
 }
 .info p .type {
-    color: #1e40af;
+    color: #3b82f6;
 }
 
 .success {
@@ -759,7 +767,7 @@ button {
     content: '✓';
 }
 .success p .type {
-    color: #047857;
+    color: #10b981;
 }
 
 .warning {
@@ -807,20 +815,19 @@ form {
     --input-padding: 1.2rem;
     --border-thickness: 1px;
 
-    font-size: 1.2rem;
     max-width: calc(var(--text-line-length) + var(--input-padding)*2 + var(--border-thickness)*2);
 }
 
 form > input {
     padding: var(--input-padding);
-    font-size: inherit;
     line-height: 1.4;
     width: 100%;
+    background-color: var(--clr-f9);
+    border: 1px solid var(--clr-ab);
 }
 
 form > textarea {
     padding: var(--input-padding);
-    font-size: inherit;
     line-height: 1.4;
     width: 100%;
     resize: vertical;

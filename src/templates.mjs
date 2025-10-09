@@ -96,19 +96,23 @@ DOMElements['#side-panel'] = function(logged_in, page)
     if (page === 'profile') menu_entries.push('delete-account');
 
     const side_nav = 
-        `<aside id='side-panel' class="display-none">` +
+        `<aside id='side-panel'>` + // class="display-none"
 
             `<button id="moon-mode-btn" aria-label='toggle moon-mode'>` +
-                `<span id="moon" role="img" alt='moon'></span>` +
-                `<span id="sky" role='img' alt='sky'></span>` +
+                `<span id="moon-icon" role="img" alt='moon icon'>` +
+                    `<span id="moon"></span>` +
+                    `<span id="sky"></span>` +
+                `</span>` +
             `</button>` +
 
             `<button id="sun-mode-btn" aria-label='toggle sun-mode'>` +
-                `<span class="ray" role=img alt='ray'></span>` +
-                `<span class="ray" role=img alt='ray'></span>` +
-                `<span class="ray" role=img alt='ray'></span>` +
-                `<span class="ray" role=img alt='ray'></span>` +
-                `<span id="sun" role=img alt='sun'></span>` +
+                `<span id="sun-icon" role="img" alt='sun icon'>` +
+                    `<span class="ray"></span>` +
+                    `<span class="ray"></span>` +
+                    `<span class="ray"></span>` +
+                    `<span class="ray"></span>` +
+                    `<span id="sun"></span>` +
+                `</span>` +
             `</button>` +
 
             `<script>` +
@@ -116,7 +120,7 @@ DOMElements['#side-panel'] = function(logged_in, page)
                 `const moon_mode_btn = document.querySelector('#moon-mode-btn');` +
 
                 `if (light_mode === 'moon-mode') {` +
-                    `sun_mode_btn.classList.add('display-block');` +
+                    `sun_mode_btn.classList.add('display-flex');` +
                     `moon_mode_btn.classList.add('display-none');` +
                 `} else {` +
                     `sun_mode_btn.classList.add('display-none');` +

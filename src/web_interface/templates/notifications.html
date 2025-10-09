@@ -10,8 +10,6 @@
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
       
-    <script type='module' src="../scripts/_universal.js"></script>
-
     <style>
         main {
             padding: 0;
@@ -33,15 +31,9 @@
             content: 'You don\'t have any notification :)';
         }
 
-        .notification-card 
-        {
+        .notification-card {
             max-width: min(var(--card-max-width), calc(100% - 2*var(--page-inline-padding)));
             margin-bottom: .5em;
-
-            /* If overflow isn't set to hidden, 
-            the text would appear to spill out below the boundaries of the shrinking card
-            while the card is deleted. See the 'deleting' class. */
-            overflow: hidden;
         }
 
         #feedback-card-wrapper {
@@ -54,7 +46,7 @@
 
         .feedback-card {
             margin-inline: auto;
-            box-shadow: 0px 4px 11px 2px #b6b6b6;
+            box-shadow: 0px 4px 11px 2px var(--clr-b8);
         }
     </style>
 </head>
@@ -82,7 +74,6 @@
         </div>
         
         <div id="notifications-container" class="cards-container">{{ notification-cards }}</div>
-        <!-- {{ notification-cards }} -->
     </main>
 
     {{ #side-panel }}

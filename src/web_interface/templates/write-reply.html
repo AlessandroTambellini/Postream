@@ -10,8 +10,6 @@
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
       
-    <script type='module' src="../scripts/_universal.js"></script>
-    
     <style>
         form {
             margin-top: 1em;
@@ -27,6 +25,14 @@
     </style>
 </head>
 <body>
+    <script>
+        const light_mode = localStorage.getItem('light-mode');
+        if (light_mode === 'moon-mode')
+        {
+            document.querySelector('html').classList.add('moon-mode');
+        }
+    </script>
+
     <h1 class="visually-hidden">Write Reply</h1>
 
     <main>
@@ -53,7 +59,7 @@
     {{ #side-panel }}
     
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card,  } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, err_msg } from '../scripts/_universal.js';
 
         const write_reply_form = document.querySelector('form');
         const textarea = write_reply_form.querySelector('textarea');

@@ -26,22 +26,22 @@ const feedback_card = document.querySelector('.feedback-card');
 
 show_side_panel_btn.addEventListener('click', () => 
 {    
-    side_panel.classList.replace('display-none', 'display-block');
-    // show_side_panel_btn.classList.replace('display-block', 'display-none');
+    // side_panel.classList.replace('display-none', 'display-block');
+    side_panel.classList.add('shown');
     main.classList.add('display-opaque');
 });
 
 main.addEventListener('click', () => 
 {
-    side_panel.classList.replace('display-block', 'display-none');
-    show_side_panel_btn.classList.replace('display-none', 'display-block');
+    // side_panel.classList.replace('display-block', 'display-none');
+    side_panel.classList.remove('shown');
     main.classList.remove('display-opaque');
 });
 
 sun_mode_btn.addEventListener('click', () => 
 {
     html.classList.remove('moon-mode');
-    sun_mode_btn.classList.replace('display-block', 'display-none');
+    sun_mode_btn.classList.replace('display-flex', 'display-none');
     moon_mode_btn.classList.replace('display-none', 'display-block');
     localStorage.removeItem('light-mode');
 });
@@ -49,7 +49,7 @@ sun_mode_btn.addEventListener('click', () =>
 moon_mode_btn.addEventListener('click', () => 
 {
     html.classList.add('moon-mode');
-    sun_mode_btn.classList.replace('display-none', 'display-block');
+    sun_mode_btn.classList.replace('display-none', 'display-flex');
     moon_mode_btn.classList.replace('display-block', 'display-none');
     localStorage.setItem("light-mode", "moon-mode");
 });
@@ -167,7 +167,7 @@ function show_feedback_card(feedback_card, type, msg)
 }
 
 function hide_feedback_card(feedback_card) {
-    feedback_card.className = 'card feedback-card display-none';
+    feedback_card.className = 'card feedback-card deleting'; // display-none
 }
 
 /* This function is to give more meaning to the possible errors coming from the server 
