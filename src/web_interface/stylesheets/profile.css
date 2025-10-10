@@ -6,12 +6,12 @@ main {
 
 #profile-picture {
     display: block;
-    margin-block: 2.4rem; /* aligned with the side-panel padding-block */
+    margin-block: 2.4rem;
     width: 225px;
     aspect-ratio: 1;
-    background-color: white;
+    background-color: var(--clr-ff);
     border-radius: 100%;
-    box-shadow: 0 0px 3px #ccc;
+    border: 1px solid var(--clr-d8);
 
     /* For the balls inside */
     overflow: hidden;
@@ -28,7 +28,7 @@ main {
     position: absolute;
     aspect-ratio: 1;
     border-radius: 100%;
-    box-shadow: 0 0px 3px #ccc;
+    box-shadow: 0 0px 3px var(--clr-cc);
 }
 
 h2 {

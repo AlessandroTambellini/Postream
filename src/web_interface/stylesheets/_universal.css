@@ -184,7 +184,7 @@ p {
     font-size: var(--list-fs);
     padding: 1.2em;
     background-color: var(--clr-f9);
-    border-left: 1px solid var(--clr-cc);
+    border-left: 1px solid var(--clr-b8);
     box-shadow: -2px 0px 8px var(--clr-cc);
 
     /* In this way, #show-side-panel-btn is behind #side-panel
@@ -278,35 +278,6 @@ p {
     border-radius: 100%;
 }
 
-#show-side-panel-btn {
-    --bottom: 5vh;
-    position: fixed;
-    bottom: var(--bottom);
-    right: 3vw;
-    border: unset;
-    font-size: 2rem;
-    border-radius: 8px;
-    color: var(--clr-6a);
-    padding: .25em;
-    padding-right: .75em;
-    backdrop-filter: blur(10px);
-    background-color: hsl(var(--hsl-f9), .5);
-}
-
-#show-side-panel-btn:hover {
-    background-color: var(--clr-e8);
-}
-
-@media (min-width: 1300px) 
-{
-    /* Avoid the button to go too far at the edge of the page */
-    #show-side-panel-btn {
-        position: static;
-        align-self: flex-end;
-        margin-bottom: var(--bottom);
-    }
-}
-
 /* 
  * Color-specific customization */
 
@@ -336,7 +307,7 @@ li[itemprop=delete-account]::before {
 } 
 
 /* 
-    Sun and Moon icons */
+    Sun & Moon icons */
 
 #sun-mode-btn,
 #moon-mode-btn 
@@ -345,22 +316,18 @@ li[itemprop=delete-account]::before {
     background: unset;
 
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
     z-index: 2;
+    border-radius: 100%;
 
     --icon-size: 40px;
 }
 
 #sun-mode-btn:hover,
 #moon-mode-btn:hover {
-    /* background-color: hsl(var(--hsl-6a), .25);
-    box-shadow: 0px 0px 0px calc(var(--icon-size)/4) hsl(var(--hsl-6a), .25); */
+    box-shadow: 0px 0px 0px calc(var(--icon-size)/8) hsl(var(--hsl-6a), .25);
 }
-
-/* #moon-mode-btn:hover #sky {
-    background-color: hsl(var(--hsl-6a), 1);
-} */
 
 #sun-mode-btn {
     width: var(--icon-size);
@@ -433,6 +400,35 @@ li[itemprop=delete-account]::before {
     background-color: var(--clr-f9);
 }
 
+#show-side-panel-btn {
+    --bottom: 4vh;
+    position: fixed;
+    bottom: var(--bottom);
+    right: 4vh;
+    border: unset;
+    font-size: 2rem;
+    border-radius: 8px;
+    color: var(--clr-6a);
+    padding: .15em;
+    padding-right: .65em;
+    backdrop-filter: blur(10px);
+    background-color: hsl(var(--hsl-f9), .5);
+    border: 1px solid var(--clr-b8);
+}
+
+#show-side-panel-btn:hover {
+    background-color: var(--clr-e8);
+}
+
+@media (min-width: 1300px) 
+{
+    /* Avoid the button to go too far at the edge of the page */
+    #show-side-panel-btn {
+        position: static;
+        align-self: flex-end;
+        margin-bottom: var(--bottom);
+    }
+}
 
 /*
  *
@@ -471,6 +467,7 @@ Therefore, I modify the state only via CSS classes. */
 
 .display-opaque {
     opacity: .5;
+    user-select: none;
 }
 .display-opaque a,
 .display-opaque button {
