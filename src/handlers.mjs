@@ -50,9 +50,14 @@ const MSG_UNKNOWN_DB_ERROR = (action, entity) => {
  *  Pages 
  */
 
-const page = {};
+const pages = {};
 
-page['test-elements'] = async function(req_data, res_obj)
+pages['pages'] = async function(req_data, res_obj)
+{
+    // Object.keys(pages)
+};
+
+pages['test-elements'] = async function(req_data, res_obj)
 {
     let { template: test_components_template, fs_error } = await read_template('test-elements');
 
@@ -67,6 +72,7 @@ page['test-elements'] = async function(req_data, res_obj)
         content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
         created_at: new Date().toLocaleString(),
     };
+    
     const notif_card = {
         id: '#',
         post_id: '#', 
@@ -86,7 +92,7 @@ page['test-elements'] = async function(req_data, res_obj)
     res_obj.page(200, test_components_page);
 };  
 
-page.index = async function(req_data, res_obj) 
+pages.index = async function(req_data, res_obj) 
 {
     let { template: index_template, fs_error } = await read_template('index');
     
@@ -107,7 +113,7 @@ page.index = async function(req_data, res_obj)
     const { posts, db_error } = db_op.select_posts_page(1, 20, 'desc');
 
     if (db_error) {
-        index_template = index_template.replace('{{ post-cards }}', DOMElements['.info-msg']('Sorry, unable to retrieve the posts :)'));
+        index_template = index_template.replace('{{ post-cards }}', DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
     } else {
         const post_cards = posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
         index_template = index_template.replace('{{ post-cards }}', post_cards);
@@ -120,7 +126,7 @@ page.index = async function(req_data, res_obj)
     res_obj.page(200, index_page);
 };
 
-page['create-account'] = async function(req_data, res_obj)
+pages['create-account'] = async function(req_data, res_obj)
 {
     let { template: create_account_template, fs_error } = await read_template('create-account');
    
@@ -137,7 +143,7 @@ page['create-account'] = async function(req_data, res_obj)
     res_obj.page(200, create_account_page);
 };
 
-page.login = async function(req_data, res_obj)
+pages.login = async function(req_data, res_obj)
 {
     let { template: login_template, fs_error } = await read_template('login');
     
@@ -154,7 +160,7 @@ page.login = async function(req_data, res_obj)
     res_obj.page(200, login_page);
 };
 
-page.profile = async function(req_data, res_obj)
+pages.profile = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -191,7 +197,7 @@ page.profile = async function(req_data, res_obj)
     res_obj.page(200, profile_page);
 };
 
-page.notifications = async function(req_data, res_obj)
+pages.notifications = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -227,7 +233,7 @@ page.notifications = async function(req_data, res_obj)
     res_obj.page(200, notifications_page);
 };
 
-page['write-post'] = async function(req_data, res_obj) 
+pages['write-post'] = async function(req_data, res_obj) 
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
     
@@ -252,7 +258,7 @@ page['write-post'] = async function(req_data, res_obj)
     res_obj.page(200, write_post_page);
 };
 
-page['write-reply'] = async function(req_data, res_obj) 
+pages['write-reply'] = async function(req_data, res_obj) 
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -293,7 +299,7 @@ page['write-reply'] = async function(req_data, res_obj)
     res_obj.page(200, write_reply_page);
 };
 
-page['read-post'] = async function(req_data, res_obj)
+pages['read-post'] = async function(req_data, res_obj)
 {
     let { template: post_template, fs_error } = await read_template('read-post');
     
@@ -346,7 +352,7 @@ page['read-post'] = async function(req_data, res_obj)
     res_obj.page(200, post_page);
 };  
 
-page.logout = async function(req_data, res_obj)
+pages.logout = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -371,7 +377,7 @@ page.logout = async function(req_data, res_obj)
     res_obj.page(200, logout_page);
 };
 
-page['delete-account'] = async function(req_data, res_obj)
+pages['delete-account'] = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
@@ -396,7 +402,7 @@ page['delete-account'] = async function(req_data, res_obj)
     res_obj.page(200, delete_account_page);
 };
 
-page.logo = async function(req_data, res_obj)
+pages.logo = async function(req_data, res_obj)
 {
     const { template: logo_page, fs_error } = await read_template('logo');
 
@@ -415,7 +421,7 @@ page.logo = async function(req_data, res_obj)
 
 const API = {};
 
-API.list = route_API_method('list');
+API.apis = route_API_method('apis');
 API.user = route_API_method('user');
 API.token = route_API_method('token');
 API.post = route_API_method('post');
@@ -435,7 +441,7 @@ function route_API_method(api) {
     }
 }
 
-API.list.GET = function(req_data, res_obj) 
+API.apis.GET = function(req_data, res_obj) 
 {
     res_obj.success(200, { 'Available APIs': Object.keys(API) });
 };
@@ -989,7 +995,7 @@ function auth_user(cookies)
 }
 
 export {
-    page,
+    pages,
     API,
     get_asset,
 };

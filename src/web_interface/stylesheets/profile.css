@@ -49,25 +49,22 @@ h2 {
 .post-card {
     margin-bottom: .5em;
     max-width: min(var(--card-max-width), calc(100% - 4vw));
-
-    /* If overflow isn't set to hidden, 
-    the text would appear to spill out below the boundaries of the shrinking card
-    when the deleting class is set. */
-    overflow: hidden;
 }
 
 .feedback-card {
     margin-inline: auto;
-    box-shadow: 0px 4px 11px 2px #b6b6b6;
+    box-shadow: 0px 4px 11px 2px var(--clr-b8);
 }
 
 #delete-post-dialog {
     padding: 1em;
     border-radius: 8px;
-    border: 1px solid #b8b8b8;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--clr-b8);
+    box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
     margin-top: auto;
     margin-bottom: 20%;
+    background-color: var(--clr-e8);
+    color: var(--clr-txt);
 }
 
 #close-dialog-btn {
@@ -91,7 +88,7 @@ h2 {
 
 #close-dialog-btn:hover {
     opacity: 1;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(var(--rgb-00), 0.1);
 }
 
 #delete-post-dialog form p {

@@ -79,11 +79,11 @@ function handle_request(req, res)
             // allow for the specification of the html extension in a path
             if (page_path.endsWith('.html')) page_path = page_path.replace('.html', '');
 
-            const api_path = path === '/api' ? 'list' : path.replace('/api/', '');
+            const api_path = path === '/api' ? 'apis' : path.replace('/api/', '');
 
-            if (handlers.page[page_path]) {
+            if (handlers.pages[page_path]) {
                 if (req_data.method === 'GET') {
-                    await handlers.page[page_path](req_data, res_obj);
+                    await handlers.pages[page_path](req_data, res_obj);
                 } else {
                     res_obj.error(405, `The method '${req_data.method}' isn't allowed for path '${req_data.path}'`);
                 }

@@ -53,7 +53,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, err_msg } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, err_msg, sanitize_input } from '../scripts/_universal.js';
 
         const write_post_form = document.querySelector('form');
         const textarea = write_post_form.querySelector('textarea');
@@ -71,7 +71,7 @@
             const path = write_post_form.attributes.action.value;
             const method = write_post_form.attributes.method.value;
             
-            const content = textarea.value;
+            const content = sanitize_input(textarea.value);
             
             const { status_code, req_error } = await req(path, method, null, { content });
 

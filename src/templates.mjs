@@ -13,14 +13,12 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
     E.g. if you are the author of the post and you are simply visualizing it in the profile page
     (even though, you can reply to your own posts) */
     const reply_link_types = ['', `<a href='/read-post?id=${id}'>Read-Replies</a>`, `<a href='/write-reply?id=${id}'>Reply</a>`];    
+    const injected_content = cut_post_content && content.length > 70*10 ?
+        content.substring(0, 70*10) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>` : content;
 
-    const post_card = 
+    return (
         `<article id='post-card-${id}' class="card post-card">` +
-            `<p>` + 
-                `${cut_post_content && content.length > 70*10 ? 
-                    content.substring(0, 70*10) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>` : 
-                    content}` +
-            `</p>` +
+            `<p>${injected_content}</p>` +
             `<time datetime="${created_at}"></time>` +
             `<footer>` +
                 `${reply_link_types[reply_link_type]}` +
@@ -28,30 +26,26 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
                     `<button type='button' id='post-${id}' class='delete-post-btn secondary-btn'>Delete</button>` : ''}` +
             `</footer>` +
         `</article>`
-    ;
-
-    return post_card;
+    );
 }
 
 DOMElements['.reply-card'] = function(reply)
 {
     const { id, content, created_at } = reply;
 
-    const reply_card = 
+    return (
         `<article id='reply-${id}' class='card reply-card'>` +
             `<p>${content}</p>` + 
             `<time datetime="${created_at}"></time>` +
         `</article>`
-    ;
-
-    return reply_card;
+    );
 }
 
 DOMElements['.notification-card'] = function(notification)
 {
     const { id, post_id, post_content_snapshot, first_new_reply_id, num_of_replies } = notification;
 
-    const notification_card = 
+    return (
         `<article id='notification-card-${id}' class='card notification-card'>` +
             `<p><b>${num_of_replies} new reply(s) for:</b> "${post_content_snapshot}..."</p>` +
             `<footer>` +
@@ -59,9 +53,7 @@ DOMElements['.notification-card'] = function(notification)
                 `<button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>` +
             `</footer>` +
         `</article>`
-    ;
-
-    return notification_card;
+    );
 }
 
 DOMElements['#profile-picture'] = function(max_num_of_circles, size)
@@ -95,8 +87,8 @@ DOMElements['#side-panel'] = function(logged_in, page)
     menu_entries = menu_entries.filter(entry => entry !== page);
     if (page === 'profile') menu_entries.push('delete-account');
 
-    const side_nav = 
-        `<aside id='side-panel'>` + // class="display-none"
+    const side_nav = (
+        `<aside id='side-panel'>` +
 
             `<button id="moon-mode-btn" aria-label='toggle moon-mode'>` +
                 `<span id="moon-icon" role="img" alt='moon icon'>` +
@@ -136,27 +128,28 @@ DOMElements['#side-panel'] = function(logged_in, page)
                         `</a>` +
                     `</li>` : ''}` +
                 `${menu_entries.reduce((accumulator, page) => {
-                    return accumulator +
+                    return accumulator + (
                         `<li itemprop="${page}">` + 
                             `<a href="/${page}">${page}</a>` +
-                        `</li>`;
+                        `</li>`
+                    );
                 }, '')}` +
             `</menu>` +
         `</aside>`
-    ;
+    );
 
-    const show_side_nav_btn = 
+    const show_side_nav_btn = (
         `<button id="show-side-panel-btn" aria-label='show side-panel' class='display-block'>` +
             `<span role='img' alt='show side-panel icon'>〈</span>` +
         `</button>`
-    ;
+    );
 
     return side_nav + show_side_nav_btn;
 }
 
 DOMElements['.info-msg'] = function(msg) 
 {
-    return `<p class='info-msg'>${msg}</p>`
+    return `<p class='info-msg'>${msg}</p>`;
 }
 
 
@@ -190,7 +183,7 @@ function fallback_page(status_code, custom_msg)
 
     const { reason, msg } = statuses[status_code];
 
-    const page =
+    return (
         `<!DOCTYPE html>` +
         `<html lang="en">` +
         `<head>` +
@@ -227,9 +220,7 @@ function fallback_page(status_code, custom_msg)
             `${DOMElements['#side-panel'](false, 'fallback-page')}` +
         `</body>` +
         `</html>`
-    ;
-
-    return page;
+    );
 }
 
 export {

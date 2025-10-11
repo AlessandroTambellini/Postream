@@ -9,6 +9,7 @@
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
+    <link rel='stylesheet' href='../stylesheets/profile.css'>
       
     <script type='module' src="../scripts/_universal.js"></script>
 
@@ -21,37 +22,17 @@
             display: block;
             margin-block: 1em;
         }
-
-        #profile-picture {
-            display: block;
-            margin-top: 2vh; 
-            margin-bottom: 1em;  
-            width: 225px;
-            aspect-ratio: 1;
-            background-color: white;
-            border-radius: 100%;
-            box-shadow: 0 0px 3px #ccc;
-
-            /* For the balls inside */
-            overflow: hidden;
-            position: relative;
-        }
-
-        @media (min-width: 500px) {
-            #profile-picture {
-                width: 300px;
-            }
-        }
-
-        #profile-picture .circle {
-            position: absolute;
-            aspect-ratio: 1;
-            border-radius: 100%;
-            box-shadow: 0 0px 3px #ccc;
-        }
     </style>
 </head>
 <body>
+    <script>
+        const light_mode = localStorage.getItem('light-mode');
+        if (light_mode === 'moon-mode')
+        {
+            document.querySelector('html').classList.add('moon-mode');
+        }
+    </script>
+
     <main>        
         {{ .post-card }}
         {{ .reply-card }}
@@ -62,7 +43,7 @@
         <button class="primary-btn">Load</button>
         <button class="secondary-btn">DESC</button>
         
-        <div class="card feedback-card display-flex info">
+        <div class="card feedback-card info">
             <span role='img' alt='feedback icon'></span>
             <p>
                 <span class='type'>info</span>
@@ -71,7 +52,7 @@
             <button class="close-btn" type='button'>🗙</button>
         </div>
         
-        <div class="card feedback-card display-flex success">
+        <div class="card feedback-card success">
             <span role='img' alt='feedback icon'></span>
             <p>
                 <span class='type'>success</span>
@@ -80,7 +61,7 @@
             <button class="close-btn" type='button'>🗙</button>
         </div>
 
-        <div class="card feedback-card display-flex warning">
+        <div class="card feedback-card warning">
             <span role='img' alt='feedback icon'></span>
             <p>
                 <span class='type'>warning</span>
@@ -89,7 +70,7 @@
             <button class="close-btn" type='button'>🗙</button>
         </div>
 
-        <div class="card feedback-card display-flex error">
+        <div class="card feedback-card error">
             <span role='img' alt='feedback icon'></span>
             <p>
                 <span class='type'>error</span>
@@ -103,8 +84,16 @@
     {{ #side-panel }}
 
     <script type="module">
+        import { hide_feedback_card } from '../scripts/_universal.js';
+
         document.querySelectorAll('main a').forEach(a => {
             a.addEventListener('click', e => e.preventDefault());
+        });
+
+        document.querySelectorAll('.feedback-card').forEach(card => {
+            card.querySelector('.close-btn').addEventListener('click', () => {
+                hide_feedback_card(card);
+            });
         });
     </script>
 </body>

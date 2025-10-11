@@ -732,15 +732,9 @@ button {
     }
 }
 
-.feedback-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(var(--rgb-00), 0.15);
-}
-
 .info {
     border-left-color: #3b82f6;
-    animation: vanish 3s ease-in-out;
-    animation-fill-mode: forwards;
+    display: flex;
 }
 .info span[role=img] {
     background-color: #3b82f6;
@@ -754,8 +748,7 @@ button {
 
 .success {
     border-left-color: #10b981;
-    animation: vanish 3s ease-in-out;
-    animation-fill-mode: forwards;
+    display: flex;
 }
 .success span[role=img] {
     background-color: #10b981;
@@ -793,12 +786,6 @@ button {
 }
 .error p .type {
     color: #d31a1a;
-}
-
-@keyframes vanish {
-      0% { display: flex; opacity: 1; }
-     50% { opacity: 1; }
-    100% { display: none; opacity: 0; }
 }
 
 

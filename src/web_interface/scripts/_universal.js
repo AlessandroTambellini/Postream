@@ -1,3 +1,4 @@
+// 
 // Convert dates to local time
 
 document.querySelectorAll('.post-card').forEach(post => {
@@ -8,6 +9,7 @@ document.querySelectorAll('.reply-card').forEach(post => {
     const time = post.querySelector('time');
     time.textContent = prettify_date(time.dateTime);
 });
+
 
 /*
  *
@@ -26,14 +28,12 @@ const feedback_card = document.querySelector('.feedback-card');
 
 show_side_panel_btn.addEventListener('click', () => 
 {    
-    // side_panel.classList.replace('display-none', 'display-block');
     side_panel.classList.add('shown');
     main.classList.add('display-opaque');
 });
 
 main.addEventListener('click', () => 
 {
-    // side_panel.classList.replace('display-block', 'display-none');
     side_panel.classList.remove('shown');
     main.classList.remove('display-opaque');
 });
@@ -69,7 +69,7 @@ function post_card(post)
 {
     const { id, content, created_at } = post;
 
-    const card = 
+    return (
         `<article class="card post-card">` +
             `<p>` +
                 `${content.length > 70*10 ? 
@@ -79,9 +79,7 @@ function post_card(post)
             `<time datetime="${created_at}">${prettify_date(created_at)}</time>` +
             `<a href='/write-reply?id=${id}'>Reply</a>` +
         `</article>`
-    ;
-
-    return card;
+    );
 }
 
 function prettify_date(date) 
@@ -167,7 +165,7 @@ function show_feedback_card(feedback_card, type, msg)
 }
 
 function hide_feedback_card(feedback_card) {
-    feedback_card.className = 'card feedback-card deleting'; // display-none
+    feedback_card.className = 'card feedback-card deleting';
 }
 
 /* This function is to give more meaning to the possible errors coming from the server 
@@ -180,6 +178,20 @@ function err_msg(status_code, entity, action)
     else return `Invalid ${entity}`;
 }
 
+function sanitize_input(input) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        '/': '&#x2F;',
+    };
+    const reg = /[&<>"'/]/gi;
+
+    return input.replace(reg, (match) => map[match]);
+}
+
 export {
     post_card,
     req,
@@ -187,4 +199,5 @@ export {
     hide_feedback_card,
     err_msg,
     prettify_date,
+    sanitize_input,
 };
