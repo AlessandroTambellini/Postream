@@ -33,13 +33,10 @@
         <div id="posts-container" class="cards-container">{{ post-cards }}</div>
         
         <dialog id="delete-post-dialog">
+            <button type="button" id="close-dialog-btn" aria-label="close dialog">✗</button>
             <form method="dialog">
-                <button type="button" id="close-dialog-btn" aria-label="close dialog">✗</button>
                 <p>Are you sure you want to delete the post?</p>
-                <footer>
-                    <button type="reset" class="secondary-btn">Cancel</button>
-                    <button type="submit" class="secondary-btn">Delete</button>
-                </footer>
+                <button type="submit" class="secondary-btn">Yes</button>
             </form>
 
             <div class="card feedback-card display-none">

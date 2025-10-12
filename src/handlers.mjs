@@ -593,11 +593,7 @@ API.token.PUT = function(req_data, res_obj)
         return;
     }
 
-    let expires_at = new Date();
-    expires_at.setHours(expires_at.getHours() + 24);
-    expires_at = expires_at.toISOString();
-
-    const { is_token_updated, db_error: token_db_error } = db_op.update_token(expires_at, password_hash);
+    const { is_token_updated, db_error: token_db_error } = db_op.update_token(password_hash);
 
     if (token_db_error) {
         res_obj.error(500, MSG_UNKNOWN_DB_ERROR('update', 'token'));

@@ -241,6 +241,7 @@ p {
     margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);
 }
 
+/* I'd like to try '::marker', but it isn't supported by Safari */
 #side-panel li:not(li[itemprop=profile])::before {
     content: "";
     position: absolute;
@@ -594,9 +595,8 @@ button {
     transform-origin: top;
     opacity: 0;
     transform: scaleY(0);
-    margin-bottom: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-block: 0;
+    margin-block: 0;
     max-height: 0;
 }
 

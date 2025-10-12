@@ -2,8 +2,7 @@ import { req, hide_feedback_card, show_feedback_card, err_msg } from './_univers
 
 const delete_post_dialog = document.querySelector('#delete-post-dialog');
 const close_dialog_btn = document.querySelector('#close-dialog-btn');
-const cancel_btn = delete_post_dialog.querySelector('button[type=reset]');
-const delete_btn = delete_post_dialog.querySelector('button[type=submit]');
+const yes_btn = delete_post_dialog.querySelector('button[type=submit]');
 const feedback_card = delete_post_dialog.querySelector('.feedback-card');
 
 document.querySelectorAll('.delete-post-btn').forEach(btn => 
@@ -20,12 +19,7 @@ close_dialog_btn.addEventListener("click", () => {
     hide_feedback_card(feedback_card);
 });
 
-cancel_btn.addEventListener('click', () => {
-    delete_post_dialog.close();
-    hide_feedback_card(feedback_card);
-}); 
-
-delete_btn.addEventListener('click', async e => 
+yes_btn.addEventListener('click', async e => 
 {
     e.preventDefault();
 

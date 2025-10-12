@@ -133,6 +133,8 @@ database exception because it's not releted with its request.
 Instead, I return a 500 status code and a made up message.
 */
 
+const TOKEN_DURATION_HOURS = 24 * 7;
+
 /*
  * 
  *  DB Operations 
@@ -160,7 +162,7 @@ db_op.insert_token = function(user_id, password_hash)
 {    
     try {
         let expires_at = new Date();
-        expires_at.setHours(expires_at.getHours() + 24);
+        expires_at.setHours(expires_at.getHours() + TOKEN_DURATION_HOURS);
         expires_at = expires_at.toISOString();
     
         const res = insert_token.run(user_id, password_hash, expires_at);
@@ -362,10 +364,14 @@ db_op.select_all_posts = function()
  *  DB Operations - UPDATE
  */
 
-db_op.update_token = function(expires_at, password_hash)
+db_op.update_token = function(password_hash)
 {
     let is_token_updated = false, db_error = false;
     try {
+        let expires_at = new Date();
+        expires_at.setHours(expires_at.getHours() + TOKEN_DURATION_HOURS);
+        expires_at = expires_at.toISOString();
+
         const res = update_token.run(expires_at, password_hash);
         if (res.changes > 0) is_token_updated = true;
     } catch (error) {
