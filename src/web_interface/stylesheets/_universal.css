@@ -256,27 +256,13 @@ p {
     border: 1px solid var(--clr-48);
 }
 
-#side-panel li[itemprop=profile] a > span {
-    display: block;
+#side-panel .profile-picture {
     width: var(--profile-pic-size);
-    /* I don't use aspect-ratio, so I can regulate them separately.
-    E.g. when I collapse the nav. */
-    height: var(--profile-pic-size);
-    background-color: var(--clr-ff);
-    border-radius: 100%;
-    overflow: hidden;
-    position: relative;
     box-shadow: 0 0px 3px var(--clr-cc);
 }
 
-#side-panel li[itemprop=profile] a > span:hover {
+#side-panel .profile-picture:hover {
     box-shadow: 0 2px 4px 1px var(--clr-cc);
-}
-
-#side-panel li[itemprop=profile] a > span .circle {
-    position: absolute;
-    aspect-ratio: 1;
-    border-radius: 100%;
 }
 
 /* 
@@ -832,4 +818,24 @@ form > button[type=submit] {
 
 form > .feedback-card {
     margin-block: 5px;
+}
+
+
+/* 
+    Profile Pic */
+
+.profile-picture {
+    display: block;
+    aspect-ratio: 1;
+    background-color: var(--clr-ff);
+    border-radius: 100%;
+    /* For the balls inside */
+    overflow: hidden;
+    position: relative;
+}
+
+.profile-picture .circle {
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 100%;
 }

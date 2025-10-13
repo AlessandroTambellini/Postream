@@ -4,30 +4,21 @@ main {
     position: relative;
 }
 
-#profile-picture {
-    display: block;
+/* It's fundamental to keep the 'main' selector because '.profile-picture'
+is present also inside the side-panel */
+main .profile-picture {    
     margin-block: 2.4rem;
     width: 225px;
-    aspect-ratio: 1;
-    background-color: var(--clr-ff);
-    border-radius: 100%;
     border: 1px solid var(--clr-d8);
-
-    /* For the balls inside */
-    overflow: hidden;
-    position: relative;
 }
 
 @media (min-width: 500px) {
-    #profile-picture {
+    main .profile-picture {
         width: 300px;
     }
 }
 
-#profile-picture .circle {
-    position: absolute;
-    aspect-ratio: 1;
-    border-radius: 100%;
+main .profile-picture .circle {
     box-shadow: 0 0px 3px var(--clr-cc);
 }
 

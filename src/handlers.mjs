@@ -82,7 +82,7 @@ pages['test-elements'] = async function(req_data, res_obj)
     };
 
     const test_components_page = test_components_template
-        .replace('{{ #profile-picture }}', DOMElements['#profile-picture'](50, 300))
+        .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
         .replace('{{ .post-card }}', DOMElements['.post-card'](card))
         .replace('{{ .reply-card }}', DOMElements['.reply-card'](card))
         .replace('{{ .notification-card }}', DOMElements['.notification-card'](notif_card))
@@ -196,7 +196,7 @@ pages.profile = async function(req_data, res_obj)
     }
 
     const profile_page = profile_template
-        .replace('{{ #profile-picture }}', DOMElements['#profile-picture'](50, 300))
+        .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'profile'))
     ;
 

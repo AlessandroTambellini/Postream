@@ -73,7 +73,7 @@ DOMElements['.notification-card'] = function(notification)
     );
 }
 
-DOMElements['#profile-picture'] = function(max_num_of_circles, size)
+DOMElements['.profile-picture'] = function(max_num_of_circles, size)
 {
     const rand_int = (max) => Math.floor(Math.random() * max + 1);
 
@@ -92,7 +92,7 @@ DOMElements['#profile-picture'] = function(max_num_of_circles, size)
         );
     }
 
-    return `<span id="profile-picture" role="img">${circles.join('')}</span>`;
+    return `<span class="profile-picture" role="img">${circles.join('')}</span>`;
 };
 
 DOMElements['#side-panel'] = function(logged_in, page)
@@ -141,7 +141,7 @@ DOMElements['#side-panel'] = function(logged_in, page)
                 (logged_in && page !== 'profile' ? 
                     `<li itemprop="profile">` +
                         `<a href="/profile">` +
-                            `${DOMElements['#profile-picture'](50, 70)}` +
+                            `${DOMElements['.profile-picture'](50, 70)}` +
                         `</a>` +
                     `</li>` : '') 
                 +

@@ -9,7 +9,6 @@
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
-    <link rel='stylesheet' href='../stylesheets/profile.css'>
       
     <script type='module' src="../scripts/_universal.js"></script>
 
@@ -21,6 +20,23 @@
         main > button {
             display: block;
             margin-block: 1em;
+        }
+
+        /* Copied from profile.css */
+        main .profile-picture {    
+            margin-block: 2.4rem;
+            width: 225px;
+            border: 1px solid var(--clr-d8);
+        }
+
+        @media (min-width: 500px) {
+            main .profile-picture {
+                width: 300px;
+            }
+        }
+
+        main .profile-picture .circle {
+            box-shadow: 0 0px 3px var(--clr-cc);
         }
     </style>
 </head>
@@ -38,7 +54,7 @@
         {{ .reply-card }}
         {{ .notification-card }}
 
-        {{ #profile-picture }}
+        {{ .profile-picture }}
         
         <button class="primary-btn">Load</button>
         <button class="secondary-btn">DESC</button>
