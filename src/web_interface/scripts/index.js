@@ -58,16 +58,16 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
     
     if (f_reload) posts_container.replaceChildren(); // Empty the stream
 
-    const posts_html = [];
+    const post_cards = [];
     posts.forEach(post => {
         if (!displayed_posts.has(post.id)) {
             displayed_posts.add(post.id);
-            posts_html.push(post_card(post));
+            post_cards.push(post_card(post));
         }
     });
 
-    if (posts_html.length > 0) {
-        posts_container.innerHTML += posts_html.join('');
+    if (post_cards.length > 0) {
+        posts_container.innerHTML += post_cards.join('');
     } 
     else {
         if (num_of_posts === displayed_posts.size) {
@@ -87,8 +87,8 @@ function identify_displayed_posts(flags, displayed_posts)
     const posts = posts_container.querySelectorAll('.post-card');
     for (const post of posts)
     {
-        const id = Number(post.querySelector('a').href.split('id=')[1]);
-        displayed_posts.add(id);
+        const post_id = Number(post.querySelector('a').href.split('id=')[1]);
+        displayed_posts.add(post_id);
     }
 
     flags.page_desc++; // Because the posts are retrieved in descending order on first loading

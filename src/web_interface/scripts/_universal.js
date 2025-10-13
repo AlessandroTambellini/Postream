@@ -174,8 +174,10 @@ That errors returned from the server are useful when playing around with the API
 function err_msg(status_code, entity, action) 
 {
     if (status_code === 500) return 'Un unknown error has occured in the server. Please, try again later.';
+    else if (status_code === 413) return `The ${entity} is too big. Its max size is 128KB (Roughly 50-60 pages of a book).`;
+    else if (status_code === 403 && entity === 'reply') return 'You can\'t reply to your own post.';
     else if (status_code === 401) return `You aren't authenticated. Please, login before trying to ${action} a ${entity}.`;
-    else return `Invalid ${entity}`;
+    else return `Invalid ${entity}.`;
 }
 
 function sanitize_input(input) {

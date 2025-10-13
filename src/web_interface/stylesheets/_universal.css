@@ -361,7 +361,7 @@ li[itemprop=delete-account]::before {
     top: -25%;
     left: calc(50% - 2px);
     width: 4px;
-    border-radius: 4px;
+    border-radius: 100%;
     height: var(--ray-length);
     background-color: var(--clr-txt);
     transform-origin: center;
@@ -423,7 +423,7 @@ li[itemprop=delete-account]::before {
 
 @media (min-width: 1300px) 
 {
-    /* Avoid the button to go too far at the edge of the page */
+    /* Avoid the button from going too far at the edge of the page */
     #show-side-panel-btn {
         position: static;
         align-self: flex-end;
@@ -440,7 +440,7 @@ li[itemprop=delete-account]::before {
 but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
 that has higher priority compared to the CSS classes. 
 And so, sometimes elements are shown/hidden unexpectedly because of the usage different specificities (especially in a big codebase).
-Therefore, I modify the state only via CSS classes. */
+Therefore, I tend to be cautious in doing inline styling . */
 
 .display-block {
     display: block;
@@ -817,6 +817,7 @@ form > textarea {
     resize: vertical;
     border: 1px solid var(--clr-cc);
     box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
+    field-sizing: content;
 }
 
 input:focus-visible,

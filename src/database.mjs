@@ -114,11 +114,11 @@ const delete_notification = db.prepare('DELETE FROM notifications WHERE id = ? A
 const select_reply = db.prepare('SELECT * FROM replies WHERE id = ?');
 
 const select_posts_count = db.prepare('SELECT COUNT(*) as count FROM posts');
-const select_all_posts = db.prepare('SELECT id, content, created_at FROM posts ORDER BY created_at DESC');
-const select_posts_page_asc = db.prepare('SELECT id, content, created_at FROM posts ORDER BY created_at ASC LIMIT ? OFFSET ?');
-const select_posts_page_desc = db.prepare('SELECT id, content, created_at FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?');
-const select_posts_page_rand = db.prepare('SELECT id, content, created_at FROM posts ORDER BY RANDOM() LIMIT ?');
-const select_user_posts_page_desc = db.prepare('SELECT id, content, created_at FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
+const select_all_posts = db.prepare('SELECT * FROM posts ORDER BY created_at DESC');
+const select_posts_page_asc = db.prepare('SELECT * FROM posts ORDER BY created_at ASC LIMIT ? OFFSET ?');
+const select_posts_page_desc = db.prepare('SELECT * FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?');
+const select_posts_page_rand = db.prepare('SELECT * FROM posts ORDER BY RANDOM() LIMIT ?');
+const select_user_posts_page_desc = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
 
 /*
 NOTES:

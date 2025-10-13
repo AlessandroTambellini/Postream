@@ -9,24 +9,41 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
 {
     const { id, content, created_at } = post;
 
-    /* Sometimes I don't want the reply link to be shown. 
-    E.g. if you are the author of the post and you are simply visualizing it in the profile page
-    (even though, you can reply to your own posts) */
-    const reply_link_types = ['', `<a href='/read-post?id=${id}'>Read-Replies</a>`, `<a href='/write-reply?id=${id}'>Reply</a>`];    
-    const injected_content = cut_post_content && content.length > 70*10 ?
-        content.substring(0, 70*10) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>` : content;
+    const post_card = [
+        `<article id='post-card-${id}' class="card post-card">`,
+            '<p>',
+    ];
 
-    return (
-        `<article id='post-card-${id}' class="card post-card">` +
-            `<p>${injected_content}</p>` +
-            `<time datetime="${created_at}"></time>` +
-            `<footer>` +
-                `${reply_link_types[reply_link_type]}` +
-                `${reply_link_type === 1 ? 
-                    `<button type='button' id='post-${id}' class='delete-post-btn secondary-btn'>Delete</button>` : ''}` +
-            `</footer>` +
-        `</article>`
-    );
+    if (cut_post_content && content.length > 70*10)
+        post_card.push(content.substring(0, 70*10) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>`);
+    else
+        post_card.push(content);
+
+    post_card.push('</p>');
+    post_card.push(`<time datetime="${created_at}"></time>`);
+
+    /* The first type of link has the only purpose of keeping the id for the sorting of the posts (e.g. in the index page),
+    but it doesn't cover any role as a link per se. */
+    const reply_link_types = [
+        `<a href='#id=${id}' style="display: none;"></a>`, 
+        `<a href='/read-post?id=${id}#replies-container'>Read-Replies</a>`, 
+        `<a href='/write-reply?id=${id}'>Reply</a>`
+    ];    
+
+    const footer = [];
+    if (reply_link_type === 0)
+        footer.push(reply_link_types[reply_link_type]);
+    else {
+        footer.push('<footer>', reply_link_types[reply_link_type]);
+        if (reply_link_type === 1)
+            footer.push(`<button type='button' id='post-${id}' class='delete-post-btn secondary-btn'>Delete</button>`);
+        footer.push('</footer>');
+    }
+
+    post_card.push(footer.join(''));
+    post_card.push('</article>');
+
+    return post_card.join('');
 }
 
 DOMElements['.reply-card'] = function(reply)
@@ -49,7 +66,7 @@ DOMElements['.notification-card'] = function(notification)
         `<article id='notification-card-${id}' class='card notification-card'>` +
             `<p><b>${num_of_replies} new reply(s) for:</b> "${post_content_snapshot}..."</p>` +
             `<footer>` +
-                `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-Reply</a>` +
+                `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-Reply(s)</a>` +
                 `<button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>` +
             `</footer>` +
         `</article>`
@@ -121,19 +138,20 @@ DOMElements['#side-panel'] = function(logged_in, page)
             `</script>` +
 
             `<menu>` +
-                `${(logged_in && page !== 'profile') ? 
+                (logged_in && page !== 'profile' ? 
                     `<li itemprop="profile">` +
                         `<a href="/profile">` +
                             `${DOMElements['#profile-picture'](50, 70)}` +
                         `</a>` +
-                    `</li>` : ''}` +
-                `${menu_entries.reduce((accumulator, page) => {
+                    `</li>` : '') 
+                +
+                (menu_entries.reduce((accumulator, page) => {
                     return accumulator + (
                         `<li itemprop="${page}">` + 
                             `<a href="/${page}">${page}</a>` +
                         `</li>`
                     );
-                }, '')}` +
+                }, '')) +
             `</menu>` +
         `</aside>`
     );
@@ -167,7 +185,7 @@ function fallback_page(status_code, custom_msg)
         500: {
             reason: 'Server Error',
             msg: "There has been un unknown error in the server. " +
-                "Please, consider changing website because the developer is really bad."
+                "Please, consider changing website because its developer is really bad."
         },
     };
 
@@ -214,10 +232,10 @@ function fallback_page(status_code, custom_msg)
             
             `<main>` +
                 `<h1>${reason} | ${status_code}</h1>` +
-                `${DOMElements['.info-msg'](msg)}` +
+                DOMElements['.info-msg'](msg) +
             `</main>` +
 
-            `${DOMElements['#side-panel'](false, 'fallback-page')}` +
+            DOMElements['#side-panel'](false, 'fallback-page') +
         `</body>` +
         `</html>`
     );

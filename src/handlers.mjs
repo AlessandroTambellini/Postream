@@ -112,15 +112,21 @@ pages.index = async function(req_data, res_obj)
 
     const { posts, db_error } = db_op.select_posts_page(1, 20, 'desc');
 
+    const post_cards = [];
     if (db_error) {
-        index_template = index_template.replace('{{ post-cards }}', DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
+        post_cards.push(DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
     } else {
-        const post_cards = posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
-        index_template = index_template.replace('{{ post-cards }}', post_cards);
+        posts.forEach(post => {
+            // TODO explain why I don't show the posts of the logged-in user in the index page
+            if (post.user_id !== user_id) {
+                post_cards.push(DOMElements['.post-card'](post, user_id ? 2 : 0, true));
+            }
+        });
     }
     
     const index_page = index_template
-        .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id && true, 'index'))
+        .replace('{{ post-cards }}', post_cards.join(''))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'index'))
     ;
 
     res_obj.page(200, index_page);
@@ -289,7 +295,7 @@ pages['write-reply'] = async function(req_data, res_obj)
     if (!post) {
         write_reply_template = write_reply_template.replace('{{ .post-card }}', DOMElements['.info-msg'](`There is no post with id '${post_id}'`));
     } else {
-        write_reply_template = write_reply_template.replace('{{ .post-card }}', DOMElements['.post-card'](post, 0, false));
+        write_reply_template = write_reply_template.replace('{{ .post-card }}', DOMElements['.post-card'](post));
     }
 
     const write_reply_page = write_reply_template
@@ -311,42 +317,39 @@ pages['read-post'] = async function(req_data, res_obj)
 
     const post_id = req_data.search_params.get('id');
     const { post, db_error } = db_op.select_post(post_id);
+    const { user_id, status_code } = auth_user(req_data.cookies);
 
-    if (db_error) 
+    if (db_error || status_code === 500) 
     {
         res_obj.page(500, fallback_page(500));
         return;
     }
 
-    const { user_id, status_code } = auth_user(req_data.cookies);
-
     if (!post) {
-        post_template = post_template.replace('{{ .post-card }}', DOMElements['.info-msg'](`There is no post with id '${post_id}'`));
-    } else {
-        post_template = post_template.replace('{{ .post-card }}', DOMElements['.post-card'](post, user_id ? 2 : 0, false));
-    }
+        const post_page = post_template
+            .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'read-post'))
+            .replace('{{ .post-card }}', DOMElements['.info-msg'](`There is no post with id '${post_id}'`))
+        ;
+        res_obj.page(200, post_page);
+        return;
+    } 
 
-    /*
-     * If, who is reading the post is also its the author, load the replies. */
-
-    if (user_id && post.user_id === user_id)
+    const reply_cards = [];
+    if (post.user_id === user_id)
     {
-        // load replies
         const { replies, db_error } = db_op.select_post_replies(post_id);
 
         if (db_error) {
-            post_template = post_template.replace('{{ replies }}', 
-                DOMElements['.info-msg']('Sorry, unable to retrieve the replies :('));
+            reply_cards.push(DOMElements['.info-msg']('Sorry, unable to retrieve the replies :('));
         } else {
-            const reply_cards = replies.map(reply => DOMElements['.reply-card'](reply)).join('');
-            post_template = post_template.replace('{{ replies }}', reply_cards);
+            reply_cards.push(...replies.map(reply => DOMElements['.reply-card'](reply)));
         }
     }
-    else
-        post_template = post_template.replace('{{ replies }}', '');
 
     const post_page = post_template
-        .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id && true, 'read-post'))
+        .replace('{{ .post-card }}', DOMElements['.post-card'](post, user_id && post.user_id !== user_id ? 2 : 0))
+        .replace('{{ replies }}', reply_cards.join(''))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'read-post'))
     ;
 
     res_obj.page(200, post_page);
@@ -699,7 +702,7 @@ API.post.DELETE = function(req_data, res_obj)
 
 API.reply.POST = function(req_data, res_obj)
 {
-    const { status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id: logged_in_user_id, status_code, auth_error } = auth_user(req_data.cookies);
     
     if (auth_error)
     {
@@ -736,6 +739,11 @@ API.reply.POST = function(req_data, res_obj)
     if (!post) {
         res_obj.error(404, MSG_NOT_FOUND('post', 'id'));
         return; 
+    }
+
+    if (post.user_id === logged_in_user_id) {
+        res_obj.error(403, 'You can\'t reply to your own post');
+        return;
     }
 
     const reply_id = db_op.insert_reply(post_id, content);
@@ -968,7 +976,10 @@ async function get_asset(req_data, res_obj)
 
 function auth_user(cookies)
 {
-    let status_code = 200, auth_error = null;
+    let status_code = 200;
+    // The auth_error msg is used for the backend APIs, not for the request of web pages,
+    // because the specific error wouldn't make sense to the eyes of the user.
+    let auth_error = null;
 
     if (!cookies || !cookies.password_hash) {
         auth_error = MSG_INVALID_COOKIE('password_hash');
