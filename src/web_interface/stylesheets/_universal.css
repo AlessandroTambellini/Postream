@@ -118,7 +118,7 @@ main {
     height: 100vh;
     overflow-y: scroll;
     scrollbar-width: none;
-    /* Otherwise open-website-nav-btn may cover some content at the bottom of the page */
+    /* Avoid open-website-nav-btn from covering content at the bottom of the page. */
     padding-bottom: var(--page-padding-bottom);
 }
 
@@ -187,9 +187,7 @@ p {
     border-left: 1px solid var(--clr-b8);
     box-shadow: -2px 0px 8px var(--clr-cc);
 
-    /* In this way, #show-side-panel-btn is behind #side-panel
-    ==> No need to set #show-side-panel-btn to display-none.
-    Moreover, there isn't movement of the layout. */
+    /* Show #side-panel above #show-side-panel-btn. */
     z-index: 2;
 
     transition: right 0.3s ease;
@@ -207,7 +205,8 @@ p {
 }
 
 #side-panel:not(:has(li[itemprop=profile])) {
-    /* When the profile icon is absent, the sun-mode/moon-mode button feels too attached to the menu */
+    /* When the profile icon is absent, 
+    the sun-mode/moon-mode button feels too attached to the menu. */
     padding-top: 2.4em;
 }
 
@@ -215,12 +214,12 @@ p {
     font-size: inherit;
     line-height: 1.4;
     list-style: none;
-    /* avoid 'create-account' link from wrapping onto two lines */
+    /* Avoid 'create-account' link from wrapping onto a new line. */
     white-space: nowrap;
 }
 
 #side-panel menu li {
-    /* for the bullet made with ::before */
+    /* for the marker made with ::before */
     position: relative;
 }
 
@@ -234,14 +233,13 @@ p {
     padding-left: calc(var(--bullet-size)*3); 
 }
 
-/* Apply this margin only when the profile-pic is present. */
+/* Apply this margin only when the profile-pic is present,
+because this margin is to align the markers with the profile pic on the y-axis. */
 #side-panel:has(li[itemprop=profile]) li:not(li[itemprop=profile]) {
-    /* This margin is to align the bullets with the profile pic 
-    and equally space left and right of the list items. */
     margin-inline: calc(var(--profile-pic-size)/2 - var(--bullet-size)/2);
 }
 
-/* I'd like to try '::marker', but it isn't supported by Safari */
+/* I'd like to try '::marker', but it isn't supported by Safari :( */
 #side-panel li:not(li[itemprop=profile])::before {
     content: "";
     position: absolute;
@@ -292,6 +290,7 @@ li[itemprop=logout]::before {
 li[itemprop=delete-account]::before {
     --circle-color: var(--clr-delete-account);
 } 
+
 
 /* 
     Sun & Moon icons */
@@ -561,10 +560,9 @@ button {
 .card p {
     color: var(--clr-txt);
     line-height: 1.4;
-    /* max-width: var(--text-line-length); */
-    /* width: 100%; */
 
-    /* Keep extra whitespaces and newlines.
+    /* Keep extra whitespaces and newlines because
+    I think is an important feature e.g. to write lists or code.
     A side-effect of this property is that if the text is selected,
     the selection overflows a bit the card. */
     white-space: pre-wrap; 

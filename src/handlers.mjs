@@ -118,8 +118,9 @@ pages.index = async function(req_data, res_obj)
     } else {
         posts.forEach(post => {
             // TODO explain why I don't show the posts of the logged-in user in the index page
+            // Perhaps I shouldn't retrieve them at all
             if (post.user_id !== user_id) {
-                post_cards.push(DOMElements['.post-card'](post, user_id ? 2 : 0, true));
+                post_cards.push(DOMElements['.post-card'](post, 2, true));
             }
         });
     }
@@ -452,6 +453,7 @@ API.apis.GET = function(req_data, res_obj)
 API.user.POST = function(req_data, res_obj) 
 {
     const password = generate_password();
+
     /* I might check if an user with the generated password already exists,
     but, given that the probability of generating two times the same password
     in my life time is 0, I don't do it. */
@@ -765,11 +767,10 @@ API.reply.POST = function(req_data, res_obj)
     there would be a couple of problems:
     1) Huge notification feed
     2) Noisy notification feed
-    So, to avoid it, I pile the notifications for new replies (on the same post) together.
-    The consequences are that:
-    1) On the web interface, when the user clicks on a notification, it is brought to the first new reply received
-    and can read all the new replies upwords.
-    2) After a notification is deleted, the first new reply will create a new notification. */
+
+    So, to avoid it, I pile together the notifications for new replies about the same post.
+    The consequence on the web interface is that, when the user clicks on a notification, 
+    it is brought to the first new reply received and can read all the new replies upwords. */
 
     if (!notification) {
         const notification_id = db_op.insert_notification(post.user_id, post.id, post.content.substring(0, 70), reply_id);
@@ -941,9 +942,9 @@ async function get_asset(req_data, res_obj)
         content_type = extensions[file_ext];
     } else {
         content_type = 'text/plain';
-        /* Not necessarily the request was made to get an asset.
-        So, before logging the warning for 'unknown extension', I first check if the extension is even defined at all.
-        That's because 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path. */
+        /* Before logging the warning for 'unknown extension', I first check if the extension is even defined at all.
+        That's because 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path.
+        Not necessarily the request was made to get an asset */
         if (file_ext)
             console.warn(`WARN: Unknown file extension '${file_ext}'. File path: '${asset_path}'.`);
     }
@@ -954,8 +955,6 @@ async function get_asset(req_data, res_obj)
     try { 
         const asset = await readFile(join(WEB_INTERFACE_PATH, asset_path), f_binary ? {} : { encoding: 'utf8' });
         
-        // I solved an unsolved computer science problem. 
-        // Frameworks like Vue and React force you to put assets in a specific folder if I remember correctly.
         if (req_data.method !== 'GET') {
             res_obj.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
         } else {
@@ -977,8 +976,9 @@ async function get_asset(req_data, res_obj)
 function auth_user(cookies)
 {
     let status_code = 200;
-    // The auth_error msg is used for the backend APIs, not for the request of web pages,
-    // because the specific error wouldn't make sense to the eyes of the user.
+
+    /* The auth_error msg is meant for the backend APIs, not for the request of web pages,
+    because for the latter the err messages are framed a bit differently for the final user. */
     let auth_error = null;
 
     if (!cookies || !cookies.password_hash) {

@@ -139,8 +139,6 @@
                 password_p.textContent = payload.password;
                 // Once a registration happens, the previous cookie is deleted to avoid conflicts with a previous user while logging in 
                 document.cookie = 'password_hash=';
-
-                // TODO should password_container also be hidden in case of error?
                 password_container.classList.replace('display-none', 'display-block');
             }
         }

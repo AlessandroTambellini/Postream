@@ -5,8 +5,8 @@ document.querySelectorAll('.post-card').forEach(post => {
     const time = post.querySelector('time');
     time.textContent = prettify_date(time.dateTime);
 });
-document.querySelectorAll('.reply-card').forEach(post => {
-    const time = post.querySelector('time');
+document.querySelectorAll('.reply-card').forEach(reply => {
+    const time = reply.querySelector('time');
     time.textContent = prettify_date(time.dateTime);
 });
 
@@ -26,14 +26,16 @@ const html = document.querySelector('html');
 // I assume there isn't more than a single feedback-card per page.
 const feedback_card = document.querySelector('.feedback-card');
 
-show_side_panel_btn.addEventListener('click', () => 
+show_side_panel_btn.addEventListener('click', e => 
 {    
     side_panel.classList.add('shown');
     main.classList.add('display-opaque');
+    e.stopPropagation();
 });
 
-main.addEventListener('click', () => 
+document.body.addEventListener('click', e => 
 {
+    if (e.composedPath().includes(side_panel)) return;
     side_panel.classList.remove('shown');
     main.classList.remove('display-opaque');
 });
@@ -168,13 +170,12 @@ function hide_feedback_card(feedback_card) {
     feedback_card.className = 'card feedback-card deleting';
 }
 
-/* This function is to give more meaning to the possible errors coming from the server 
-that to the user wouldn't make much sense. 
-That errors returned from the server are useful when playing around with the API, not on the website. */
+/* This function is to show more meaningful error messages to the final user
+compared to the ones coming from the server. */
 function err_msg(status_code, entity, action) 
 {
     if (status_code === 500) return 'Un unknown error has occured in the server. Please, try again later.';
-    else if (status_code === 413) return `The ${entity} is too big. Its max size is 128KB (Roughly 50-60 pages of a book).`;
+    else if (status_code === 413) return `The ${entity} is too big. Its max size is ~128KB (Roughly 50-60 pages of a book).`;
     else if (status_code === 403 && entity === 'reply') return 'You can\'t reply to your own post.';
     else if (status_code === 401) return `You aren't authenticated. Please, login before trying to ${action} a ${entity}.`;
     else return `Invalid ${entity}.`;

@@ -49,7 +49,7 @@ function handle_request(req, res)
         buffer_size += buffer.length;
         if (buffer_size > MAX_BUFFER_SIZE)
         {            
-            res_obj.error(413, `Content too large. Exceeded ${MAX_BUFFER_SIZE} bytes.`, true);
+            res_obj.error(413, `Content too large. Exceeded ${MAX_BUFFER_SIZE} bytes. Received ${buffer_size} bytes`, true);
             
             write_res(res, res_obj);
             f_abort = true;
@@ -209,7 +209,8 @@ class Res
         this.content_type = content_type;
     }
 
-    // I creaed the 'page' method, because calling 'res_obj.success()' for a page 500/401 doesn't seem too clear to me.
+    /* I creaed the 'page' method, 
+    because calling 'res_obj.success()' for a 500/401 page doesn't seem semantically clear to me. */
     page(status_code, payload = '') {
         this.status_code = status_code;
         this.payload = payload;

@@ -443,6 +443,7 @@ db_op.delete_notification = function(notification_id, user_id)
     return { is_notification_deleted, db_error };
 };
 
+
 /*  
  *  
  *  Auxiliary functions
