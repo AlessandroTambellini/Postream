@@ -10,8 +10,6 @@
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
         
-    <script type="module" src="../scripts/login.js"></script>
-
     <style>
         label[for=password] {
             padding-bottom: .25em;
@@ -64,5 +62,56 @@
     </main>
 
     {{ #side-panel }}
+
+    <script type="module">
+        import { req, err_msg, hide_feedback_card, show_feedback_card } from "../scripts/_universal.js";
+
+        const login_form = document.querySelector('form');
+        const feedback_card = login_form.querySelector('.feedback-card');
+        const password_input = login_form.querySelector('input[name=password]');
+
+        login_form.addEventListener('submit', async e => 
+        {
+            e.preventDefault();
+            hide_feedback_card(feedback_card);
+
+            const path = login_form.attributes.action.value;
+            const password = password_input.value;
+
+            /* 
+            - If it's the first time that the user logs in, it's a POST.
+            - If it isn't the first time that the user logs in, it's a PUT. But,
+                - If previously the user logged out, I don't have anymore the password_hash on the client. Therefore,
+                I first need to retrieve it (GET).
+            */
+
+            // Let's try to directly make a POST. Perhaps is the first login ever.
+            const req_POST = await req(path, 'POST', null, { password });
+
+            if (!req_POST.req_error) {
+                document.cookie = `password_hash=${req_POST.payload.password_hash}`; 
+                location.href = '/';
+                return;
+            }
+
+            // Try to get the password_hash and then update the token
+            const req_GET = await req(path, 'GET', { password });
+
+            if (req_GET.req_error) {
+                show_feedback_card(feedback_card, 'error', err_msg(req_GET.status_code, 'password'));
+                return;
+            } 
+
+            const req_PUT = await req(path, 'PUT', null, { password });
+                
+            if (req_PUT.req_error) {
+                show_feedback_card(feedback_card, 'error', err_msg(req_PUT.status_code, 'password'));
+                return;
+            }
+
+            document.cookie = `password_hash=${req_PUT.payload.password_hash}`; 
+            location.href = '/';
+        });
+    </script>
 </body>
 </html>

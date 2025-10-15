@@ -73,7 +73,7 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
         if (num_of_posts === displayed_posts.size) {
             show_feedback_card(feedback_card, 'info', 'There aren\'t new posts.');
         } else {
-            show_feedback_card(feedback_card, 'warning', 'No new posts retrieved. They where retrieved just posts already present in the stream.');
+            show_feedback_card(feedback_card, 'warning', 'No new posts retrieved. Where retrieved only posts already present in the stream.');
         }
     }
 

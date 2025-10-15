@@ -469,14 +469,6 @@ function count_posts() {
     return count;
 }
 
-function test()
-{
-    let notifications = db.prepare('SELECT * FROM notifications').all()
-    console.log(notifications)
-}
-
-// test()
-
 export {
     PAGE_LIMIT,
     db_op,

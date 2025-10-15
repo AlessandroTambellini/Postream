@@ -1,26 +1,28 @@
 import * as http from 'node:http';
-import * as https from 'node:https';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import 'dotenv/config';
+// import * as https from 'node:https';
+// import { readFileSync } from 'node:fs';
+// import { join } from 'node:path';
+// import 'dotenv/config';
 
 import * as handlers from './handlers.mjs';
 import { db_close } from './database.mjs';
 import { log_error, sanitize_url } from './utils.mjs';
 
-const PROTOCOL = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+// const PROTOCOL = process.env.NODE_ENV === 'production' ? 'https' : 'http';
 
-const PORT = PROTOCOL === 'https' ? 3001 : 3000;
+const PROTOCOL = 'http';
+const PORT = 3000;
 
 const MAX_BUFFER_SIZE = 128 * 1024; // 128KB
-const CERTIFICATES_PATH = join(import.meta.dirname, '..');
+// const CERTIFICATES_PATH = join(import.meta.dirname, '..');
 
-const options = {
-    key: readFileSync(join(CERTIFICATES_PATH, 'private-key.pem')),
-    cert: readFileSync(join(CERTIFICATES_PATH, 'certificate.pem')),
-};
+// const options = {
+//     key: readFileSync(join(CERTIFICATES_PATH, 'private-key.pem')),
+//     cert: readFileSync(join(CERTIFICATES_PATH, 'certificate.pem')),
+// };
 
-const server = PROTOCOL === 'https' ? https.createServer(options) : http.createServer();
+// const server = PROTOCOL === 'https' ? https.createServer(options) : http.createServer();
+const server = http.createServer();
 
 server.on('request', handle_request);
 server.on('listening', () => console.log(`INFO: Server started on ${PROTOCOL}://localhost:${PORT}`));

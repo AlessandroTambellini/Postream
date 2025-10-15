@@ -117,8 +117,10 @@ pages.index = async function(req_data, res_obj)
         post_cards.push(DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
     } else {
         posts.forEach(post => {
-            // TODO explain why I don't show the posts of the logged-in user in the index page
-            // Perhaps I shouldn't retrieve them at all
+            /* I don't show the posts of the logged-in user in the index page 
+            because I don't see the point. It may be to reply to yourself, but why?
+            The replies are visible only to the author of the post, it's not like tweet
+            where you chat with others. */
             if (post.user_id !== user_id) {
                 post_cards.push(DOMElements['.post-card'](post, 2, true));
             }
