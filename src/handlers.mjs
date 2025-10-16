@@ -52,11 +52,6 @@ const MSG_UNKNOWN_DB_ERROR = (action, entity) => {
 
 const pages = {};
 
-pages['pages'] = async function(req_data, res_obj)
-{
-    // Object.keys(pages)
-};
-
 pages['test-elements'] = async function(req_data, res_obj)
 {
     let { template: test_components_template, fs_error } = await read_template('test-elements');
