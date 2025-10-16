@@ -160,35 +160,37 @@ pages.login = async function(req_data, res_obj)
 
 pages.profile = async function(req_data, res_obj)
 {
-    const { user_id, status_code } = auth_user(req_data.cookies);
-
-    if (!user_id)
-    {
-        res_obj.page(status_code, fallback_page(status_code));
-        return;
-    }
-
-    let { template: profile_template, fs_error } = await read_template('profile');
+    const { template: profile_template, fs_error } = await read_template('profile');
     
-    if (fs_error) 
-    {
+    if (fs_error) {
         res_obj.page(500, fallback_page(500));
         return;
     }
 
-    // const { posts, db_error } = db_op.select_user_posts_page(user_id, 1, 20, 'desc');
-    const { posts, db_error } = db_op.select_user_posts(user_id);
+    const { user_id, status_code } = auth_user(req_data.cookies);
 
-    if (db_error) {
-        profile_template = profile_template.replace('{{ post-cards }}', 
-            DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
+    if (status_code === 500) {
+        res_obj.page(status_code, fallback_page(status_code));
+        return;
+    }
+
+    let post_cards;
+    if (!user_id) {
+        const msg = "How am I supposed to retrieve you posts if you aren't authenticated?<br>" + 
+            "Please, <a href='/login'>Login</a> or <a href='/create-account'>Create-Account</a> :)";
+        post_cards = DOMElements['.info-msg'](msg);
     } else {
-        const post_cards = posts.map(post => DOMElements['.post-card'](post, 1, true)).join('');
-        profile_template = profile_template.replace('{{ post-cards }}', post_cards);
+        // const { posts, db_error } = db_op.select_user_posts_page(user_id, 1, 20, 'desc');
+        const { posts, db_error } = db_op.select_user_posts(user_id);
+    
+        post_cards = db_error ? 
+            DOMElements['.info-msg']('Sorry, unable to retrieve the posts :(') : 
+            posts.map(post => DOMElements['.post-card'](post, 1, true)).join('');
     }
 
     const profile_page = profile_template
         .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
+        .replace('{{ post-cards }}', post_cards)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'profile'))
     ;
 
@@ -197,34 +199,35 @@ pages.profile = async function(req_data, res_obj)
 
 pages.notifications = async function(req_data, res_obj)
 {
-    const { user_id, status_code } = auth_user(req_data.cookies);
-
-    if (!user_id)
-    {
-        res_obj.page(status_code, fallback_page(status_code));
-        return;
-    }
-
-    let { template: notifications_template, fs_error } = await read_template('notifications');
+    const { template: notifications_template, fs_error } = await read_template('notifications');
 
     if (fs_error) {
         res_obj.page(500, fallback_page(500));
         return;
     }
 
-    const { notifications, db_error } = db_op.select_user_notifications(user_id);
+    const { user_id, status_code } = auth_user(req_data.cookies);
 
-    if (db_error) {
-        notifications_template = notifications_template.replace('{{ notification-cards }}', 
-            DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
+    if (status_code === 500) {
+        res_obj.page(status_code, fallback_page(status_code));
+        return;
+    }
+
+    let notification_cards;
+    if (!user_id) {
+        const msg = "Sry, cannot notify an unauthenticated user :)<br>" + 
+            "Please, <a href='/login'>Login</a> or <a href='/create-account'>Create-Account</a>";
+        notification_cards = DOMElements['.info-msg'](msg);
     } else {
-        const notification_cards  = notifications.map(notification => 
-            DOMElements['.notification-card'](notification)).join('');
-
-        notifications_template = notifications_template.replace('{{ notification-cards }}', notification_cards);
+        const { notifications, db_error } = db_op.select_user_notifications(user_id);
+    
+        notification_cards = db_error ? 
+            DOMElements['.info-msg']('Sorry, unable to retrieve the posts :(') :
+            notifications.map(notification => DOMElements['.notification-card'](notification)).join('');
     }
 
     const notifications_page = notifications_template
+        .replace('{{ notification-cards }}', notification_cards)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'notifications'))
     ;
 
@@ -234,9 +237,8 @@ pages.notifications = async function(req_data, res_obj)
 pages['write-post'] = async function(req_data, res_obj) 
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
-    
-    if (!user_id)
-    {
+
+    if (!user_id) {
         res_obj.page(status_code, fallback_page(status_code));
         return;
     }
@@ -337,18 +339,12 @@ pages['read-post'] = async function(req_data, res_obj)
 
 pages.logout = async function(req_data, res_obj)
 {
-    const { user_id, status_code } = auth_user(req_data.cookies);
-
-    if (!user_id)
-    {
-        res_obj.page(status_code, fallback_page(status_code));
-        return;
-    }
+    /* Why should I auth an user before logging him out? 
+    Logging out means deleting a cookie. Delete it if you want. */
 
     const { template: logout_template, fs_error } = await read_template('logout');
     
-    if (fs_error) 
-    {
+    if (fs_error) {
         res_obj.page(500, fallback_page(500));
         return;
     }
@@ -364,21 +360,19 @@ pages['delete-account'] = async function(req_data, res_obj)
 {
     const { user_id, status_code } = auth_user(req_data.cookies);
 
-    if (!user_id)
-    {
+    if (!user_id) {
         res_obj.page(status_code, fallback_page(status_code));
         return;
     }  
 
-    let { template: delete_account_page, fs_error } = await read_template('delete-account');
+    const { template: delete_account_template, fs_error } = await read_template('delete-account');
 
-    if (fs_error) 
-    {
+    if (fs_error) {
         res_obj.page(500, fallback_page(500));
         return;
     }
 
-    delete_account_page = delete_account_page
+    const delete_account_page = delete_account_template
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'delete-account'))
     ;
 
