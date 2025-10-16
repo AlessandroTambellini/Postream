@@ -38,6 +38,8 @@ function handle_request(req, res)
 {
     const url_obj = new URL(sanitize_url(req.url), `${PROTOCOL}://localhost:${PORT}`);
 
+    // console.log(req.headers['x-forwarded-for'], req.socket.remoteAddress);
+
     const body = [];
     let buffer_size = 0;
     let f_abort = false;

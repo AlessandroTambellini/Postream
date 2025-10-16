@@ -112,23 +112,12 @@ pages.index = async function(req_data, res_obj)
 
     const { posts, db_error } = db_op.select_posts_page(1, 20, 'desc');
 
-    const post_cards = [];
-    if (db_error) {
-        post_cards.push(DOMElements['.info-msg']('Sorry, unable to retrieve the posts :('));
-    } else {
-        posts.forEach(post => {
-            /* I don't show the posts of the logged-in user in the index page 
-            because I don't see the point. It may be to reply to yourself, but why?
-            The replies are visible only to the author of the post, it's not like tweet
-            where you chat with others. */
-            if (post.user_id !== user_id) {
-                post_cards.push(DOMElements['.post-card'](post, 2, true));
-            }
-        });
-    }
+    const post_cards = db_error ? 
+        DOMElements['.info-msg']('Sorry, unable to retrieve the posts :(') : 
+        posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
     
     const index_page = index_template
-        .replace('{{ post-cards }}', post_cards.join(''))
+        .replace('{{ post-cards }}', post_cards)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'index'))
     ;
 
@@ -269,39 +258,27 @@ pages['write-post'] = async function(req_data, res_obj)
 
 pages['write-reply'] = async function(req_data, res_obj) 
 {
-    const { user_id, status_code } = auth_user(req_data.cookies);
-
-    if (!user_id)
-    {
-        res_obj.page(status_code, fallback_page(status_code));
-        return;
-    }
-
-    let { template: write_reply_template, fs_error } = await read_template('write-reply');
+    const { template: write_reply_template, fs_error } = await read_template('write-reply');
     
-    if (fs_error) 
-    {
+    if (fs_error) {
         res_obj.page(500, fallback_page(500));
         return;
     }
 
     const post_id = req_data.search_params.get('id');
-    
     const { post, db_error } = db_op.select_post(post_id);
     
-    if (db_error) 
-    {
+    if (db_error) {
         res_obj.page(500, fallback_page(500, "You can't reply because you are logged out."));
         return;
     }
 
-    if (!post) {
-        write_reply_template = write_reply_template.replace('{{ .post-card }}', DOMElements['.info-msg'](`There is no post with id '${post_id}'`));
-    } else {
-        write_reply_template = write_reply_template.replace('{{ .post-card }}', DOMElements['.post-card'](post));
-    }
+    const post_card = post ? 
+        DOMElements['.post-card'](post) : 
+        DOMElements['.info-msg'](`There is no post with id '${post_id}'`);
 
     const write_reply_page = write_reply_template
+        .replace('{{ .post-card }}', post_card)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'write-reply'))
     ;
 
@@ -706,14 +683,6 @@ API.post.DELETE = function(req_data, res_obj)
 
 API.reply.POST = function(req_data, res_obj)
 {
-    const { user_id: logged_in_user_id, status_code, auth_error } = auth_user(req_data.cookies);
-    
-    if (auth_error)
-    {
-        res_obj.error(status_code, auth_error);
-        return;
-    }
-
     const { obj: reply_obj, JSON_error } = JSON_to_obj(req_data.payload);
 
     if (JSON_error) {
@@ -743,11 +712,6 @@ API.reply.POST = function(req_data, res_obj)
     if (!post) {
         res_obj.error(404, MSG_NOT_FOUND('post', 'id'));
         return; 
-    }
-
-    if (post.user_id === logged_in_user_id) {
-        res_obj.error(403, 'You can\'t reply to your own post');
-        return;
     }
 
     const reply_id = db_op.insert_reply(post_id, content);
