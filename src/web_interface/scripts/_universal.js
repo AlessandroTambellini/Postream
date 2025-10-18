@@ -13,7 +13,7 @@ document.querySelectorAll('.reply-card').forEach(reply => {
 
 /*
  *
- *  Side-Nav
+ *  Side-Panel
  */
 
 const side_panel = document.querySelector('#side-panel');
@@ -22,9 +22,6 @@ const main = document.querySelector('main');
 const sun_mode_btn = side_panel.querySelector('#sun-mode-btn');
 const moon_mode_btn = side_panel.querySelector('#moon-mode-btn');
 const html = document.querySelector('html');
-
-// I assume there isn't more than a single feedback-card per page.
-const feedback_card = document.querySelector('.feedback-card');
 
 show_side_panel_btn.addEventListener('click', e => 
 {    
@@ -56,9 +53,11 @@ moon_mode_btn.addEventListener('click', () =>
     localStorage.setItem("light-mode", "moon-mode");
 });
 
-feedback_card?.querySelector('.close-btn').addEventListener('click', () => {
-    hide_feedback_card(feedback_card);
-});
+document.querySelectorAll('.feedback-card').forEach(feedback_card => {
+    feedback_card.querySelector('.close-btn').addEventListener('click', () => {
+        hide_feedback_card(feedback_card);
+    });
+})
 
 
 /*
@@ -101,64 +100,56 @@ function prettify_date(date)
     return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
 }
 
-async function req(path, method, search_params_obj = null, payload_obj = null) 
-{
-    let url = path;
-    if (search_params_obj) {
-        const params = new URLSearchParams(search_params_obj).toString();
-        url += `?${params}`;
-    }
-    
-    method = method.toUpperCase();
-    
-    const options = {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    };
-
-    if (method !== 'GET' && method !== 'HEAD') {
-        // If the payload is present or not, I send it anyway.
-        options.body = JSON.stringify(payload_obj);
-    }
-
-    const res_obj = {
+async function req(path, method, search_params = null, payload_obj = null) 
+{    
+    const response = {
         status_code: -1,
         payload: null,
-        req_error: false,
+        error: null,
     };
     
-    let server_res;
     try {
-        server_res = await fetch(url, options);   
-        res_obj.status_code = server_res.status;
-    } catch (error) {
-        console.error('ERROR:', error.message);
-        res_obj.req_error = error.message;
-        return;
-    }
-    
-    try {
+        const url = search_params ? `${path}?${new URLSearchParams(search_params)}` : path;
+        method = method.toUpperCase();
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+
+        if (payload_obj && method !== 'GET' && method !== 'HEAD') {
+            options.body = JSON.stringify(payload_obj);
+        }
+
+        const server_res = await fetch(url, options);   
+        response.status_code = server_res.status;
+        
         const payload = await server_res.json();
-        if (payload.Error) res_obj.req_error = payload.Error;
-        else res_obj.payload = payload;
+        
+        if (payload.Error) response.error = payload.Error;
+        else response.payload = payload;
+        
     } catch (error) {
-        console.error('ERROR:', error.message);
-        res_obj.req_error = error.message;
+        console.error('ERROR:', error);
+        response.error = error.message;
+        return response;
     }
 
-    return res_obj;
+    return response;
 }
 
 function show_feedback_card(feedback_card, type, msg) 
 {
-    if (!['info', 'success', 'warning', 'error'].includes(type)) {
-        console.error(`Invalid feedback type. Passed '${type}.'`);
-        return;
+    /* I could do this check when the request to the server fails, 
+    but I would be 'dragging' this info uselessly among functions.
+    So, I check it just before showing the error to the user and I change it to a warning. */
+    if (!navigator.onLine) {
+        type = 'warning';
+        msg = 'You are offline.';
     }
 
-    // reset the classes
+    // Reset the classes
     feedback_card.className = 'card feedback-card';
 
     feedback_card.classList.add(type);
@@ -170,13 +161,11 @@ function hide_feedback_card(feedback_card) {
     feedback_card.className = 'card feedback-card deleting';
 }
 
-/* This function is to show more meaningful error messages to the final user
-compared to the ones coming from the server. */
+/* This function is used when the error sent from the server wouldn't be clear for the final user */
 function err_msg(status_code, entity, action) 
 {
-    if (status_code === 500) return 'Un unknown error has occured in the server. Please, try again later.';
+         if (status_code === 500) return 'Un unknown error has occured in the server. Please, try again later.';
     else if (status_code === 413) return `The ${entity} is too big. Its max size is ~128KB (Roughly 50-60 pages of a book).`;
-    else if (status_code === 403 && entity === 'reply') return 'You can\'t reply to your own post.';
     else if (status_code === 401) return `You aren't authenticated. Please, login before trying to ${action} a ${entity}.`;
     else return `Invalid ${entity}.`;
 }

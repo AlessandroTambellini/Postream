@@ -1,4 +1,4 @@
-import { req, show_feedback_card, hide_feedback_card, post_card, prettify_date } from './_universal.js';
+import { req, show_feedback_card, hide_feedback_card, post_card } from './_universal.js';
 
 const controls = document.querySelectorAll('.control');
 const reload_posts_btn = document.querySelector('#reload-posts-btn');

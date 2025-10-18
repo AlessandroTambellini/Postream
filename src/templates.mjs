@@ -73,21 +73,40 @@ DOMElements['.notification-card'] = function(notification)
     );
 }
 
-DOMElements['.profile-picture'] = function(max_num_of_circles, size)
+DOMElements['.profile-picture'] = function(max_num_of_circles, picture_size)
 {
-    const rand_int = (max) => Math.floor(Math.random() * max + 1);
+    const num_of_circles = Math.max(20, Math.floor(Math.random() * max_num_of_circles + 1));
 
-    const num_of_circles = Math.max(20, rand_int(max_num_of_circles));
+    const pick_color = () => Math.floor(Math.random() * 256);
+    const pick_circle_size = () => Math.max(10, Math.floor(Math.random() * (picture_size/2.5)));
 
-    let circles = [];
+    const picked_positions = new Set();
+    const pick_pos = () => {
+        let pos = Math.floor(Math.random() * picture_size);
+        // To distribute a bit the circles to not have them too near.
+        if (pos % 2 !== 0) pos += 1;
+        return pos;
+    };
+
+    const circles = new Array(num_of_circles);
     for (let i = 0; i < num_of_circles; i++)
     {
+        let top = pick_pos();
+        let left = pick_pos();
+        while (picked_positions.has(`${top},${left}`)) {
+            top = pick_pos();
+            left = pick_pos();
+        }
+        picked_positions.add(`${top},${left}`);
+
         circles.push(
             `<span class='circle' style="` +
-                `width: ${rand_int(size/2.5)}px;` +
-                `background-color: rgb(${rand_int(256)}, ${rand_int(256)}, ${rand_int(256)});` +
-                `top: ${rand_int(size/10*9)}px;` +
-                `left: ${rand_int(size/10*9)}px;">` +
+                `background: radial-gradient(circle at 50% 50%, var(--clr-ff), rgb(${pick_color()}, ${pick_color()}, ${pick_color()}));` +
+                `width: ${pick_circle_size()}px;` +
+                /* It may happen that all the circles remain outside the 'circular window', 
+                but I bet on the probability and so I don't care. */
+                `top: ${top}px;` +
+                `left: ${left}px;">` +
             `</span>`
         );
     }
@@ -95,7 +114,7 @@ DOMElements['.profile-picture'] = function(max_num_of_circles, size)
     return `<span class="profile-picture" role="img">${circles.join('')}</span>`;
 };
 
-DOMElements['#side-panel'] = function(logged_in, page)
+DOMElements['#side-panel'] = function(logged_in, page = '')
 {
     let menu_entries = logged_in ? 
         ['index', 'notifications', 'write-post', 'logout'] : 
@@ -104,7 +123,7 @@ DOMElements['#side-panel'] = function(logged_in, page)
     menu_entries = menu_entries.filter(entry => entry !== page);
     if (page === 'profile') menu_entries.push('delete-account');
 
-    const side_nav = (
+    const side_panel = (
         `<aside id='side-panel'>` +
 
             `<button id="moon-mode-btn" aria-label='toggle moon-mode'>` +
@@ -141,7 +160,7 @@ DOMElements['#side-panel'] = function(logged_in, page)
                 (logged_in && page !== 'profile' ? 
                     `<li itemprop="profile">` +
                         `<a href="/profile">` +
-                            `${DOMElements['.profile-picture'](50, 70)}` +
+                            `${DOMElements['.profile-picture'](45, 60)}` +
                         `</a>` +
                     `</li>` : '') 
                 +
@@ -153,16 +172,21 @@ DOMElements['#side-panel'] = function(logged_in, page)
                     );
                 }, '')) +
             `</menu>` +
+
+            `<nav id='secondary-links-menu'>` +
+                `<a href='/test-elements'>Test-Elements</a>` +
+                `<a href='/logo'>Logo</a>` +
+            `</nav>` +
         `</aside>`
     );
 
-    const show_side_nav_btn = (
+    const show_side_panel_btn = (
         `<button id="show-side-panel-btn" aria-label='show side-panel' class='display-block'>` +
             `<span role='img' alt='show side-panel icon'>〈</span>` +
         `</button>`
     );
 
-    return side_nav + show_side_nav_btn;
+    return side_panel + show_side_panel_btn;
 }
 
 DOMElements['.info-msg'] = function(msg) 
@@ -181,7 +205,7 @@ function fallback_page(status_code, custom_msg)
         401: {
             reason: 'Unauthorized Access',
             msg: custom_msg ? custom_msg : "You cannot access the content of this page because you are logged out. " + 
-                "Please, <a href='/login'>Login</a> or <a href='/create-account'>Create-Account</a> :)"
+                "Please, <a href='/login'>Login</a> or <a href='/create-account'>Create-Account</a>."
         },
         500: {
             reason: 'Server Error',
@@ -236,7 +260,7 @@ function fallback_page(status_code, custom_msg)
                 DOMElements['.info-msg'](msg) +
             `</main>` +
 
-            DOMElements['#side-panel'](false, 'fallback-page') +
+            DOMElements['#side-panel'](false) +
         `</body>` +
         `</html>`
     );

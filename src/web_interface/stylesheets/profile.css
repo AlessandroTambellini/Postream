@@ -9,17 +9,12 @@ is present also inside the side-panel */
 main .profile-picture {    
     margin-block: 2.4rem;
     width: 225px;
-    border: 1px solid var(--clr-d8);
 }
 
 @media (min-width: 500px) {
     main .profile-picture {
         width: 300px;
     }
-}
-
-main .profile-picture .circle {
-    box-shadow: 0 0px 3px var(--clr-cc);
 }
 
 h2 {
