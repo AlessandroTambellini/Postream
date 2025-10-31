@@ -61,18 +61,40 @@ function init_db()
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
         );
-    `);
-
-    db.exec(`
+        
         -- Index on timestamp for chronological queries (ASC and DESC)
         CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
+
+        CREATE VIRTUAL TABLE IF NOT EXISTS posts_fts 
+        USING fts5(content, content_rowid UNINDEXED);
+
+        -- Setup trigger for autosync for post INSERT
+        CREATE TRIGGER IF NOT EXISTS posts_ai 
+        AFTER INSERT ON posts 
+        BEGIN
+            INSERT INTO posts_fts(rowid, content) 
+            VALUES (new.id, new.content);
+        END;
+
+        -- Setup trigger for autosync for post DELETE
+        CREATE TRIGGER IF NOT EXISTS posts_ad 
+        AFTER DELETE ON posts 
+        BEGIN
+            DELETE FROM posts_fts WHERE rowid = old.id;
+        END;
     `);
+
+    const count = db.prepare('SELECT COUNT(*) as count FROM posts_fts').get();
+    if (count.count === 0) {
+        db.exec(`
+            INSERT INTO posts_fts(rowid, content) 
+            SELECT id, content FROM posts
+        `);
+    }
 
     queries.insert_user = db.prepare('INSERT INTO users (password_hash) VALUES (?)');
     queries.select_user = db.prepare('SELECT * FROM users WHERE password_hash = ?');
     queries.delete_user = db.prepare('DELETE FROM users WHERE id = ?');
-    // queries.select_user_posts = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC');
-    // queries.select_user_notifications = db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC');
 
     queries.insert_token = db.prepare('INSERT INTO tokens (user_id, expires_at) VALUES (?, ?)');
     queries.select_token = db.prepare('SELECT * FROM tokens WHERE user_id = ?');
@@ -98,9 +120,27 @@ function init_db()
     queries.select_user_posts_count         = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ?');
     queries.select_user_notifications_count = db.prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = ?');
 
-    queries.select_user_posts_page         = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
-    queries.select_user_notifications_page = db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
-    queries.select_user_matching_posts     = db.prepare("SELECT * FROM posts WHERE user_id = ? AND LOWER(content) LIKE '%' || ? || '%'");
+    queries.select_user_posts_page             = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
+    // queries.select_user_matching_posts         = db.prepare("SELECT * FROM posts WHERE user_id = ? AND LOWER(content) LIKE '%' || ? || '%'");
+    queries.select_user_matching_posts = db.prepare(`
+        SELECT p.* FROM posts p
+        JOIN posts_fts ON p.id = posts_fts.rowid 
+        WHERE posts_fts MATCH ? AND p.user_id = ?
+    `);
+
+    queries.select_user_notifications_page = db.prepare(`
+        SELECT n.*, posts.content AS post_content FROM notifications n
+        JOIN posts ON n.post_id = posts.id
+        WHERE n.user_id = ? 
+        ORDER BY n.created_at DESC LIMIT ? OFFSET ?
+    `);
+
+    queries.select_user_matching_notifications = db.prepare(`
+        SELECT n.*, posts.content AS post_content FROM notifications n
+        JOIN posts ON n.post_id = posts.id
+        WHERE n.user_id = ? AND LOWER(posts.content) LIKE '%' || ? || '%'
+        ORDER BY n.created_at DESC
+    `);
 }
 
 function close_db() {
@@ -360,11 +400,20 @@ db_ops.select_user_matching_posts = function(user_id, search_term)
     const {
         data: posts,
         query_error: db_error,
-    } = exec_query('select_user_matching_posts', 'all', user_id, search_term);
+    } = exec_query('select_user_matching_posts', 'all', search_term, user_id);
 
     return { posts, db_error };
 };
 
+db_ops.select_user_matching_notifications = function(user_id, search_term)
+{
+    const {
+        data: notifications,
+        query_error: db_error,
+    } = exec_query('select_user_matching_notifications', 'all', user_id, search_term);
+
+    return { notifications, db_error };
+};
 
 /*
  *  DB Operations - UPDATE

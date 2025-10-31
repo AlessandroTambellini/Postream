@@ -77,11 +77,11 @@
 
         <form id="load-page-form">
             <input name="load-page-input" type="number" min="1" max='{{ tot-pages }}' value="1">
-            <button class="secondary-btn" aria-label="load posts page">Load Posts Page</button>
+            <button class="secondary-btn" aria-label="load a notifications page">Load Notifications Page</button>
         </form>
 
-        <form id="search-post-form">
-            <input name="search-post-input" type="search" placeholder="Search Post" required>
+        <form id="search-notification-form">
+            <input name="search-notification-input" type="search" placeholder="Search Notification" required>
             <button class="secondary-btn">Search</button>
         </form>
     </main>
@@ -109,6 +109,8 @@
         const notifications_container = document.querySelector('#notifications-container');
         const load_page_form = document.querySelector('#load-page-form');
         const notifications_page_input = load_page_form.querySelector('input');
+        const search_notification_form = document.querySelector('#search-notification-form');
+        const search_notification_input = search_notification_form.querySelector('input');
 
         const displayed_notifications = new Set();
         let last_action_is_search = false;
@@ -119,7 +121,7 @@
         });
 
         document.querySelectorAll('.delete-notification-btn').forEach(button => {
-            append_click_listener(button);
+            append_delete_notification_listener(button);
         });
 
         load_page_form.addEventListener('submit', async e =>
@@ -145,7 +147,7 @@
                     displayed_notifications.add(notification.id);
                     new_notifications_displayed++;
                     const notification_card = build_notification_card(notification);
-                    append_click_listener(notification_card);
+                    append_delete_notification_listener(notification_card.querySelector('.delete-notification-btn'));
                     notifications_container.appendChild(notification_card);
                 }
             });
@@ -155,6 +157,32 @@
                 show_feedback_card(feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} notifications, ` +
                     `but ${new_notifications_displayed} notification${new_notifications_displayed === 1 ? ' was' : 's were'} ` +
                     'retrieved instead. Either this page was already loaded or new notifications where created in the meanwhile.');
+            } else if (new_notifications_displayed === 0) {
+                show_feedback_card(feedback_card, 'info', 'There aren\'t other notifications to show');
+            }
+        });
+
+        search_notification_form.addEventListener('submit', async e =>
+        {
+            e.preventDefault();
+            hide_feedback_card(feedback_card);
+
+            const { status_code, payload: notifications, req_error } = await req('api/notifications/user/search', 'GET', { search_term: search_notification_input.value });
+
+            if (req_error) {
+                show_feedback_card(feedback_card, 'error', req_error);
+            } else {
+                last_action_is_search = true;
+                notifications_container.replaceChildren();
+                notifications.forEach(notification => {
+                    const notification_card = build_notification_card(notification);
+                    append_delete_notification_listener(notification_card.querySelector('.delete-notification-btn'));
+                    notifications_container.appendChild(notification_card);
+                });
+
+                if (notifications.length === 0) {
+                    show_feedback_card(feedback_card, 'info', 'There aren\'t notifications matching the search parameters');
+                }
             }
         });
 
@@ -179,7 +207,7 @@
             return notification_card;
         }
 
-        function append_click_listener(button)
+        function append_delete_notification_listener(button)
         {
             button.addEventListener('click', async () =>
             {

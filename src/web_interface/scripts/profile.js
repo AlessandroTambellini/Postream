@@ -49,6 +49,8 @@ const posts_container = document.querySelector('#posts-container');
 const load_page_form = document.querySelector('#load-page-form');
 const posts_page_input = load_page_form.querySelector('input');
 const retrieve_posts_feedback_card = document.querySelector('main > .feedback-card');
+const search_post_form = document.querySelector('#search-post-form');
+const search_post_input = search_post_form.querySelector('input');
 
 const displayed_posts = new Set();
 let last_action_is_search = false;
@@ -59,7 +61,7 @@ posts_container.querySelectorAll('.post-card').forEach(post => {
 });
 
 document.querySelectorAll('.delete-post-btn').forEach(button => {
-    append_click_event(button)
+    append_delete_post_listener(button);
 });
 
 load_page_form.addEventListener('submit', async e =>
@@ -69,7 +71,7 @@ load_page_form.addEventListener('submit', async e =>
 
     const PAGE_SIZE = 3;
 
-    const page  = Number(posts_page_input.value);
+    const page = Number(posts_page_input.value);
 
     const { status_code, payload: posts, req_error } = await req('api/posts/user/page', 'GET', { page, limit: PAGE_SIZE });
 
@@ -86,7 +88,7 @@ load_page_form.addEventListener('submit', async e =>
             displayed_posts.add(post.id);
             new_posts_displayed++;
             const post_card = build_post_card(post);
-            append_click_event(post_card.querySelector('.delete-post-btn'));
+            append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
             posts_container.appendChild(post_card);
         }
     });
@@ -96,8 +98,34 @@ load_page_form.addEventListener('submit', async e =>
             `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
             'retrieved instead. Either this page was already loaded or new posts where created in the meanwhile.';
         show_feedback_card(retrieve_posts_feedback_card, 'info', msg);
+    } else if (new_posts_displayed === 0) {
+        show_feedback_card(retrieve_posts_feedback_card, 'info', 'There aren\'t other posts to show');
     }
 
+});
+
+search_post_form.addEventListener('submit', async e =>
+{
+    e.preventDefault();
+    hide_feedback_card(retrieve_posts_feedback_card);
+
+    const { status_code, payload: posts, req_error } = await req('api/posts/user/search', 'GET', { search_term: search_post_input.value });
+
+    if (req_error) {
+        show_feedback_card(retrieve_posts_feedback_card, 'error', req_error);
+    } else {
+        last_action_is_search = true;
+        posts_container.replaceChildren();
+        posts.forEach(post => {
+            const post_card = build_post_card(post);
+            append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
+            posts_container.appendChild(post_card);
+        });
+
+        if (posts.length === 0) {
+            show_feedback_card(retrieve_posts_feedback_card, 'info', 'There aren\'t posts matching the search parameters');
+        }
+    }
 });
 
 function build_post_card({ id, content, created_at })
@@ -128,7 +156,7 @@ function build_post_card({ id, content, created_at })
     return post_card;
 }
 
-function append_click_event(btn)
+function append_delete_post_listener(btn)
 {
     btn.addEventListener('click', () =>
     {
@@ -136,36 +164,3 @@ function append_click_event(btn)
         delete_post_dialog.returnValue = btn.dataset.postId;
     });
 }
-
-
-/*
- *
- *  Search Post Logic
- */
-
-const search_post_form = document.querySelector('#search-post-form');
-const search_post_input = search_post_form.querySelector('input');
-
-search_post_form.addEventListener('submit', async e =>
-{
-    e.preventDefault();
-    hide_feedback_card(retrieve_posts_feedback_card);
-
-    const { status_code, payload: posts, req_error } = await req('api/posts/user/search', 'GET', { search_term: search_post_input.value });
-
-    if (req_error) {
-        show_feedback_card(retrieve_posts_feedback_card, 'error', req_error);
-    } else {
-        last_action_is_search = true;
-        posts_container.replaceChildren();
-        posts.forEach(post => {
-            posts_container.appendChild(build_post_card(post));
-        });
-
-        displayed_posts.clear();
-
-        if (posts.length === 0) {
-            show_feedback_card(retrieve_posts_feedback_card, 'info', 'There aren\'t posts matching the search parameters');
-        }
-    }
-});

@@ -68,7 +68,7 @@ DOMElements['.notification-card'] = function(notification)
     const post_content_snapshot = post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content;
 
     return (
-        `<article id='notification-card-${id}' class='card notification-card'>` +
+        `<article id='notification-card-${id}' data-notification-id=${id} class='card notification-card'>` +
             `<p><b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>"${post_content_snapshot}"</p>` +
             `<footer>` +
                 `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-${num_of_replies === 1 ? 'Reply' : 'Replies'}</a>` +

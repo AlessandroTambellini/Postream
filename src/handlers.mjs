@@ -34,6 +34,7 @@ const handlers = {};
 
 [
     '/',
+    '/index', // Alias
     '/login',
     '/create-account',
     '/profile',
@@ -55,6 +56,7 @@ const handlers = {};
     '/api/posts/user/page',
     '/api/notifications/user/page',
     '/api/posts/user/search',
+    '/api/notifications/user/search',
 
 ].forEach(path => {
     handlers[path] = async function(req_data, res_data) {
@@ -68,7 +70,8 @@ const handlers = {};
     }
 });
 
-handlers['/'].GET = async function(req_data, res_data)
+handlers['/'].GET = 
+handlers['/index'].GET = async function(req_data, res_data)
 {
     let { template: index_template, fs_error } = await read_template('index');
 
@@ -139,10 +142,10 @@ handlers['/profile'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { user_id, status_code } = auth_user(req_data.cookies);
+    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.page(status_code, fallback_page(status_code));
+        res_data.page(401, fallback_page(401));
         return;
     }
 
@@ -287,8 +290,7 @@ handlers['/read-post'].GET = async function(req_data, res_data)
     const { post, db_error } = db_ops.select_post(post_id);
     const { user_id, status_code } = auth_user(req_data.cookies);
 
-    if (db_error || status_code === 500)
-    {
+    if (db_error || status_code === 500) {
         res_data.page(500, fallback_page(500));
         return;
     }
@@ -835,14 +837,6 @@ handlers['/api/notifications/user/page'].GET = function(req_data, res_data)
 
     const { notifications, db_error } = db_ops.select_user_notifications_page(user_id, page, limit);
 
-    notifications.forEach(notification => {
-        const { post, db_error } = db_ops.select_post(notification.post_id);
-        // TODO does it fail silently?
-        if (!db_error) {
-            notification.post_content = post.content;
-        }
-    });
-
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('retrieve', 'user notifications'));
     } else {
@@ -884,15 +878,14 @@ handlers['/api/posts/user/page'].GET = function(req_data, res_data)
 handlers['/api/posts/user/search'].GET = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
-
-    if (auth_error)
-    {
+    
+    if (auth_error) {
         res_data.error(status_code, auth_error);
         return;
     }
 
     const search_term = req_data.search_params.get('search_term');
-
+    
     if (!search_term) {
         res_data.error(400, 'Missing search term');
         return;
@@ -907,9 +900,34 @@ handlers['/api/posts/user/search'].GET = function(req_data, res_data)
     }
 };
 
+handlers['/api/notifications/user/search'].GET = function(req_data, res_data)
+{
+    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    
+    if (auth_error) {
+        res_data.error(status_code, auth_error);
+        return;
+    }
+
+    const search_term = req_data.search_params.get('search_term');
+
+    if (!search_term) {
+        res_data.error(400, 'Missing search term');
+        return;
+    }
+
+    const { notifications, db_error } = db_ops.select_user_matching_notifications(user_id, search_term);
+
+    if (db_error) {
+        res_data.error(500, MSG_UNKNOWN_DB_ERROR('get', 'matching notifications'));
+    } else {
+        res_data.success(200, notifications);
+    }
+};
+
 async function get_asset(req_data, res_data)
 {
-    /* That's because 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path.
+    /* 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path.
     So, not necessarily the request was made to get an asset. */
 
     const asset_path = path.join(WEB_INTERFACE_PATH, req_data.path);
@@ -965,41 +983,46 @@ function auth_user(cookies)
 {
     /* The auth_error msg is meant for the backend APIs, not for the request of web pages,
     because for the latter the err messages are framed a bit differently for the final user. */
-    let user_id = null;
-    let status_code = 200;
-    let auth_error = null;
+
+    const res = {
+        user_id: null,
+        status_code: 200,
+        auth_error: null,
+    };
 
     if (!cookies || !cookies.password_hash) {
-        auth_error = MSG_INVALID_COOKIE('password_hash');
-        status_code = 401;
-        return { user_id: null, status_code, auth_error };
+        res.status_code = 401;
+        res.auth_error = MSG_INVALID_COOKIE('password_hash');
+        return res;
     }
 
     const { user, db_error } = db_ops.select_user(cookies.password_hash);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'user'));
-        return;
+        res.status_code = 500;
+        auth_error = MSG_UNKNOWN_DB_ERROR('select', 'user');
+        return res;
     }
 
     if (!user) {
-        res_data.error(404, MSG_NOT_FOUND('user', 'password'));
-        return;
+        res.status_code = 404;
+        res.auth_error = MSG_NOT_FOUND('user', 'password');
+        return res;
     }
 
     const { token, db_error: token_error } = db_ops.select_token(user.id);
 
     if (token_error) {
-        status_code = 500;
-        auth_error = MSG_UNKNOWN_DB_ERROR('validate', 'token');
+        res.status_code = 500;
+        res.auth_error = MSG_UNKNOWN_DB_ERROR('validate', 'token');
     } else if (!token) {
-        status_code = 401;
-        auth_error = `Invalid 'password_hash'. It may be expired`;
+        res.status_code = 401;
+        res.auth_error = `Invalid 'password_hash'. It may be expired`;
     } else if (token.expires_at > new Date().toISOString()) {
-        user_id = token.user_id;
+        res.user_id = token.user_id;
     }
 
-    return { user_id, status_code, auth_error };
+    return res;
 }
 
 async function read_template(template_name)
