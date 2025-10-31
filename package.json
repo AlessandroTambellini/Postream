@@ -1,6 +1,6 @@
 {
   "name": "postream",
-  "description": "Throw a post in the stream",
+  "description": "A proof of concept of website built with only native web technologies and plain Node.js. The website is an application where posts are shared anonymously and they can receive replies, but the replies are visible only to the author of the post.",
   "main": "src/server.mjs",
   "type": "module",
   "scripts": {
@@ -11,7 +11,6 @@
   "author": "Alessandro Tambellini",
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "^12.2.0",
-    "dotenv": "^17.2.0"
+    "better-sqlite3": "^12.2.0"
   }
 }

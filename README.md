@@ -1,7 +1,7 @@
 # Postream
-A proof of concept of website built with native web technologies.  
+A proof of concept of website built with only native web technologies and plain Node.js.
 The website is an application where posts are shared anonymously and they can receive replies,
-but the replies are visible only to the author of the post. 
+but the replies are visible only to the author of the post.
 
 ## Setup
 Node.js version used: `v22.14.0`
@@ -15,7 +15,7 @@ Node.js version used: `v22.14.0`
 3) Install the dependencies: `npm install`
 4) Optionally, if you want to fill the website with some account, post and reply, you can run `seed.mjs` via `node src/seed.mjs`. Then, you can also login with the passwords of the accounts created outputted on the console.
 
-Now you are ready to go. Run `npm run dev` to start the app.  
+Now you are ready to go. Run `npm run dev` to start the app.
 
 ## Considerations
 1) **Why is the password generated automatically?**
@@ -24,7 +24,7 @@ Now you are ready to go. Run `npm run dev` to start the app.
 
 2) **Navigation of the website**:
     The website is composed of 10 pages, 6 of which are basically forms.
-    * The links that can be present in the side-panel are: 
+    * The links that can be present in the side-panel are:
         * if logged-in: `[profile, index, notifications, write-post, logout, delete-account]`
         * if logged-out: `[index, login, create-account]`
         * delete-account is present only if the current-page is profile.
@@ -38,7 +38,7 @@ Now you are ready to go. Run `npm run dev` to start the app.
     - **Minification/Compression** of the files sent to the client
     - **A Cache Policy**: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control
     - **Rate limiting and bot identifier**: The server can be easily bombarded with requests
-    - **HTTPS** is disabled but it is easily implementable by uncommenting the code in `server.mjs`. 
+    - **HTTPS** is disabled but it is easily implementable by uncommenting the code in `server.mjs`.
     Then, to generate private-key and certificate run:
     `openssl req -newkey rsa:2048 -nodes -x509 -keyout -sha256 -subj '/CN=localhost' private-key.pem -out certificate.pem`.
     HTTPS is required for the transmission of the account password over the network when creating an account and while logging-in.
@@ -47,7 +47,7 @@ Now you are ready to go. Run `npm run dev` to start the app.
     My commit messages usually don't mean anything, for a couple of reasons:
     * I develop alone
     * I don't develop per fixed isolated chunks of changes. Usually I play around and a change has a domino effect
-    on other parts of the code and once I made the 'big' change, I commit it. 
+    on other parts of the code and once I made the 'big' change, I commit it.
     Still, sometimes I don't even commit with a meaningful msg because I find it to be mostly useless.
     I usually scroll the commit history to navigate the changes I made over time.
 

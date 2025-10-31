@@ -1,7 +1,7 @@
-import { log_error } from "./utils.mjs";
+import { log_error } from "./utils.js";
 
-/* Little Unimportant Note: for the name of objects I use snake_case, 
-but in this case I used the camelCase to reflect the Browser API convention 
+/* Little Unimportant Note: for the name of objects I use snake_case,
+but in this case I used the camelCase to reflect the browser API convention
 given I find this object related to it. */
 const DOMElements = {};
 
@@ -10,12 +10,15 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
     const { id, content, created_at } = post;
 
     const post_card = [
-        `<article id='post-card-${id}' class="card post-card">`,
+        `<article id='post-card-${id}' data-post-id=${id} class="card post-card">`,
             '<p>',
     ];
 
-    if (cut_post_content && content.length > 70*10)
-        post_card.push(content.substring(0, 70*10) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>`);
+    /* ~(Half a page of a book) */
+    const MAX_CHARS_PER_POST_PREVIEW = 55*20;
+
+    if (cut_post_content && content.length > MAX_CHARS_PER_POST_PREVIEW)
+        post_card.push(content.substring(0, MAX_CHARS_PER_POST_PREVIEW) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>`);
     else
         post_card.push(content);
 
@@ -25,10 +28,10 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
     /* The first type of link has the only purpose of keeping the id for the sorting of the posts (e.g. in the index page),
     but it doesn't cover any role as a link per se. */
     const reply_link_types = [
-        `<a href='#id=${id}' style="display: none;"></a>`, 
-        `<a href='/read-post?id=${id}#replies-container'>Read-Replies</a>`, 
+        `<a href='#id=${id}' style="display: none;"></a>`,
+        `<a href='/read-post?id=${id}#replies-container'>Read-Replies</a>`,
         `<a href='/write-reply?id=${id}'>Reply</a>`
-    ];    
+    ];
 
     const footer = [];
     if (reply_link_type === 0)
@@ -36,7 +39,7 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
     else {
         footer.push('<footer>', reply_link_types[reply_link_type]);
         if (reply_link_type === 1)
-            footer.push(`<button type='button' id='post-${id}' class='delete-post-btn secondary-btn'>Delete</button>`);
+            footer.push(`<button type='button' data-post-id=${id} class='delete-post-btn secondary-btn'>Delete Post</button>`);
         footer.push('</footer>');
     }
 
@@ -52,7 +55,7 @@ DOMElements['.reply-card'] = function(reply)
 
     return (
         `<article id='reply-${id}' class='card reply-card'>` +
-            `<p>${content}</p>` + 
+            `<p>${content}</p>` +
             `<time datetime="${created_at}"></time>` +
         `</article>`
     );
@@ -60,14 +63,16 @@ DOMElements['.reply-card'] = function(reply)
 
 DOMElements['.notification-card'] = function(notification)
 {
-    const { id, post_id, post_content_snapshot, first_new_reply_id, num_of_replies } = notification;
+    const { id, post_id, post_content, first_new_reply_id, num_of_replies } = notification;
+
+    const post_content_snapshot = post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content;
 
     return (
         `<article id='notification-card-${id}' class='card notification-card'>` +
-            `<p><b>${num_of_replies} new reply(s) for:</b> "${post_content_snapshot}..."</p>` +
+            `<p><b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>"${post_content_snapshot}"</p>` +
             `<footer>` +
-                `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-Reply(s)</a>` +
-                `<button type='button' id='notification-${id}' class='delete-notification-btn secondary-btn'>Delete</button>` +
+                `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-${num_of_replies === 1 ? 'Reply' : 'Replies'}</a>` +
+                `<button type='button' data-notification-id=${id} class='delete-notification-btn secondary-btn'>Delete</button>` +
             `</footer>` +
         `</article>`
     );
@@ -75,7 +80,7 @@ DOMElements['.notification-card'] = function(notification)
 
 DOMElements['.profile-picture'] = function(max_num_of_circles, picture_size)
 {
-    const num_of_circles = Math.max(20, Math.floor(Math.random() * max_num_of_circles + 1));
+    const num_of_circles = Math.max(20, Math.ceil(Math.random() * max_num_of_circles));
 
     const pick_color = () => Math.floor(Math.random() * 256);
     const pick_circle_size = () => Math.max(10, Math.floor(Math.random() * (picture_size/2.5)));
@@ -103,7 +108,7 @@ DOMElements['.profile-picture'] = function(max_num_of_circles, picture_size)
             `<span class='circle' style="` +
                 `background: radial-gradient(circle at 50% 50%, var(--clr-ff), rgb(${pick_color()}, ${pick_color()}, ${pick_color()}));` +
                 `width: ${pick_circle_size()}px;` +
-                /* It may happen that all the circles remain outside the 'circular window', 
+                /* It may happen that all the circles remain outside the 'circular window',
                 but I bet on the probability and so I don't care. */
                 `top: ${top}px;` +
                 `left: ${left}px;">` +
@@ -116,8 +121,8 @@ DOMElements['.profile-picture'] = function(max_num_of_circles, picture_size)
 
 DOMElements['#side-panel'] = function(logged_in, page = '')
 {
-    let menu_entries = logged_in ? 
-        ['index', 'notifications', 'write-post', 'logout'] : 
+    let menu_entries = logged_in ?
+        ['index', 'notifications', 'write-post', 'logout'] :
         ['index', 'login', 'create-account'];
 
     menu_entries = menu_entries.filter(entry => entry !== page);
@@ -157,16 +162,16 @@ DOMElements['#side-panel'] = function(logged_in, page = '')
             `</script>` +
 
             `<menu>` +
-                (logged_in && page !== 'profile' ? 
+                (logged_in && page !== 'profile' ?
                     `<li itemprop="profile">` +
                         `<a href="/profile">` +
                             `${DOMElements['.profile-picture'](45, 60)}` +
                         `</a>` +
-                    `</li>` : '') 
+                    `</li>` : '')
                 +
                 (menu_entries.reduce((accumulator, page) => {
                     return accumulator + (
-                        `<li itemprop="${page}">` + 
+                        `<li itemprop="${page}">` +
                             `<a href="/${page}">${page}</a>` +
                         `</li>`
                     );
@@ -189,7 +194,7 @@ DOMElements['#side-panel'] = function(logged_in, page = '')
     return side_panel + show_side_panel_btn;
 }
 
-DOMElements['.info-msg'] = function(msg) 
+DOMElements['.info-msg'] = function(msg)
 {
     return `<p class='info-msg'>${msg}</p>`;
 }
@@ -197,15 +202,19 @@ DOMElements['.info-msg'] = function(msg)
 
 /* fallback_page may be called in case I'm not able to load the wanted page from disk using readFile()
 (but not only for that).
-Therefore, I don't store this page as an HTML file because 
+Therefore, I don't store this page as an HTML file because
 I would have to read it from disk and potentially have the same issue. */
 function fallback_page(status_code, custom_msg)
 {
     const statuses = {
         401: {
             reason: 'Unauthorized Access',
-            msg: custom_msg ? custom_msg : "You cannot access the content of this page because you are logged out. " + 
+            msg: "You cannot access the content of this page because you are logged out. " +
                 "Please, <a href='/login'>Login</a> or <a href='/create-account'>Create-Account</a>."
+        },
+        404: {
+            reason: 'Not Found',
+            msg: "The resource you requested to access doesn't exist. "
         },
         500: {
             reason: 'Server Error',
@@ -215,15 +224,11 @@ function fallback_page(status_code, custom_msg)
     };
 
     if (!statuses[status_code]) {
-        try {
-            // I want the stack trace to see WHO sent this status_code 
-            throw new Error(`There isn't a status code '${status_code}' in statuses`);
-        } catch (error) {
-            log_error(error);
-        }
+        log_error(new Error(`The status code ${status_code} isn't defined in 'statuses'`));
         status_code = 500;
     }
 
+    if (custom_msg) statuses[status_code].msg = custom_msg;
     const { reason, msg } = statuses[status_code];
 
     return (
@@ -254,7 +259,7 @@ function fallback_page(status_code, custom_msg)
                     `document.querySelector('html').classList.add('moon-mode');` +
                 `}` +
             `</script>` +
-            
+
             `<main>` +
                 `<h1>${reason} | ${status_code}</h1>` +
                 DOMElements['.info-msg'](msg) +

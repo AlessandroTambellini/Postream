@@ -1,4 +1,4 @@
-// 
+//
 // Convert dates to local time
 
 document.querySelectorAll('.post-card').forEach(post => {
@@ -23,21 +23,21 @@ const sun_mode_btn = side_panel.querySelector('#sun-mode-btn');
 const moon_mode_btn = side_panel.querySelector('#moon-mode-btn');
 const html = document.querySelector('html');
 
-show_side_panel_btn.addEventListener('click', e => 
-{    
+show_side_panel_btn.addEventListener('click', e =>
+{
     side_panel.classList.add('shown');
     main.classList.add('display-opaque');
     e.stopPropagation();
 });
 
-document.body.addEventListener('click', e => 
+document.body.addEventListener('click', e =>
 {
     if (e.composedPath().includes(side_panel)) return;
     side_panel.classList.remove('shown');
     main.classList.remove('display-opaque');
 });
 
-sun_mode_btn.addEventListener('click', () => 
+sun_mode_btn.addEventListener('click', () =>
 {
     html.classList.remove('moon-mode');
     sun_mode_btn.classList.replace('display-flex', 'display-none');
@@ -45,7 +45,7 @@ sun_mode_btn.addEventListener('click', () =>
     localStorage.removeItem('light-mode');
 });
 
-moon_mode_btn.addEventListener('click', () => 
+moon_mode_btn.addEventListener('click', () =>
 {
     html.classList.add('moon-mode');
     sun_mode_btn.classList.replace('display-none', 'display-flex');
@@ -61,53 +61,18 @@ document.querySelectorAll('.feedback-card').forEach(feedback_card => {
 
 
 /*
- * 
- *  Utils 
+ *
+ *  Utils
  */
 
-// This is a slightly more hard-coded version of the same function present inside templates.mjs
-function post_card(post)
+async function req(path, method, search_params = null, payload_obj = null)
 {
-    const { id, content, created_at } = post;
-
-    return (
-        `<article class="card post-card">` +
-            `<p>` +
-                `${content.length > 70*10 ? 
-                    content.substring(0, 70*10) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>` : 
-                    content}` + 
-            `</p>` +
-            `<time datetime="${created_at}">${prettify_date(created_at)}</time>` +
-            `<a href='/write-reply?id=${id}'>Reply</a>` +
-        `</article>`
-    );
-}
-
-function prettify_date(date) 
-{
-    const locale_date = new Date(date).toLocaleString()
-    
-    const week_days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = [0, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    const week_day = new Date(locale_date).getDay();
-    const [year_time, day_time] = locale_date.split(', ');
-    const [month, day, year] = year_time.split('/');
-
-    const [clock_time, am_pm] = day_time.split(' ');
-    const [hour, mins, secs] = clock_time.split(':');
-
-    return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
-}
-
-async function req(path, method, search_params = null, payload_obj = null) 
-{    
     const response = {
         status_code: -1,
         payload: null,
-        error: null,
+        req_error: null,
     };
-    
+
     try {
         const url = search_params ? `${path}?${new URLSearchParams(search_params)}` : path;
         method = method.toUpperCase();
@@ -122,30 +87,46 @@ async function req(path, method, search_params = null, payload_obj = null)
             options.body = JSON.stringify(payload_obj);
         }
 
-        const server_res = await fetch(url, options);   
+        const server_res = await fetch(url, options);
         response.status_code = server_res.status;
-        
+
         const payload = await server_res.json();
-        
-        if (payload.Error) response.error = payload.Error;
+
+        if (payload.Error) response.req_error = payload.Error;
         else response.payload = payload;
-        
+
     } catch (error) {
         console.error('ERROR:', error);
-        response.error = error.message;
+        response.req_error = error.message;
         return response;
     }
 
     return response;
 }
 
-function show_feedback_card(feedback_card, type, msg) 
+function prettify_date(date)
 {
-    /* I could do this check when the request to the server fails, 
+    const locale_date = new Date(date).toLocaleString()
+
+    const week_days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = [0, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const week_day = new Date(locale_date).getDay();
+    const [year_time, day_time] = locale_date.split(', ');
+    const [month, day, year] = year_time.split('/');
+
+    const [clock_time, am_pm] = day_time.split(' ');
+    const [hour, mins, secs] = clock_time.split(':');
+
+    return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
+}
+
+function show_feedback_card(feedback_card, type, msg)
+{
+    /* I could do this check when the request to the server fails,
     but I would be 'dragging' this info uselessly among functions.
-    So, I check it just before showing the error to the user and I change it to a warning. */
+    So, I check it just before showing the error to the user. */
     if (!navigator.onLine) {
-        type = 'warning';
         msg = 'You are offline.';
     }
 
@@ -162,7 +143,7 @@ function hide_feedback_card(feedback_card) {
 }
 
 /* This function is used when the error sent from the server wouldn't be clear for the final user */
-function err_msg(status_code, entity, action) 
+function err_msg(status_code, entity, action)
 {
          if (status_code === 500) return 'Un unknown error has occured in the server. Please, try again later.';
     else if (status_code === 413) return `The ${entity} is too big. Its max size is ~128KB (Roughly 50-60 pages of a book).`;
@@ -185,7 +166,6 @@ function sanitize_input(input) {
 }
 
 export {
-    post_card,
     req,
     show_feedback_card,
     hide_feedback_card,

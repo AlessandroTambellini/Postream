@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Reply to a post">
-    
+
     <title>Postream / Write Reply</title>
-    
+
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
-      
+
     <style>
         form {
             margin-top: 1em;
@@ -40,24 +40,24 @@
 
         <form id="reply-form" action="api/reply" method="POST">
             <textarea name="reply-textarea" placeholder="_"></textarea>
-            
+
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
                 <p>
                     <span class='type'></span>
                     <span class='msg'></span>
                 </p>
-                <button class="close-btn" type='button'>🗙</button>
+                <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
             </div>
-        
+
             <button class="primary-btn" type="submit">
-                Reply 
+                Reply
             </button>
         </form>
     </main>
 
     {{ #side-panel }}
-    
+
     <script type="module">
         import { req, show_feedback_card, hide_feedback_card, err_msg, sanitize_input } from '../scripts/_universal.js';
 
@@ -76,7 +76,7 @@
 
             const path = write_reply_form.attributes.action.value;
             const method = write_reply_form.attributes.method.value;
-            
+
             const post_id = document.URL.split('?id=')[1];
             const content = sanitize_input(textarea.value);
 

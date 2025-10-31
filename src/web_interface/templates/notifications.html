@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="See if someone replied to a post of yours">
-    
+
     <title>Postream / Notifications</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
-      
+
     <style>
         main {
             padding: 0;
@@ -27,9 +27,9 @@
             background-color: hsl(var(--hsl-f9), .5);
         }
 
-        #notifications-container:empty:after {
+        /* #notifications-container:empty:after {
             content: 'You don\'t have any notification :)';
-        }
+        } */
 
         .notification-card {
             max-width: min(var(--card-max-width), calc(100% - 2*var(--page-inline-padding)));
@@ -61,7 +61,7 @@
 
     <main>
         <h1>Notifications</h1>
-        
+
         <div id="feedback-card-wrapper">
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
@@ -69,44 +69,135 @@
                     <span class='type'></span>
                     <span class='msg'></span>
                 </p>
-                <button class="close-btn" type='button'>🗙</button>
+                <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
             </div>
         </div>
-        
+
         <div id="notifications-container" class="cards-container">{{ notification-cards }}</div>
+
+        <form id="load-page-form">
+            <input name="load-page-input" type="number" min="1" max='{{ tot-pages }}' value="1">
+            <button class="secondary-btn" aria-label="load posts page">Load Posts Page</button>
+        </form>
+
+        <form id="search-post-form">
+            <input name="search-post-input" type="search" placeholder="Search Post" required>
+            <button class="secondary-btn">Search</button>
+        </form>
     </main>
 
+    <template id="notification-card-template">
+        <!-- id='notification-card-${id}' -->
+        <article class="card notification-card">
+            <!-- <b></b> -->
+            <p><b></b></p>
+            <footer>
+                <!-- href='/read-post?id=${post_id}#reply-${first_new_reply_id}' Read-Replie(s) -->
+                <a href></a>
+                <!-- data-notification-id=${id} -->
+                <button type='button' class='delete-notification-btn secondary-btn'>Delete</button>
+            </footer>
+        </article>
+    </template>
+
     {{ #side-panel }}
-    
+
     <script type="module">
         import { req, show_feedback_card, hide_feedback_card, err_msg } from '../scripts/_universal.js';
 
         const feedback_card = document.querySelector('.feedback-card');
+        const notifications_container = document.querySelector('#notifications-container');
+        const load_page_form = document.querySelector('#load-page-form');
+        const notifications_page_input = load_page_form.querySelector('input');
 
-        document.querySelectorAll('.delete-notification-btn').forEach(btn => 
+        const displayed_notifications = new Set();
+        let last_action_is_search = false;
+        const num_of_pages = Number(notifications_page_input.max);
+
+        notifications_container.querySelectorAll('.notification-card').forEach(notification => {
+            displayed_notifications.add(Number(notification.dataset.notificationId));
+        });
+
+        document.querySelectorAll('.delete-notification-btn').forEach(button => {
+            append_click_listener(button);
+        });
+
+        load_page_form.addEventListener('submit', async e =>
         {
-            btn.addEventListener('click', async () => 
+            e.preventDefault();
+            hide_feedback_card(feedback_card);
+
+            const PAGE_SIZE = 3;
+
+            const page  = Number(notifications_page_input.value);
+
+            const { status_code, payload: notifications, req_error } = await req('api/notifications/user/page', 'GET', { page, limit: PAGE_SIZE });
+
+            if (last_action_is_search) {
+                notifications_container.replaceChildren();
+                last_action_is_search = false;
+            }
+
+            let new_notifications_displayed = 0;
+            notifications.forEach(notification => {
+                if (!displayed_notifications.has(notification.id))
+                {
+                    displayed_notifications.add(notification.id);
+                    new_notifications_displayed++;
+                    const notification_card = build_notification_card(notification);
+                    append_click_listener(notification_card);
+                    notifications_container.appendChild(notification_card);
+                }
+            });
+
+            if (new_notifications_displayed < PAGE_SIZE && page < num_of_pages)
+            {
+                show_feedback_card(feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} notifications, ` +
+                    `but ${new_notifications_displayed} notification${new_notifications_displayed === 1 ? ' was' : 's were'} ` +
+                    'retrieved instead. Either this page was already loaded or new notifications where created in the meanwhile.');
+            }
+        });
+
+        function build_notification_card({ id, post_id, post_content, first_new_reply_id, num_of_replies })
+        {
+            const notification_card = document.querySelector('#notification-card-template').content.cloneNode(true);
+
+            notification_card.querySelector('article').id = `notification-card-${id}`;
+
+            const post_content_snapshot = post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content;
+
+            notification_card.querySelector('p').innerHTML =
+                `<b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>"${post_content_snapshot}"`;
+
+            const a = notification_card.querySelector('footer a');
+            a.href = `/read-post?id=${post_id}#reply-${first_new_reply_id}`;
+            a.textContent = `Read-${num_of_replies === 1 ? 'Reply' : 'Replies'}`;
+
+            const delete_notification_btn = notification_card.querySelector('footer button');
+            delete_notification_btn.dataset.notificationId = id;
+
+            return notification_card;
+        }
+
+        function append_click_listener(button)
+        {
+            button.addEventListener('click', async () =>
             {
                 hide_feedback_card(feedback_card);
 
-                const notification_id = btn.id.split('-')[1];
+                const notification_id = button.dataset.notificationId;
                 const { status_code, payload, req_error } = await req('api/user/notifications', 'DELETE', { id: notification_id });
-            
-                if (req_error) 
-                {
+
+                if (req_error) {
                     show_feedback_card(feedback_card, 'error', err_msg(status_code, 'notification', 'delete'));
-                } 
+                }
                 else {
                     const notification_card = document.querySelector(`#notification-card-${notification_id}`);
                     notification_card.classList.add('deleting');
-                    btn.disabled = true;
-
-                    // setTimeout(() => {
-                    //     notification_card.remove();
-                    // }, 300); // Matches the .notification-card transition duration
+                    button.disabled = true;
                 }
             });
-        });
+        }
     </script>
 </body>
 </html>

@@ -6,10 +6,10 @@
     <meta name="description" content="Login">
 
     <title>Postream / Login</title>
-    
+
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
-        
+
     <style>
         label[for=password] {
             padding-bottom: .25em;
@@ -33,28 +33,28 @@
     <h1 class="visually-hidden">Login</h1>
 
     <main>
-        <form action="api/token">
+        <form action="/api/token">
 
-            <!-- Not used. Here only to shut-up a browser warning 
+            <!-- Not used. Here only to shut-up a browser warning
              about best practices for forms. -->
             <input type="text" id="username" hidden autocomplete="username">
-    
+
             <label for="password">Password:</label>
-            <input 
-                id="password" 
-                name="password" 
-                type="password" 
+            <input
+                id="password"
+                name="password"
+                type="password"
                 autocomplete="current-password" placeholder="····················">
-    
+
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
                 <p>
                     <span class='type'></span>
                     <span class='msg'></span>
                 </p>
-                <button class="close-btn" type='button'>🗙</button>
+                <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
             </div>
-    
+
             <button class="primary-btn" type="submit">
                 Login
             </button>
@@ -70,7 +70,7 @@
         const feedback_card = login_form.querySelector('.feedback-card');
         const password_input = login_form.querySelector('input[name=password]');
 
-        login_form.addEventListener('submit', async e => 
+        login_form.addEventListener('submit', async e =>
         {
             e.preventDefault();
             hide_feedback_card(feedback_card);
@@ -78,7 +78,7 @@
             const path = login_form.attributes.action.value;
             const password = password_input.value;
 
-            /* 
+            /*
             - If it's the first time that the user logs in, it's a POST.
             - If it isn't the first time that the user logs in, it's a PUT. But,
                 - If previously the user logged out, I don't have anymore the password_hash on the client. Therefore,
@@ -88,8 +88,10 @@
             // Let's try to directly make a POST. Perhaps is the first login ever.
             const req_POST = await req(path, 'POST', null, { password });
 
+            console.log('req_POST', req_POST)
+
             if (!req_POST.req_error) {
-                document.cookie = `password_hash=${req_POST.payload.password_hash}`; 
+                document.cookie = `password_hash=${req_POST.payload.password_hash}`;
                 location.href = '/';
                 return;
             }
@@ -100,16 +102,18 @@
             if (req_GET.req_error) {
                 show_feedback_card(feedback_card, 'error', err_msg(req_GET.status_code, 'password'));
                 return;
-            } 
+            }
 
             const req_PUT = await req(path, 'PUT', null, { password });
-                
+
+            console.log('req_PUT', req_PUT)
+
             if (req_PUT.req_error) {
                 show_feedback_card(feedback_card, 'error', err_msg(req_PUT.status_code, 'password'));
                 return;
             }
 
-            document.cookie = `password_hash=${req_PUT.payload.password_hash}`; 
+            document.cookie = `password_hash=${req_PUT.payload.password_hash}`;
             location.href = '/';
         });
     </script>

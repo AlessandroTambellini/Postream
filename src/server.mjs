@@ -1,28 +1,22 @@
 import * as http from 'node:http';
-// import * as https from 'node:https';
-// import { readFileSync } from 'node:fs';
-// import { join } from 'node:path';
-// import 'dotenv/config';
+import * as https from 'node:https';
+import { readFileSync } from 'node:fs';
+import * as path from 'node:path';
 
-import * as handlers from './handlers.mjs';
-import { db_close } from './database.mjs';
-import { log_error, sanitize_url } from './utils.mjs';
+import { handlers, get_asset } from './handlers.mjs';
+import { init_db, close_db } from './database.mjs';
+import { log_error, env } from './utils.js';
 
-// const PROTOCOL = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-
-const PROTOCOL = 'http';
-const PORT = 3000;
-
+const PORT = env.NODE_ENV === 'production' ? 3001 : 3000;
+const PROTOCOL = env.NODE_ENV === 'production' ? 'https' : 'http';
 const MAX_BUFFER_SIZE = 128 * 1024; // 128KB
-// const CERTIFICATES_PATH = join(import.meta.dirname, '..');
+const CERTIFICATES_PATH = path.join(import.meta.dirname, '..');
 
-// const options = {
-//     key: readFileSync(join(CERTIFICATES_PATH, 'private-key.pem')),
-//     cert: readFileSync(join(CERTIFICATES_PATH, 'certificate.pem')),
-// };
-
-// const server = PROTOCOL === 'https' ? https.createServer(options) : http.createServer();
-const server = http.createServer();
+const server = PROTOCOL === 'https' ?
+    https.createServer({
+        key: readFileSync(join(CERTIFICATES_PATH, 'private-key.pem')),
+        cert: readFileSync(join(CERTIFICATES_PATH, 'certificate.pem')),
+    }) : http.createServer();
 
 server.on('request', handle_request);
 server.on('listening', () => console.log(`INFO: Server started on ${PROTOCOL}://localhost:${PORT}`));
@@ -32,30 +26,40 @@ process.on('SIGHUP', shutdown_server);
 process.on('SIGINT', shutdown_server);
 process.on('SIGTERM', shutdown_server);
 
+init_db();
+
 server.listen(PORT);
 
 function handle_request(req, res)
 {
-    const url_obj = new URL(sanitize_url(req.url), `${PROTOCOL}://localhost:${PORT}`);
-    
-    // console.log(req.headers['x-forwarded-for'], req.socket.remoteAddress);
+    const res_data = new ResData();
+
+    const { url, url_error } = get_url(req.url);
+
+    if (url_error) {
+        // TODO what if the req has data? ==> req.on('data'
+        // what's the status code for invalid url?
+        res_data.error(400, 'Invalid URL');
+        write_res(res, res_data);
+        return;
+    }
 
     const body = [];
     let buffer_size = 0;
     let f_abort = false;
-    
-    const res_obj = new Res();
-    
-    req.on('data', buffer => 
+
+    req.on('data', buffer =>
     {
         if (f_abort) return;
 
         buffer_size += buffer.length;
         if (buffer_size > MAX_BUFFER_SIZE)
-        {            
-            res_obj.error(413, `Content too large. Exceeded ${MAX_BUFFER_SIZE} bytes. Received ${buffer_size} bytes`, true);
-            
-            write_res(res, res_obj);
+        {
+            res_data.error(413,
+                `Content too large. Exceeded ${MAX_BUFFER_SIZE} bytes. Received ${buffer_size} bytes`,
+                true);
+
+            write_res(res, res_data);
             f_abort = true;
             return;
         }
@@ -63,49 +67,32 @@ function handle_request(req, res)
         body.push(buffer);
     });
 
-    req.on('end', async () => 
+    req.on('end', async () =>
     {
         if (f_abort) return;
 
         const req_data = {
-            'path': url_obj.pathname,
-            'search_params': url_obj.searchParams,
-            'method': req.method,
+            'path': scrub_path(url.pathname),
+            'search_params': url.searchParams,
+            'method': req.method.toUpperCase(),
             'cookies': parse_cookies(req.headers),
-            'payload': Buffer.concat(body).toString(),
+            'payload': convert_JSON_to_obj(Buffer.concat(body).toString()),
         };
 
         try {
-            let path = req_data.path;
-            if (path.endsWith('/') && path.length > 1) path = path.slice(0, url_obj.pathname.length-1);
+            if (handlers[req_data.path]) {
+                await handlers[req_data.path](req_data, res_data);
+            } else {
+                await get_asset(req_data, res_data);
+            }
 
-            let page_path = path === '/' ? 'index' : path.replace('/', '');
-            // allow for the specification of the html extension in a path
-            if (page_path.endsWith('.html')) page_path = page_path.replace('.html', '');
-
-            const api_path = path === '/api' ? 'apis' : path.replace('/api/', '');
-
-            if (handlers.pages[page_path]) {
-                if (req_data.method === 'GET') {
-                    await handlers.pages[page_path](req_data, res_obj);
-                } else {
-                    res_obj.error(405, `The method '${req_data.method}' isn't allowed for path '${req_data.path}'`);
-                }
-            } 
-            else if (handlers.API[api_path]) {  
-                handlers.API[api_path](req_data, res_obj);
-            } 
-            else {
-                await handlers.get_asset(req_data, res_obj);
-            }            
-            
-            write_res(res, res_obj);
+            write_res(res, res_data);
 
         } catch (error) {
             log_error(error);
             if (!res.headersSent) {
-                res_obj.error(500, 'An unexpected error has occurred while processing the request');
-                write_res(res, res_obj);
+                res_data.error(500, 'An unexpected error has occurred while processing the request');
+                write_res(res, res_data);
             }
         }
     });
@@ -113,8 +100,8 @@ function handle_request(req, res)
     req.on('error', err => {
         console.error('ERROR: Request error:', err);
         if (!res.headersSent) {
-            res_obj.error(400, 'Bad request');
-            write_res(res, res_obj);
+            res_data.error(400, 'Bad request');
+            write_res(res, res_data);
         }
     });
 
@@ -123,15 +110,15 @@ function handle_request(req, res)
     });
 }
 
-function write_res(res, res_obj) 
+function write_res(res, res_data)
 {
     try {
-        const payload = res_obj.content_type === 'application/json' ? JSON.stringify(res_obj.payload) : res_obj.payload;
+        const payload = res_data.content_type === 'application/json' ? JSON.stringify(res_data.payload) : res_data.payload;
 
         res.strictContentLength = true;
-        res.writeHead(res_obj.status_code, {
+        res.writeHead(res_data.status_code, {
             'Content-Length': Buffer.byteLength(payload),
-            'Content-Type': res_obj.content_type,
+            'Content-Type': res_data.content_type,
             'X-Frame-Options': 'SAMEORIGIN',
         });
 
@@ -146,27 +133,73 @@ function write_res(res, res_obj)
     }
 }
 
-function parse_cookies(headers) 
+function get_url(url_string)
 {
-    const raw = headers.cookie || '';
-    
+    let url = null, url_error = null;
+    try {
+        url = new URL(url_string, `${PROTOCOL}://localhost:${PORT}`);
+    } catch (error) {
+        url_error = error.message;
+    }
+
+    return { url, url_error };
+}
+
+function scrub_path(path)
+{
+    let scrubbed_path = path;
+
+    if (path.length > 1) {
+        if (path.endsWith('/')) {
+            scrubbed_path = path.slice(0, path.length-1);
+        }
+        else if (path.endsWith('.html')) {
+            scrubbed_path = path.replace('.html', '')
+        }
+    }
+
+    return scrubbed_path;
+}
+
+function parse_cookies(headers)
+{
+    /* Parsing errors are suppressed (e.g. missing value or URIError)
+    because the handler, to which the request will be routed to,
+    will complain about which cookie is missing or is invalid.
+    Also, I don't do any trimming of name and value,
+    because I've seen that Node.js already does that. */
+
     const cookies = {};
-    raw.split(';').forEach(cookie => {
-        const parts = cookie.split('=');
-        if (parts.length === 2) {
-            const [key, value] = parts.map(part => part.trim());
-            cookies[key] = decodeURIComponent(value);
-            // cookies[key] = value;
+
+    (headers.cookie || '').split(';').forEach(cookie => {
+        const [name, value] = cookie.split('=');
+        if (name && value) {
+            try {
+                cookies[name] = decodeURIComponent(value);
+            } catch (error) {}
         }
     });
 
     return cookies;
 }
 
+function convert_JSON_to_obj(json)
+{
+    /* Not sure about the managing of json error.
+    just an empty catch() for now. */
+
+    // let obj = null; // JSON_error = null;
+    try {
+        return JSON.parse(json);
+    } catch (error) {}
+    // `The payload doesn't have a valid format: ${JSON_error}`
+    // JSON_error = error.message;
+}
+
 function handle_server_error(e)
 {
     if (e.code === 'EADDRINUSE') {
-        console.warn('WARN: Address in use, retrying.');
+        console.error('ERROR: Address in use, retrying.');
         setTimeout(() => {
             server.close();
             server.listen(PORT);
@@ -176,7 +209,7 @@ function handle_server_error(e)
     }
 }
 
-function shutdown_server(signal) 
+function shutdown_server(signal)
 {
     const signals = {
         SIGHUP: 1,
@@ -187,14 +220,27 @@ function shutdown_server(signal)
     console.log(`\nINFO: Shutting down. Signal ${signals[signal]}.`);
     server.close(() => {
         console.log('INFO: The server has been shut down.');
-        db_close();
+        close_db();
         console.log('INFO: Database connection closed.');
         process.exit(128 + signals[signal]);
     });
 }
 
-class Res 
+function sanitize_url(url)
 {
+    let sanitized_url = url;
+
+    // new URL('//.../') causes a crash.
+    let forw_slash_instances = 0;
+    for (let i = 0; i < url.length; i++) {
+        if (url[i] === '/') forw_slash_instances++;
+    }
+    if (forw_slash_instances === url.length) sanitized_url = '/';
+
+    return sanitized_url;
+}
+
+class ResData {
     status_code = 500;
     payload = {};
     content_type = 'application/json';
@@ -203,7 +249,7 @@ class Res
         this.status_code = status_code;
         this.payload = { Error: `${error_msg}.` };
         this.content_type = 'application/json';
-        
+
         if (server_log) console.error(`ERROR: ${error_msg}.`);
     }
 
@@ -213,8 +259,8 @@ class Res
         this.content_type = content_type;
     }
 
-    /* I creaed the 'page' method, 
-    because calling 'res_obj.success()' for a 500/401 page doesn't seem semantically clear to me. */
+    /* I creaed the 'page' method,
+    because calling 'res_data.success()' for a 500/401 page doesn't seem semantically clear to me. */
     page(status_code, payload = '') {
         this.status_code = status_code;
         this.payload = payload;

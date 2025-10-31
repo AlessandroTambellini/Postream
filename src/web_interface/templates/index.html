@@ -90,12 +90,25 @@
                 <span class='type'></span>
                 <span class='msg'></span>
             </p>
-            <button class="close-btn" type='button'>🗙</button>
+            <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
         </div>
         
         <button id="load-more-posts-btn" class="primary-btn" aria-label="Load more posts">Load More</button>
     </main>
 
     {{ #side-panel }}
+
+    <template id="post-card-template">
+        <!-- id='post-card-${id}' -->
+        <article class="card post-card">
+            <p></p>
+            <!-- datetime="${created_at}" -->
+            <time datetime=""></time> 
+            <footer>
+                <!-- href='/write-reply?id=${id}' -->
+                <a>Reply</a>
+            </footer>
+        </article>
+    </template>
 </body>
 </html>

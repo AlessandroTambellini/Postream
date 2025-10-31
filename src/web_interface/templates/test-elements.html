@@ -9,20 +9,20 @@
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
-      
+
     <script type='module' src="../scripts/_universal.js"></script>
 
     <style>
         .card {
             margin-block: 1em;
         }
-        
+
         main > button {
             display: block;
             margin-block: 1em;
         }
 
-        main .profile-picture {    
+        main .profile-picture {
             margin-block: 2.4rem;
             width: 225px;
         }
@@ -43,41 +43,32 @@
         }
     </script>
 
-    <main>        
+    <main>
         {{ .post-card }}
         {{ .reply-card }}
         {{ .notification-card }}
 
         {{ .profile-picture }}
-        
+
         <button class="primary-btn">Load</button>
         <button class="secondary-btn">DESC</button>
-        
+
         <div class="card feedback-card info">
             <span role='img' alt='feedback icon'></span>
             <p>
                 <span class='type'>info</span>
                 <span class='msg'>All setup. Nothing to do.</span>
             </p>
-            <button class="close-btn" type='button'>🗙</button>
+            <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
         </div>
-        
+
         <div class="card feedback-card success">
             <span role='img' alt='feedback icon'></span>
             <p>
                 <span class='type'>success</span>
                 <span class='msg'>Action completed successfully!</span>
             </p>
-            <button class="close-btn" type='button'>🗙</button>
-        </div>
-
-        <div class="card feedback-card warning">
-            <span role='img' alt='feedback icon'></span>
-            <p>
-                <span class='type'>warning</span>
-                <span class='msg'>Pay attention to the wall!</span>
-            </p>
-            <button class="close-btn" type='button'>🗙</button>
+            <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
         </div>
 
         <div class="card feedback-card error">
@@ -86,7 +77,7 @@
                 <span class='type'>error</span>
                 <span class='msg'>The credentials are invalid. Please, update them.</span>
             </p>
-            <button class="close-btn" type='button'>🗙</button>
+            <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
         </div>
 
     </main>

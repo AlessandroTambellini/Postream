@@ -1,6 +1,6 @@
-@font-face { 
+@font-face {
     src:
-        local('Libertinus Mono'), 
+        local('Libertinus Mono'),
         url('../../assets/LibertinusMono-Regular.ttf') format('truetype');
     font-family: 'Libertinus Mono';
     font-weight: 400;
@@ -13,7 +13,7 @@
 }
 
 :root
-{    
+{
     --hsl-f9: 0, 0%, 98%;
     --hsl-6a: 0, 0%, 42%;
 
@@ -26,7 +26,7 @@
     --clr-ab: #ababab;
     --clr-6a: #6a6a6a;
     --clr-48: #484848;
-    
+
     --clr-index: #10b981;
     --clr-write-post: #ffdf29;
     --clr-write-reply: #a2ff29;
@@ -36,19 +36,20 @@
     --clr-profile: #d359f8;
     --clr-logout: #ac3fff;
     --clr-delete-account: #840000;
-    
+
     --rgb-00: 0, 0, 0;
-    
+
     --bkg-post-card: #fffdf2;
     --bkg-reply-card: #fbfff5;
     --bkg-notification-card: #fff6f6;
-    
+
     --clr-txt: #343A40;
     --clr-link: #551a8b;
-    --clr-selected: #ffd17c; 
+    --clr-selected: #ffd17c;
+    --clr-sky: #f4ffff;
 }
 
-:root.moon-mode 
+:root.moon-mode
 {
     --hsl-f9: 0, 0%, 2%;
     --hsl-6a: 0, 0%, 58%;
@@ -64,7 +65,7 @@
     --clr-48: #b7b7b7;
 
     --clr-light-blue: #c47d09;
-    
+
     --clr-index: #ef467e;
     --clr-write-post: #0020d6;
     --clr-write-reply: #5d00d6;
@@ -74,16 +75,17 @@
     --clr-profile: #2ca607;
     --clr-logout: #53c000;
     --clr-delete-account: #7bffff;
-    
+
     --rgb-00: 255, 255, 255;
-    
+
     --bkg-post-card: #00020d;
     --bkg-reply-card: #04000a;
     --bkg-notification-card: #000909;
-    
+
     --clr-txt: #f9fafb;
     --clr-link: #aae574;
     --clr-selected: #002e83;
+    --clr-sky: #0b0000;
 }
 
 *,
@@ -96,7 +98,7 @@
 
 body {
     font-family: 'Libertinus Mono', monospace;
-    display: flex;    
+    display: flex;
     align-items: center;
     justify-content: center;
     background-color: var(--clr-f9);
@@ -173,7 +175,7 @@ span[role=img] {
  *  Side Nav
  */
 
-#side-panel 
+#side-panel
 {
     --profile-pic-size: 60px;
     --list-fs: 1.5rem;
@@ -213,7 +215,7 @@ span[role=img] {
 }
 
 #side-panel:not(:has(li[itemprop=profile])) {
-    /* When the profile icon is absent, 
+    /* When the profile icon is absent,
     the sun-mode/moon-mode button feels too attached to the menu. */
     padding-top: 2.4em;
 }
@@ -238,7 +240,7 @@ span[role=img] {
 
 #side-panel li:not(li[itemprop=profile]) {
     margin-bottom: .25em;
-    padding-left: calc(var(--bullet-size)*3); 
+    padding-left: calc(var(--bullet-size)*3);
 }
 
 /* Apply this margin only when the profile-pic is present,
@@ -254,7 +256,7 @@ because this margin is to align the markers with the profile pic on the y-axis. 
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    
+
     width: var(--bullet-size);
     aspect-ratio: 1;
     border-radius: 100%;
@@ -270,7 +272,7 @@ because this margin is to align the markers with the profile pic on the y-axis. 
     box-shadow: 0 0 4px 1px var(--clr-cc);
 }
 
-/* 
+/*
  * Color-specific customization */
 
 li[itemprop=index]::before {
@@ -296,14 +298,14 @@ li[itemprop=logout]::before {
 }
 li[itemprop=delete-account]::before {
     --circle-color: var(--clr-delete-account);
-} 
+}
 
 
-/* 
+/*
     Sun & Moon icons */
 
 #sun-mode-btn,
-#moon-mode-btn 
+#moon-mode-btn
 {
     border: unset;
     background: unset;
@@ -362,7 +364,7 @@ li[itemprop=delete-account]::before {
 .ray:nth-child(1) { transform: rotate(0deg); }
 .ray:nth-child(2) { transform: rotate(45deg); }
 .ray:nth-child(3) { transform: rotate(90deg); }
-.ray:nth-child(4) { transform: rotate(135deg); } 
+.ray:nth-child(4) { transform: rotate(135deg); }
 
 #moon-icon {
     position: relative;
@@ -413,7 +415,7 @@ li[itemprop=delete-account]::before {
     background-color: var(--clr-e8);
 }
 
-@media (min-width: 1300px) 
+@media (min-width: 1300px)
 {
     /* Avoid the button from going too far at the edge of the page */
     #show-side-panel-btn {
@@ -440,7 +442,7 @@ li[itemprop=delete-account]::before {
 
 /* I created these states because sometimes in JS you may write e.g. 'div.style.display = "flex"',
 but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
-that has higher priority compared to the CSS classes. 
+that has higher priority compared to the CSS classes.
 And so, sometimes elements are shown/hidden unexpectedly because of the usage different specificities (especially in a big codebase).
 Therefore, I tend to be cautious in doing inline styling . */
 
@@ -493,7 +495,7 @@ button {
     border-width: 1px;
     transition: all 0.035s ease;
     user-select: none;
-    box-shadow: 
+    box-shadow:
         0 2px 0 var(--clr-b8),
         0 4px 6px rgba(var(--rgb-00), 0.1);
     transform: translateY(0);
@@ -509,7 +511,7 @@ button {
 .primary-btn:not(:disabled):hover {
     transform: translateY(-1px);
     background: linear-gradient(180deg, var(--clr-f9) 0%, var(--clr-e8) 100%);
-    box-shadow: 
+    box-shadow:
         0 3px 0 var(--clr-b8),
         0 6px 8px rgba(var(--rgb-00), 0.12);
 }
@@ -517,7 +519,7 @@ button {
 .primary-btn:not(:disabled):active {
     transform: translateY(1px);
     background: linear-gradient(180deg, var(--clr-e8) 0%, var(--clr-d8) 100%);
-    box-shadow: 
+    box-shadow:
         0 1px 0 var(--clr-b8),
         0 2px 4px rgba(var(--rgb-00), 0.15);
 }
@@ -569,7 +571,7 @@ button {
     box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
     max-width: var(--card-max-width);
 
-    /* If overflow isn't set to hidden, when the card is deleted, 
+    /* If overflow isn't set to hidden, when the card is deleted,
     the text would appear to spill out the boundaries of the shrinking card (See card.deleting) */
     overflow: hidden;
 }
@@ -577,12 +579,14 @@ button {
 .card p {
     color: var(--clr-txt);
     line-height: 1.4;
+    hyphens: auto;
+    overflow-wrap: break-word;
 
     /* Keep extra whitespaces and newlines because
     I think is an important feature e.g. to write lists or code.
     A side-effect of this property is that if the text is selected,
     the selection overflows a bit the card. */
-    white-space: pre-wrap; 
+    white-space: pre-wrap;
 }
 
 .card time,
@@ -590,7 +594,7 @@ button {
     font-size: .9rem;
 }
 
-.card.deleting 
+.card.deleting
 {
     transition: all .3s ease-out;
     transform-origin: top;
@@ -646,7 +650,7 @@ button {
     font-size: 1rem;
 }
 
-.feedback-card {    
+.feedback-card {
     border-radius: 8px;
     border: unset;
     border-left: 4px solid;
@@ -689,7 +693,7 @@ button {
     font-size: 1rem;
     opacity: 0.8;
     max-width: 70ch;
-    white-space: pre-wrap; 
+    white-space: pre-wrap;
 }
 
 .feedback-card .close-btn {
@@ -704,7 +708,7 @@ button {
     height: 25px;
     border-radius: 50%;
     user-select: none;
-    
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -717,7 +721,7 @@ button {
     background-color: rgba(var(--rgb-00), 0.1);
 }
 
-@media (min-width: 500px) 
+@media (min-width: 500px)
 {
     .feedback-card span[role=img] {
         font-size: 16px;
@@ -759,20 +763,6 @@ button {
 }
 .success p .type {
     color: #10b981;
-}
-
-.warning {
-    border-left-color: #ff8228;
-    display: flex;
-}
-.warning span[role=img] {
-    background-color: #ff8228;
-}
-.warning span[role=img]:after {
-    content: '!';
-}
-.warning p .type {
-    color: #e0640c;
 }
 
 .error {
@@ -819,6 +809,7 @@ form > textarea {
     border: 1px solid var(--clr-cc);
     box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
     field-sizing: content;
+    hyphens: auto;
 }
 
 input:focus-visible,
@@ -836,13 +827,13 @@ form > .feedback-card {
 }
 
 
-/* 
+/*
     Profile Pic */
 
 .profile-picture {
     display: block;
     aspect-ratio: 1;
-    background-color: var(--clr-ff);
+    background-color: var(--clr-sky);
     border-radius: 100%;
     border: 1px solid var(--clr-d8);
 

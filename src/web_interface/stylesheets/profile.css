@@ -6,7 +6,7 @@ main {
 
 /* It's fundamental to keep the 'main' selector because '.profile-picture'
 is present also inside the side-panel */
-main .profile-picture {    
+main .profile-picture {
     margin-block: 2.4rem;
     width: 225px;
 }
@@ -28,9 +28,9 @@ h2 {
     background-color: hsl(var(--hsl-f9), .5);
 }
 
-#posts-container:empty:after {
+/* #posts-container:empty:after {
     content: 'You didn\'t create any post yet.';
-}
+} */
 
 .post-card {
     margin-bottom: .5em;
@@ -47,7 +47,7 @@ h2 {
     border-radius: 8px;
     border: 1px solid var(--clr-b8);
     box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
-    background-color: var(--clr-e8);
+    background-color: var(--clr-f9);
     color: var(--clr-txt);
     top: 50%;
 
@@ -81,7 +81,7 @@ h2 {
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    
+
     display: flex;
     align-items: center;
     justify-content: center;

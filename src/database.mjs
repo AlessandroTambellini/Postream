@@ -1,478 +1,535 @@
-import { join, dirname } from 'node:path';
+import * as path from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
+import { unlink } from 'node:fs/promises';
+import * as repl from 'node:repl';
 import Database from 'better-sqlite3';
 
-import { log_error } from './utils.mjs';
+import { log_error } from './utils.js';
+import { generate_password, hash_password } from "./utils.js";
 
-const DB_PATH = join(import.meta.dirname, '..', 'data', 'poststream.db');
-const db_dir = dirname(DB_PATH);
+const DB_DIR = path.join(import.meta.dirname, '..', 'data');
+const DB_PATH = path.join(DB_DIR, 'postream.db');
 
-const PAGE_LIMIT = 100;
-
-// INIT_DB
-if (!existsSync(db_dir)) {
-    mkdirSync(db_dir, { recursive: true });
+if (!existsSync(DB_DIR)) {
+    mkdirSync(DB_DIR, { recursive: true });
 }
 
-const db = new Database(DB_PATH);
+let db = new Database(DB_PATH);
+const queries = {};
 
-db.pragma('journal_mode = WAL');
+function init_db()
+{
+    db.pragma('journal_mode = WAL');
 
-const create_tables = `
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        password_hash TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            password_hash TEXT NOT NULL UNIQUE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
 
-    CREATE TABLE IF NOT EXISTS tokens (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_password_hash TEXT NOT NULL,
-        user_id INTEGER NOT NULL,
-        expires_at DATETIME NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
+        CREATE TABLE IF NOT EXISTS tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            expires_at DATETIME NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
 
-    CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        content TEXT NOT NULL,
-        created_at DATETIME NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
+        CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            created_at DATETIME NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
 
-    CREATE TABLE IF NOT EXISTS replies (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        post_id INTEGER NOT NULL,
-        content TEXT NOT NULL,
-        created_at DATETIME NOT NULL,
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-    );
+        CREATE TABLE IF NOT EXISTS replies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            post_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            created_at DATETIME NOT NULL,
+            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+        );
 
-    CREATE TABLE IF NOT EXISTS notifications (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        post_id INTEGER NOT NULL,
-        post_content_snapshot TEXT NOT NULL,
-        first_new_reply_id INTEGER NOT NULL,
-        num_of_replies INTEGER NOT NULL,
-        created_at DATETIME NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
-    );
-`;
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            post_id INTEGER NOT NULL,
+            first_new_reply_id INTEGER NOT NULL,
+            num_of_replies INTEGER NOT NULL,
+            created_at DATETIME NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+        );
+    `);
 
-/* 
-1) There is no functionality implemented to delete a reply.
-Therefore, there is no 'FOREIGN KEY (reply_id) REFERENCES replies(id) ON DELETE CASCADE'.
-And, even if there was, not sure it's a good idea to delete the notification in that case.
+    db.exec(`
+        -- Index on timestamp for chronological queries (ASC and DESC)
+        CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
+    `);
 
-2) the post_content_snapshot field of the notifications table, 
-it's not the entire post content, 
-but just the first 70 chars. */
+    queries.insert_user = db.prepare('INSERT INTO users (password_hash) VALUES (?)');
+    queries.select_user = db.prepare('SELECT * FROM users WHERE password_hash = ?');
+    queries.delete_user = db.prepare('DELETE FROM users WHERE id = ?');
+    // queries.select_user_posts = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC');
+    // queries.select_user_notifications = db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC');
 
-const created_at_index = `
-    -- Index on timestamp for chronological queries (ASC and DESC)
-    CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
-`;
+    queries.insert_token = db.prepare('INSERT INTO tokens (user_id, expires_at) VALUES (?, ?)');
+    queries.select_token = db.prepare('SELECT * FROM tokens WHERE user_id = ?');
+    queries.update_token = db.prepare('UPDATE tokens SET expires_at = ? WHERE user_id = ?');
 
-db.exec(create_tables);
-db.exec(created_at_index);
-// end INIT_DB
+    queries.insert_post = db.prepare('INSERT INTO posts (user_id, content, created_at) VALUES (?, ?, ?)');
+    queries.select_post = db.prepare('SELECT * FROM posts WHERE id = ?');
+    queries.delete_post = db.prepare('DELETE FROM posts WHERE id = ? AND user_id = ?');
+    queries.select_post_replies = db.prepare('SELECT * FROM replies WHERE post_id = ? ORDER BY created_at DESC');
 
-function db_close() {
+    queries.insert_reply = db.prepare('INSERT INTO replies (post_id, content, created_at) VALUES (?, ?, ?)');
+
+    queries.select_notification = db.prepare('SELECT * FROM notifications WHERE post_id = ?');
+    queries.insert_notification = db.prepare('INSERT INTO notifications (user_id, post_id, first_new_reply_id, created_at, num_of_replies) VALUES (?, ?, ?, ?, ?)');
+    queries.update_notification = db.prepare('UPDATE notifications SET num_of_replies = num_of_replies + 1 WHERE post_id = ?');
+    queries.delete_notification = db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?');
+
+    queries.select_posts_count     = db.prepare('SELECT COUNT(*) as count FROM posts');
+    queries.select_posts_page_asc  = db.prepare('SELECT * FROM posts ORDER BY created_at ASC LIMIT ? OFFSET ?');
+    queries.select_posts_page_desc = db.prepare('SELECT * FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?');
+    queries.select_posts_page_rand = db.prepare('SELECT * FROM posts ORDER BY RANDOM() LIMIT ?');
+
+    queries.select_user_posts_count         = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ?');
+    queries.select_user_notifications_count = db.prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = ?');
+
+    queries.select_user_posts_page         = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
+    queries.select_user_notifications_page = db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
+    queries.select_user_matching_posts     = db.prepare("SELECT * FROM posts WHERE user_id = ? AND LOWER(content) LIKE '%' || ? || '%'");
+}
+
+function close_db() {
     db.close();
 }
 
+
 /*
- * 
- *  Statements
+ *
+ *  DB Operations
  */
-const insert_user = db.prepare('INSERT INTO users (password_hash) VALUES (?)');
-const select_user = db.prepare('SELECT * FROM users WHERE password_hash = ?');
-const delete_user = db.prepare('DELETE FROM users WHERE id = ?');
-const select_user_posts = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC');
-const select_user_notifications = db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC');
 
-const insert_token = db.prepare('INSERT INTO tokens (user_id, user_password_hash, expires_at) VALUES (?, ?, ?)');
-const select_token = db.prepare('SELECT * FROM tokens WHERE user_password_hash = ?');
-const update_token = db.prepare('UPDATE tokens SET expires_at = ? WHERE user_password_hash = ?');
-
-const insert_post  = db.prepare('INSERT INTO posts (user_id, content, created_at) VALUES (?, ?, ?)');
-const select_post = db.prepare('SELECT * FROM posts WHERE id = ?');
-const delete_post = db.prepare('DELETE FROM posts WHERE id = ? AND user_id = ?');
-
-const insert_reply = db.prepare('INSERT INTO replies (post_id, content, created_at) VALUES (?, ?, ?)');
-const select_post_replies = db.prepare('SELECT * FROM replies WHERE post_id = ? ORDER BY created_at DESC');
-
-const select_notification = db.prepare('SELECT * FROM notifications WHERE post_id = ?');
-const insert_notification = db.prepare('INSERT INTO notifications (user_id, post_id, post_content_snapshot, first_new_reply_id, created_at, num_of_replies) VALUES (?, ?, ?, ?, ?, ?)');
-const update_notification = db.prepare('UPDATE notifications SET num_of_replies = num_of_replies + 1 WHERE post_id = ?');
-const delete_notification = db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?');
-
-// Used just for testing
-const select_reply = db.prepare('SELECT * FROM replies WHERE id = ?');
-
-const select_posts_count = db.prepare('SELECT COUNT(*) as count FROM posts');
-const select_all_posts = db.prepare('SELECT * FROM posts ORDER BY created_at DESC');
-const select_posts_page_asc = db.prepare('SELECT * FROM posts ORDER BY created_at ASC LIMIT ? OFFSET ?');
-const select_posts_page_desc = db.prepare('SELECT * FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?');
-const select_posts_page_rand = db.prepare('SELECT * FROM posts ORDER BY RANDOM() LIMIT ?');
-const select_user_posts_page_desc = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
+const db_ops = {};
 
 /*
-NOTES:
-- The 'db_op' methods are just wrappers around the statements.
-They don't do anything more than that.
+NOTES about db_ops:
+1) db_ops are wrappers around queries.
+They don't perform any type of cheking on the arguments because
+That task is already performed by the handlers before calling these methods
 
-- Both users(password_hash) and tokens(id) are unique,
-but I don't find convenient to specify with 'UNIQUE' and instead I prefer to check it manually.
-
-- I don't think it's useful to report to the user the exact error message in case of a
-database exception because it's not releted with its request. 
-Instead, I return a 500 status code and a made up message.
+2) I don't think it's useful to report to the user the exact error message in case of a
+database exception because it's not directly correleted with its request.
+Therefore, a 500 status code is returned and a made up message based on the context.
 */
 
-const TOKEN_DURATION_HOURS = 24 * 7;
+const TOKEN_DURATION_IN_HOURS = 24 * 7;
+const DEFAULT_PAGE_SIZE = 20;
+
+function exec_query(query, action, ...args)
+{
+    let data = null, query_error = false;
+    try {
+        data = queries[query][action](...args);
+    } catch (error) {
+        query_error = true;
+        log_error(error);
+    }
+
+    return { data, query_error };
+}
 
 /*
- * 
- *  DB Operations 
- */
-
-const db_op = {};
-
-/*
- * 
  *  DB Operations - INSERT
  */
 
-db_op.insert_user = function(password_hash)
+db_ops.insert_user = function(password_hash)
 {
-    try {
-        const res = insert_user.run(password_hash);
-        return res.lastInsertRowid;
-    } catch (error) {
-        log_error(error);
-        return null;
-    }
+    const { data, query_error } = exec_query('insert_user', 'run', password_hash);
+
+    return query_error ? null : data.lastInsertRowid;
 };
 
-db_op.insert_token = function(user_id, password_hash)
-{    
-    try {
-        let expires_at = new Date();
-        expires_at.setHours(expires_at.getHours() + TOKEN_DURATION_HOURS);
-        expires_at = expires_at.toISOString();
-    
-        const res = insert_token.run(user_id, password_hash, expires_at);
-        return res.lastInsertRowid;
-
-    } catch (error) {
-        log_error(error);
-        return null;
-    }
-};
-
-db_op.insert_post = function(user_id, content) {
-    try {
-        const res = insert_post.run(user_id, content, new Date().toISOString());
-        return res.lastInsertRowid;
-    } catch (error) {
-        log_error(error);
-        return null;
-    }
-};
-
-db_op.insert_reply = function(post_id, content) 
+db_ops.insert_token = function(user_id)
 {
-    try {
-        const res = insert_reply.run(post_id, content, new Date().toISOString());
-        return res.lastInsertRowid;
-    } catch (error) {
-        log_error(error);
-        return null;
-    }
+    let expires_at = new Date();
+    expires_at.setHours(expires_at.getHours() + TOKEN_DURATION_IN_HOURS);
+    expires_at = expires_at.toISOString();
+
+    const {
+        data,
+        query_error,
+    } = exec_query('insert_token', 'run', user_id, expires_at);
+
+    return query_error ? null : data.lastInsertRowid;
 };
 
-db_op.insert_notification = function(user_id, post_id, post_content, first_new_reply_id)
+function test()
 {
-    try {
-        const res = insert_notification.run(user_id, post_id, post_content, first_new_reply_id, new Date().toISOString(), 1);
-        return res.lastInsertRowid;
-    } catch (error) {
-        log_error(error);
-        return null;
-    }
+    init_db()
+
+    let password_hash='123';
+
+    const {
+        data,
+        query_error,
+    } = exec_query('insert_user', 'run', password_hash);
+
+    console.log(data, query_error);
+}
+
+//test()
+
+db_ops.insert_post = function(user_id, content)
+{
+    const {
+        data,
+        query_error,
+    } = exec_query('insert_post', 'run', user_id, content, new Date().toISOString());
+
+    return query_error ? null : data.lastInsertRowid;
 };
+
+db_ops.insert_reply = function(post_id, content)
+{
+    const {
+        data,
+        query_error,
+    } = exec_query('insert_reply', 'run', post_id, content, new Date().toISOString());
+
+    return query_error ? null : data.lastInsertRowid;
+};
+
+db_ops.insert_notification = function(user_id, post_id, first_new_reply_id)
+{
+    const {
+        data,
+        query_error,
+    } = exec_query('insert_notification', 'run', user_id, post_id, first_new_reply_id, new Date().toISOString(), 1);
+
+    return query_error ? null : data.lastInsertRowid;
+};
+
 
 /*
- * 
  *  DB Operations - SELECT
  */
 
-db_op.select_token = function(password_hash)
+db_ops.select_token = function(user_id)
 {
-    let token = null, db_error = false;
-    try {
-        token = select_token.get(password_hash);
-    } catch (error) {
-        db_error = true;
-        log_error(error); 
-    } 
+    const {
+        data: token,
+        query_error: db_error,
+    } = exec_query('select_token', 'get', user_id);
 
     return { token, db_error };
 };
 
-db_op.select_user = function(password_hash)
+db_ops.select_user = function(password_hash)
 {
-    let user = null, db_error = false;
-    try {
-        user = select_user.get(password_hash);
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
-    
-    return { user, db_error };
+    const {
+        data: user,
+        query_error: db_error,
+    } = exec_query('select_user', 'get', password_hash);
+
+    return { user, db_error }
 };
 
-db_op.select_post = function(id) 
-{    
-    let post = null, db_error = false;
-    try {
-        post = select_post.get(id);
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
+db_ops.select_post = function(id)
+{
+    const {
+        data: post,
+        query_error: db_error,
+    } = exec_query('select_post', 'get', id);
 
     return { post, db_error };
 };
 
-db_op.select_post_replies = function(post_id)
+db_ops.select_post_replies = function(post_id)
 {
-    let replies = null, db_error = false;
-    try {
-        replies = select_post_replies.all(post_id);
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
+    const {
+        data: replies,
+        query_error: db_error,
+    } = exec_query('select_post_replies', 'all', post_id);
 
     return { replies, db_error };
 }
 
-db_op.select_user_posts = function(user_id)
+db_ops.select_user_posts_count = function(user_id)
 {
-    let posts = null, db_error = false;
-    try {
-        posts = select_user_posts.all(user_id);
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
+    const {
+        data,
+        query_error: db_error,
+    } = exec_query('select_user_posts_count', 'get', user_id);
 
-    return { posts, db_error };
+    return { count: data?.count, db_error };
 };
 
-db_op.select_user_posts_page = function(user_id, page = 1, limit = 50, sort = 'desc')
+db_ops.select_user_notifications_count = function(user_id)
 {
-    const offset = (page - 1) * limit;    
-    let posts = null, db_error = false;
+    const {
+        data,
+        query_error: db_error,
+    } = exec_query('select_user_notifications_count', 'get', user_id);
 
-    try {
-        posts = select_user_posts_page_desc.all(user_id, limit, offset);
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
-
-    return { 
-        posts, 
-        db_error,
-    };
+    return { count: data?.count, db_error };
 };
 
-db_op.select_notification = function(post_id)
+db_ops.select_notification = function(post_id)
 {
-    let notification = null, db_error = null;
-    try {
-        notification = select_notification.get(post_id);
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    }
+    const {
+        data: notification,
+        query_error: db_error,
+    } = exec_query('select_notification', 'get', post_id);
 
     return { notification, db_error };
 };
 
-db_op.select_user_notifications = function(user_id)
+db_ops.select_user_posts_page = function(user_id, page, limit = DEFAULT_PAGE_SIZE)
 {
-    let notifications = null, db_error = false;
-    try {
-        notifications = select_user_notifications.all(user_id);
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    }
+    const offset = (page - 1) * limit;
 
-    return { notifications, db_error };
-};
-
-db_op.select_posts_page = function(page = 1, limit = 50, sort = 'desc') 
-{
-    const offset = (page - 1) * limit;    
-    let posts = null, db_error = false;
-
-    try {
-        if (sort === 'asc') posts = select_posts_page_asc.all(limit, offset);
-        else if (sort === 'desc') posts = select_posts_page_desc.all(limit, offset);
-        else posts = select_posts_page_rand.all(limit);
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
-
-    return { 
-        posts, 
-        num_of_posts: count_posts(),
-        db_error
-    };
-};
-
-db_op.select_all_posts = function() 
-{
-    const num_of_posts = count_posts();
-    if (num_of_posts > 1000) {
-        console.warn(`WARN: Retrieving ${num_of_posts} posts at once.`);
-    }
-
-    let posts = null, db_error = false;
-    try {
-        posts = select_all_posts.all();
-    } catch (error) {
-        db_error = true;
-        log_error(error);   
-    } 
+    const {
+        data: posts,
+        query_error: db_error,
+    } = exec_query('select_user_posts_page', 'all', user_id, limit, offset);
 
     return { posts, db_error };
 };
 
+db_ops.select_user_notifications_page = function(user_id, page, limit = DEFAULT_PAGE_SIZE)
+{
+    const offset = (page - 1) * limit;
+
+    const {
+        data: notifications,
+        query_error: db_error,
+    } = exec_query('select_user_notifications_page', 'all', user_id, limit, offset);
+
+    return { notifications, db_error };
+};
+
+db_ops.select_posts_page = function(page, sort, limit = DEFAULT_PAGE_SIZE)
+{
+    const offset = (page - 1) * limit;
+
+    const sorting_type = {
+        'desc': {
+            query: 'select_posts_page_desc',
+            args: [limit, offset],
+        },
+        'asc': {
+            query: 'select_posts_page_asc',
+            args: [limit, offset],
+        },
+        'rand': {
+            query: 'select_posts_page_rand',
+            args: [limit],
+        },
+    };
+
+    if (!sorting_type[sort]) {
+        log_error(new Error(`The sorting '${sort}' isn't supported`));
+        return { posts: [], tot_num_of_posts: 0, db_error: false };
+    }
+
+    const {
+        data: posts,
+        query_error: db_error,
+    } = exec_query(sorting_type[sort].query, 'all', ...sorting_type[sort].args);
+
+    return { posts, db_error };
+};
+
+// Not sure what to do about this op.
+db_ops.select_posts_count = function()
+{
+    const {
+        data: tot_num_of_posts,
+        query_error: db_error
+    } = exec_query('select_posts_count', 'get');
+
+    return { tot_num_of_posts, db_error };
+};
+
+db_ops.select_user_matching_posts = function(user_id, search_term)
+{
+    const {
+        data: posts,
+        query_error: db_error,
+    } = exec_query('select_user_matching_posts', 'all', user_id, search_term);
+
+    return { posts, db_error };
+};
+
+
 /*
- * 
  *  DB Operations - UPDATE
  */
 
-db_op.update_token = function(password_hash)
+db_ops.update_token = function(user_id)
 {
-    let is_token_updated = false, db_error = false;
-    try {
-        let expires_at = new Date();
-        expires_at.setHours(expires_at.getHours() + TOKEN_DURATION_HOURS);
-        expires_at = expires_at.toISOString();
+    let expires_at = new Date();
+    expires_at.setHours(expires_at.getHours() + TOKEN_DURATION_IN_HOURS);
+    expires_at = expires_at.toISOString();
 
-        const res = update_token.run(expires_at, password_hash);
-        if (res.changes > 0) is_token_updated = true;
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
+    const {
+        data,
+        query_error: db_error,
+    } = exec_query('update_token', 'run', expires_at, user_id);
 
-    return { is_token_updated, db_error };
+    return {
+        is_token_updated: data?.changes > 0,
+        db_error,
+    };
 };
 
-db_op.update_notification = function(post_id)
+db_ops.update_notification = function(post_id)
 {
-    let is_notification_updated = false, db_error = false;
-    try {
-        const res = update_notification.run(post_id);
-        if (res.changes > 0) is_notification_updated = true;
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    }
+    const {
+        data,
+        query_error: db_error,
+    } = exec_query('update_notification', 'run', post_id);
 
-    return { is_notification_updated, db_error };
+    return {
+        is_notification_updated: data?.changes > 0,
+        db_error,
+    };
 };
 
 /*
- * 
+ *
  *  DB Operations - DELETE
  */
 
-db_op.delete_post = function(post_id, user_id) 
+db_ops.delete_post = function(post_id, user_id)
 {
-    let is_post_deleted = false, db_error = false;
-    try {
-        const res = delete_post.run(post_id, user_id);
-        is_post_deleted = res.changes > 0 ? true : false;
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
+    const {
+        data,
+        query_error,
+    } = exec_query('delete_post', 'run', post_id, user_id);
 
-    return { is_post_deleted, db_error };
+    return {
+        is_post_deleted: data?.changes > 0,
+        db_error: query_error,
+    };
 };
 
-db_op.delete_user = function(id)
+db_ops.delete_user = function(user_id)
 {
-    let is_user_deleted = false, db_error = false;
-    try {
-        const res = delete_user.run(id);
-        is_user_deleted = res.changes > 0 ? true : false;
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    } 
-        
-    return { is_user_deleted, db_error };
+    const {
+        data,
+        query_error,
+    } = exec_query('delete_user', 'run', user_id);
+
+    return {
+        is_user_deleted: data?.changes > 0,
+        db_error: query_error,
+    };
 };
 
-db_op.delete_notification = function(notification_id, user_id)
+db_ops.delete_notification = function(notification_id, user_id)
 {
-    let is_notification_deleted = false, db_error = false;
-    try {
-        const res = delete_notification.run(notification_id, user_id);
-        is_notification_deleted = res.changes > 0 ? true : false;
-    } catch (error) {
-        db_error = true;
-        log_error(error);
-    }
+    const {
+        data,
+        query_error,
+    } = exec_query('delete_notification', 'run', notification_id, user_id);
 
-    return { is_notification_deleted, db_error };
+    return {
+        is_notification_deleted: data?.changes > 0,
+        db_error: query_error,
+    };
 };
 
-
-/*  
- *  
- *  Auxiliary functions
- */
-
-function validate_token(password_hash)
+// For the future: import.meta.main
+if (process.argv.includes('--run-seed') || process.argv.includes('-S'))
 {
-    const { token, db_error } = db_op.select_token(password_hash);
-
-    let user_id = null;
-
-    if (!db_error) {
-        if (token && token.expires_at > new Date().toISOString()) {
-            user_id = token.user_id;
-        }
-    }
-
-    return { user_id, db_error };
+    repl.start({
+        prompt: 'This operation will erase the existing database and create a new one with the seed data. ' +
+            'Do you want to continue? (y/n) ',
+        eval: async answer => {
+            if (answer.trim().toLowerCase() === 'y') {
+                await rebuild_db();
+            } else {
+                console.log('Operation aborted.');
+            }
+            process.exit(0);
+        },
+    });
 }
 
-function count_posts() {
-    const { count } = select_posts_count.get();
-    return count;
+async function rebuild_db()
+{
+    try {
+        await unlink(DB_PATH);
+        db = new Database(DB_PATH);
+        init_db();
+    } catch (error) {
+        log_error(error);
+        console.log('The database may be in usage by the server.');
+        return;
+    }
+
+    /* Each of the underlying posts shows a nuance of the post-card. */
+
+    const lorem_ipsum =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." +
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." +
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur." +
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
+    ;
+
+    const long_post_chunks = new Array(100);
+    for (let i = 0; i < long_post_chunks.length; i++) {
+        long_post_chunks[i] = lorem_ipsum;
+    }
+
+    const list = 'Pros:\n✅ ...\n✅ ...\n✅ ...\n\nCons:\n❌ ...\n❌ ...\n';
+
+    const code = '&lt;!DOCTYPE html&gt;\n&lt;html lang="en"&gt;\n' +
+        '&lt;head&gt;\n\t&lt;meta charset="UTF-8"&gt;\n' +
+        '\t&lt;title&gt;Document&lt;/title&gt;\n&lt;/head&gt;\n' +
+        '&lt;body&gt;\n\t&lt;script&gt;\n\t\tconsole.log("&lt;/script&gt;");\n' +
+        '\t&lt;/script&gt;\n&lt;/body&gt;\n&lt;/html&gt;';
+
+    const firefox_releases = '144.0_\n143.0_ 143.0.1 143.0.3 143.0.4\n142.0_ 142.0.1' +
+        '\n141.0_ 141.0.2 141.0.3\n140.0_ 140.0.1 140.0.2 140.0.4 140.1.0 140.2.0 140.3.0 140.3.1 140.4.0\n' +
+        '139.0_ 139.0.1 139.0.4\n138.0_ 138.0.1 138.0.3 138.0.4\n137.0_';
+
+    // ---------------- //
+
+    const users = new Array(3);
+
+    console.log('Users:');
+    for (let i = 0; i < users.length; i++) {
+        const password = generate_password();
+        const user = db_ops.insert_user(hash_password(password));
+        users[i] = user;
+
+        console.log(`- password_${i}:`, password);
+    }
+
+    db_ops.insert_post(users[0], long_post_chunks.join(''));
+    db_ops.insert_post(users[0], list);
+
+    db_ops.insert_post(users[1], code);
+    db_ops.insert_post(users[1], firefox_releases);
+
+    console.log('\nDatabase rebuilt successfully ✅');
+    console.log('\nThings I suggest to do to fully experience the website:');
+    console.log('- Create looong posts');
+    console.log('- Create looong replies');
+    console.log('- Look at the notifications');
+    console.log('- Create a lot of posts and replies to see the pagination in action');
 }
 
 export {
-    PAGE_LIMIT,
-    db_op,
-    validate_token,
-    db_close,
+    DEFAULT_PAGE_SIZE,
+    init_db,
+    close_db,
+    db_ops,
 };
 

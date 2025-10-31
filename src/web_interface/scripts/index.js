@@ -1,4 +1,4 @@
-import { req, show_feedback_card, hide_feedback_card, post_card } from './_universal.js';
+import { req, show_feedback_card, hide_feedback_card, prettify_date } from './_universal.js';
 
 const controls = document.querySelectorAll('.control');
 const reload_posts_btn = document.querySelector('#reload-posts-btn');
@@ -11,7 +11,7 @@ const displayed_posts = new Set();
 const flags = {
     sort: 'desc',
     // Keep track of how many pages are retrieved in both asc and desc order
-    page_asc: 1, 
+    page_asc: 1,
     page_desc: 1,
 };
 
@@ -25,7 +25,7 @@ controls.forEach(ctrl => {
     });
 });
 
-reload_posts_btn.addEventListener('click', () => 
+reload_posts_btn.addEventListener('click', () =>
 {
     // Reset
     flags.page_asc = 1;
@@ -35,7 +35,9 @@ reload_posts_btn.addEventListener('click', () =>
     fill_stream(flags, displayed_posts, true);
 });
 
-load_more_posts_btn.addEventListener('click', () => fill_stream(flags, displayed_posts));
+load_more_posts_btn.addEventListener('click', () => {
+    fill_stream(flags, displayed_posts)
+});
 
 async function fill_stream(flags, displayed_posts, f_reload = false)
 {
@@ -44,37 +46,31 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
     const search_params = {};
     search_params.page  = flags.sort === 'asc' ? flags.page_asc : flags.page_desc;
     search_params.sort  = flags.sort;
-    search_params.limit = 20;
-    // search_params.format = 'html';
 
-    const { status_code, payload, req_error } = await req('api/posts/page', 'GET', search_params);
+    const { status_code, payload: posts, req_error } = await req('api/posts/page', 'GET', search_params);
 
     if (req_error) {
         show_feedback_card(feedback_card, 'error', req_error);
         return;
     }
-    
-    const { posts, num_of_posts } = payload;
-    
-    if (f_reload) posts_container.replaceChildren(); // Empty the stream
 
-    const post_cards = [];
+    if (f_reload) {
+        // Empty the stream first
+        posts_container.replaceChildren();
+    }
+
+    let new_posts_displayed = 0;
     posts.forEach(post => {
         if (!displayed_posts.has(post.id)) {
             displayed_posts.add(post.id);
-            post_cards.push(post_card(post));
+            new_posts_displayed++;
+            posts_container.appendChild(build_post_card(post));
         }
     });
 
-    if (post_cards.length > 0) {
-        posts_container.innerHTML += post_cards.join('');
-    } 
-    else {
-        if (num_of_posts === displayed_posts.size) {
-            show_feedback_card(feedback_card, 'info', 'There aren\'t new posts.');
-        } else {
-            show_feedback_card(feedback_card, 'warning', 'No new posts retrieved. Where retrieved only posts already present in the stream.');
-        }
+    if (!new_posts_displayed) {
+        show_feedback_card(feedback_card, 'info', 'No new posts retrieved. ' +
+            'Either were retrieved only posts already present in the stream or there aren\'t more posts in the database.');
     }
 
     if (flags.sort === 'asc') flags.page_asc++;
@@ -84,15 +80,39 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
 /* Keep track of the posts rendered from the server on first loading of the page. */
 function identify_displayed_posts(flags, displayed_posts)
 {
-    const posts = posts_container.querySelectorAll('.post-card');
-    for (const post of posts)
-    {
-        const post_id = Number(post.querySelector('a').href.split('id=')[1]);
-        displayed_posts.add(post_id);
-    }
+    posts_container.querySelectorAll('.post-card').forEach(post => {
+        displayed_posts.add(post.dataset.postId)
+    });
 
-    flags.page_desc++; // Because the posts are retrieved in descending order on first loading
+    // The posts are retrieved in descending order on first loading
+    flags.page_desc++;
 }
 
+function build_post_card({ id, content, created_at })
+{
+    const post_card_template = document.querySelector('#post-card-template');
+    const post_card = post_card_template.content.cloneNode(true);
+
+    // TODO this variable is repeated in post-card of templates
+    const MAX_CHARS_PER_POST_PREVIEW = 55*20;
+
+    // The id is needed to delete the post.
+    // I don't put it here given it isn't possible to delete a post from the index page
+
+    const p = post_card.querySelector('p');
+    if (content.length > MAX_CHARS_PER_POST_PREVIEW) {
+        p.textContent = content.substring(0, MAX_CHARS_PER_POST_PREVIEW) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>`
+    } else {
+        p.textContent = content;
+    }
+
+    const time = post_card.querySelector('time');
+    time.dateTime = created_at;
+    time.textContent = prettify_date(created_at);
+
+    post_card.querySelector('footer a').href = `/write-reply?id=${id}`;
+
+    return post_card;
+}
 
 

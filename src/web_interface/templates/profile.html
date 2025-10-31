@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Take a look at the posts you made">
-    
+
     <title>Postream / Profile</title>
-    
+
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
     <link rel='stylesheet' href='../stylesheets/_universal.css'>
     <link rel="stylesheet" href="../stylesheets/profile.css">
-      
+
     <script type="module" src="../scripts/profile.js"></script>
 </head>
 <body>
@@ -29,9 +29,28 @@
         {{ .profile-picture }}
 
         <h2>My Posts</h2>
-        
+
         <div id="posts-container" class="cards-container">{{ post-cards }}</div>
-        
+
+        <div class="card feedback-card display-none">
+            <span role='img' alt='feedback icon'></span>
+            <p>
+                <span class='type'></span>
+                <span class='msg'></span>
+            </p>
+            <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
+        </div>
+
+        <form id="load-page-form">
+            <input name="load-page-input" type="number" min="1" max='{{ tot-pages }}' value="1">
+            <button class="secondary-btn" aria-label="load posts page">Load Posts Page</button>
+        </form>
+
+        <form id="search-post-form">
+            <input name="search-post-input" type="search" placeholder="Search Post" required>
+            <button class="secondary-btn">Search</button>
+        </form>
+
         <dialog id="delete-post-dialog">
             <button type="button" id="close-dialog-btn" aria-label="close dialog">✗</button>
             <form method="dialog">
@@ -45,11 +64,26 @@
                     <span class='type'></span>
                     <span class='msg'></span>
                 </p>
-                <button class="close-btn" type='button'>🗙</button>
+                <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
             </div>
         </dialog>
     </main>
 
     {{ #side-panel }}
+
+    <template id="post-card-template">
+        <!-- post-card-${id}' data-post-id=${id} -->
+        <article class="card post-card">
+            <p></p>
+            <!-- datetime="${created_at}" -->
+            <time datetime></time>
+            <footer>
+                <!-- href='/read-post?id=${id}#replies-container' -->
+                <a href>Read-Replies</a>
+                <!-- data-post-id=${id} -->
+                <button type='button' class='delete-post-btn secondary-btn'>Delete Post</button>
+            </footer>
+        </article>
+    </template>
 </body>
 </html>
