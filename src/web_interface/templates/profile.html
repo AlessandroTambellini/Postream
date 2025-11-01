@@ -41,15 +41,17 @@
             <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
         </div>
 
-        <form id="load-page-form">
-            <input name="load-page-input" type="number" min="1" max='{{ tot-pages }}' value="1">
-            <button class="secondary-btn" aria-label="load posts page">Load Posts Page</button>
-        </form>
-
-        <form id="search-post-form">
-            <input name="search-post-input" type="search" placeholder="Search Post" required>
-            <button class="secondary-btn">Search</button>
-        </form>
+        <nav id="filter-posts-nav">
+            <form id="load-page-form">
+                <input name="load-page-input" type="number" min="1" max='{{ tot-pages }}' value="1">
+                <button class="secondary-btn" type="submit" aria-label="load posts page">Load</button>
+            </form>
+    
+            <form id="search-post-form">
+                <input name="search-post-input" type="search" placeholder="Search Post" required>
+                <button class="secondary-btn" type="submit">Search</button>
+            </form>
+        </nav>
 
         <dialog id="delete-post-dialog">
             <button type="button" id="close-dialog-btn" aria-label="close dialog">✗</button>

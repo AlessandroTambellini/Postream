@@ -39,7 +39,7 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
     else {
         footer.push('<footer>', reply_link_types[reply_link_type]);
         if (reply_link_type === 1)
-            footer.push(`<button type='button' data-post-id=${id} class='delete-post-btn secondary-btn'>Delete Post</button>`);
+            footer.push(`<button type='button' data-post-id=${id} class='delete-post-btn secondary-btn'>Delete</button>`);
         footer.push('</footer>');
     }
 
@@ -65,11 +65,12 @@ DOMElements['.notification-card'] = function(notification)
 {
     const { id, post_id, post_content, first_new_reply_id, num_of_replies } = notification;
 
-    const post_content_snapshot = post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content;
-
     return (
         `<article id='notification-card-${id}' data-notification-id=${id} class='card notification-card'>` +
-            `<p><b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>"${post_content_snapshot}"</p>` +
+            '<p>' + 
+                `<b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>` + 
+                `"${post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content}"` + 
+            '</p>' +
             `<footer>` +
                 `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-${num_of_replies === 1 ? 'Reply' : 'Replies'}</a>` +
                 `<button type='button' data-notification-id=${id} class='delete-notification-btn secondary-btn'>Delete</button>` +
@@ -119,9 +120,9 @@ DOMElements['.profile-picture'] = function(max_num_of_circles, picture_size)
     return `<span class="profile-picture" role="img">${circles.join('')}</span>`;
 };
 
-DOMElements['#side-panel'] = function(logged_in, page = '')
+DOMElements['#side-panel'] = function(user_id, page = '')
 {
-    let menu_entries = logged_in ?
+    let menu_entries = user_id ?
         ['index', 'notifications', 'write-post', 'logout'] :
         ['index', 'login', 'create-account'];
 
@@ -162,7 +163,7 @@ DOMElements['#side-panel'] = function(logged_in, page = '')
             `</script>` +
 
             `<menu>` +
-                (logged_in && page !== 'profile' ?
+                (user_id && page !== 'profile' ?
                     `<li itemprop="profile">` +
                         `<a href="/profile">` +
                             `${DOMElements['.profile-picture'](45, 60)}` +

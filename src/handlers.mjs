@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { DEFAULT_PAGE_SIZE, db_ops } from "./database.mjs";
 import { hash_password, generate_password, log_error, env, read_file } from './utils.js';
 import { DOMElements, fallback_page } from "./templates.mjs";
+import assert from "node:assert";
 
 const WEB_INTERFACE_PATH = path.join(import.meta.dirname, 'web_interface');
 const MAX_ENTITIES_PER_PAGE = 100;
@@ -73,7 +74,7 @@ const handlers = {};
 handlers['/'].GET = 
 handlers['/index'].GET = async function(req_data, res_data)
 {
-    let { template: index_template, fs_error } = await read_template('index');
+    const { page_template, fs_error } = await get_page_template('index');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
@@ -93,67 +94,68 @@ handlers['/index'].GET = async function(req_data, res_data)
         DOMElements['.info-msg'](APOLOGY_MSG('posts')) :
         posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
 
-    const index_page = index_template
+    const page = page_template
         .replace('{{ post-cards }}', post_cards)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'index'))
     ;
 
-    res_data.page(200, index_page);
+    res_data.page(200, page);
 };
 
 handlers['/create-account'].GET = async function(req_data, res_data)
 {
-    let { template: create_account_template, fs_error } = await read_template('create-account');
+    const { page_template, fs_error } = await get_page_template('create-account');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
         return;
     }
 
-    const create_account_page = create_account_template
+    const page = page_template
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](false, 'create-account'))
     ;
 
-    res_data.page(200, create_account_page);
+    res_data.page(200, page);
 };
 
 handlers['/login'].GET = async function(req_data, res_data)
 {
-    let { template: login_template, fs_error } = await read_template('login');
+    const { page_template, fs_error } = await get_page_template('login');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
         return;
     }
 
-    const login_page = login_template
+    const page = page_template
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](false, 'login'))
     ;
 
-    res_data.page(200, login_page);
+    res_data.page(200, page);
 };
 
 handlers['/profile'].GET = async function(req_data, res_data)
 {
-    const { template: profile_template, fs_error } = await read_template('profile');
+    const { page_template, fs_error } = await get_page_template('profile');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
         return;
     }
 
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, status_code } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.page(401, fallback_page(401));
+        // Even though there isn't the user_id, not necessarily is a 401. 
+        // So, better to pass the status code
+        res_data.page(status_code, fallback_page(status_code));
         return;
     }
 
-    const PAGE_SIZE = 3;
     const { count, db_error } = db_ops.select_user_posts_count(user_id);
-    const pages = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
+    const pages = (db_error || count < 1) ? 1 : Math.ceil(count/DEFAULT_PAGE_SIZE);
 
-    const { posts, db_error: posts_error } = db_ops.select_user_posts_page(user_id, 1, PAGE_SIZE);
+    const { posts, db_error: posts_error } = db_ops.select_user_posts_page(user_id, 1);
 
     let post_cards;
 
@@ -161,19 +163,19 @@ handlers['/profile'].GET = async function(req_data, res_data)
     else if (posts.length === 0) post_cards = DOMElements['.info-msg']('You didn\'t create any post yet.');
     else post_cards = posts.map(post => DOMElements['.post-card'](post, 1, true)).join('');
 
-    const profile_page = profile_template
+    const page = page_template
         .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
         .replace('{{ post-cards }}', post_cards)
         .replaceAll('{{ tot-pages }}', pages)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'profile'))
     ;
 
-    res_data.page(200, profile_page);
+    res_data.page(200, page);
 };
 
 handlers['/notifications'].GET = async function(req_data, res_data)
 {
-    const { template: notifications_template, fs_error } = await read_template('notifications');
+    const { page_template, fs_error } = await get_page_template('notifications');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
@@ -187,11 +189,10 @@ handlers['/notifications'].GET = async function(req_data, res_data)
         return;
     }
 
-    const PAGE_SIZE = 3;
     const { count, db_error } = db_ops.select_user_notifications_count(user_id);
-    const pages = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
+    const pages = (db_error || count < 1) ? 1 : Math.ceil(count/DEFAULT_PAGE_SIZE);
 
-    const { notifications, db_error: notifications_error } = db_ops.select_user_notifications_page(user_id, 1, PAGE_SIZE);
+    const { notifications, db_error: notifications_error } = db_ops.select_user_notifications_page(user_id, 1);
 
     if (notifications_error) {
         res_data.page(500, fallback_page(500, APOLOGY_MSG('notifications')));
@@ -215,13 +216,13 @@ handlers['/notifications'].GET = async function(req_data, res_data)
         notification_cards = notification_cards.join('');
     }
 
-    const notifications_page = notifications_template
+    const page = page_template
         .replace('{{ notification-cards }}', notification_cards)
         .replaceAll('{{ tot-pages }}', pages)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'notifications'))
     ;
 
-    res_data.page(200, notifications_page);
+    res_data.page(200, page);
 };
 
 handlers['/write-post'].GET = async function(req_data, res_data)
@@ -233,23 +234,23 @@ handlers['/write-post'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { template: write_post_template, fs_error } = await read_template('write-post');
+    const { page_template, fs_error } = await get_page_template('write-post');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
         return;
     }
 
-    const write_post_page = write_post_template
+    const page = page_template
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'write-post'))
     ;
 
-    res_data.page(200, write_post_page);
+    res_data.page(200, page);
 };
 
 handlers['/write-reply'].GET = async function(req_data, res_data)
 {
-    const { template: write_reply_template, fs_error } = await read_template('write-reply');
+    const { page_template, fs_error } = await get_page_template('write-reply');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
@@ -269,17 +270,17 @@ handlers['/write-reply'].GET = async function(req_data, res_data)
         return;
     }
 
-    const write_reply_page = write_reply_template
+    const page = page_template
         .replace('{{ .post-card }}', DOMElements['.post-card'](post))
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'write-reply'))
     ;
 
-    res_data.page(200, write_reply_page);
+    res_data.page(200, page);
 };
 
 handlers['/read-post'].GET = async function(req_data, res_data)
 {
-    let { template: post_template, fs_error } = await read_template('read-post');
+    const { page_template, fs_error } = await get_page_template('read-post');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
@@ -312,18 +313,18 @@ handlers['/read-post'].GET = async function(req_data, res_data)
         }
     }
 
-    const post_page = post_template
+    const page = page_template
         .replace('{{ .post-card }}', DOMElements['.post-card'](post, user_id && post.user_id !== user_id ? 2 : 0))
         .replace('{{ replies }}', reply_cards.join(''))
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'read-post'))
     ;
 
-    res_data.page(200, post_page);
+    res_data.page(200, page);
 };
 
 handlers['/test-elements'].GET = async function(req_data, res_data)
 {
-    let { template: test_components_template, fs_error } = await read_template('test-elements');
+    const { page_template, fs_error } = await get_page_template('test-elements');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
@@ -332,7 +333,7 @@ handlers['/test-elements'].GET = async function(req_data, res_data)
 
     const card = {
         id:'#',
-        content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
         created_at: new Date().toLocaleString(),
     };
 
@@ -344,7 +345,7 @@ handlers['/test-elements'].GET = async function(req_data, res_data)
         num_of_replies: 2,
     };
 
-    const test_components_page = test_components_template
+    const page = page_template
         .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
         .replace('{{ .post-card }}', DOMElements['.post-card'](card))
         .replace('{{ .reply-card }}', DOMElements['.reply-card'](card))
@@ -352,7 +353,7 @@ handlers['/test-elements'].GET = async function(req_data, res_data)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'test-elements'))
     ;
 
-    res_data.page(200, test_components_page);
+    res_data.page(200, page);
 };
 
 handlers['/logout'].GET = async function(req_data, res_data)
@@ -361,18 +362,18 @@ handlers['/logout'].GET = async function(req_data, res_data)
     Logging out means deleting a cookie. Delete it if you want.
     TODO review this comment */
 
-    const { template: logout_template, fs_error } = await read_template('logout');
+    const { page_template, fs_error } = await get_page_template('logout');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
         return;
     }
 
-    const logout_page = logout_template
+    const page = page_template
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'logout'))
     ;
 
-    res_data.page(200, logout_page);
+    res_data.page(200, page);
 };
 
 handlers['/delete-account'].GET = async function(req_data, res_data)
@@ -384,28 +385,28 @@ handlers['/delete-account'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { template: delete_account_template, fs_error } = await read_template('delete-account');
+    const { page_template, fs_error } = await get_page_template('delete-account');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
         return;
     }
 
-    const delete_account_page = delete_account_template
+    const page = page_template
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'delete-account'))
     ;
 
-    res_data.page(200, delete_account_page);
+    res_data.page(200, page);
 };
 
 handlers['/logo'].GET = async function(req_data, res_data)
 {
-    const { template: logo_page, fs_error } = await read_template('logo');
+    const { page_template, fs_error } = await get_page_template('logo');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
     } else {
-        res_data.page(200, logo_page);
+        res_data.page(200, page_template);
     }
 };
 
@@ -436,7 +437,7 @@ handlers['/api/user'].DELETE = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
 
-    if (auth_error) {
+    if (!user_id) {
         res_data.error(status_code, auth_error);
         return;
     }
@@ -615,7 +616,7 @@ handlers['/api/post'].POST = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
 
-    if (auth_error) {
+    if (!user_id) {
         res_data.error(status_code, auth_error);
         return;
     }
@@ -640,7 +641,7 @@ handlers['/api/post'].DELETE = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
 
-    if (auth_error) {
+    if (!user_id) {
         res_data.error(status_code, auth_error);
         return;
     }
@@ -743,7 +744,7 @@ handlers['/api/user/notifications'].DELETE = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
 
-    if (auth_error) {
+    if (!user_id) {
         res_data.error(status_code, auth_error);
         return;
     }
@@ -799,7 +800,6 @@ handlers['/api/posts/page'].GET = function(req_data, res_data)
     }
 
     const { posts, db_error } = db_ops.select_posts_page(page, sort, limit);
-    // const { tot_num_of_posts, db_error } = db_ops.select_posts_count();
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('get', 'posts'));
@@ -808,7 +808,7 @@ handlers['/api/posts/page'].GET = function(req_data, res_data)
             const post_cards = posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
             res_data.success(200, post_cards);
         } else {
-            res_data.success(200, posts); // { posts, tot_num_of_posts }
+            res_data.success(200, posts);
         }
     }
 };
@@ -817,7 +817,7 @@ handlers['/api/notifications/user/page'].GET = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
 
-    if (auth_error) {
+    if (!user_id) {
         res_data.error(status_code, auth_error);
         return;
     }
@@ -848,7 +848,7 @@ handlers['/api/posts/user/page'].GET = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
 
-    if (auth_error) {
+    if (!user_id) {
         res_data.error(status_code, auth_error);
         return;
     }
@@ -879,7 +879,7 @@ handlers['/api/posts/user/search'].GET = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
     
-    if (auth_error) {
+    if (!user_id) {
         res_data.error(status_code, auth_error);
         return;
     }
@@ -904,7 +904,7 @@ handlers['/api/notifications/user/search'].GET = function(req_data, res_data)
 {
     const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
     
-    if (auth_error) {
+    if (!user_id) {
         res_data.error(status_code, auth_error);
         return;
     }
@@ -1022,29 +1022,32 @@ function auth_user(cookies)
         res.user_id = token.user_id;
     }
 
+    // mutual exclusion    
+    assert((res.user_id || res.auth_error) && !(res.user_id && res.auth_error));
+
     return res;
 }
 
-async function read_template(template_name)
+async function get_page_template(template_name)
 {
     // Only for production, otherwise isn't possible to update a page during development
     if (env.NODE_ENV === 'production' && cached_templates.has(template_name)) {
-        return { template: cached_templates.get(template_name), fs_error: null };
+        return { page_template: cached_templates.get(template_name), fs_error: null };
     }
 
     const template_path = path.join(WEB_INTERFACE_PATH, 'templates', `${template_name}.html`);
 
-    const { file_content: template, fs_error } = await read_file(template_path);
+    const { file_content: page_template, fs_error } = await read_file(template_path);
 
     if (fs_error){
-        // TODO what do I return to the user?
-        log_error(fs_error);}
-
-    if (env.NODE_ENV === 'production' && template) {
-        cached_templates.set(template_name, template);
+        log_error(fs_error);
     }
 
-    return { template, fs_error };
+    if (env.NODE_ENV === 'production' && page_template) {
+        cached_templates.set(template_name, page_template);
+    }
+
+    return { page_template, fs_error };
 }
 
 

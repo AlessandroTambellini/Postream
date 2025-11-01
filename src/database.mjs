@@ -62,13 +62,14 @@ function init_db()
             FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
         );
         
-        -- Index on timestamp for chronological queries (ASC and DESC)
+        -- Usage: retrieve posts in index and profile pages
         CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
 
+        -- Usage: search posts in profile and notifications pages
         CREATE VIRTUAL TABLE IF NOT EXISTS posts_fts 
         USING fts5(content, content_rowid UNINDEXED);
 
-        -- Setup trigger for autosync for post INSERT
+        -- Autosync for post INSERT
         CREATE TRIGGER IF NOT EXISTS posts_ai 
         AFTER INSERT ON posts 
         BEGIN
@@ -76,7 +77,7 @@ function init_db()
             VALUES (new.id, new.content);
         END;
 
-        -- Setup trigger for autosync for post DELETE
+        -- Autosync for post DELETE
         CREATE TRIGGER IF NOT EXISTS posts_ad 
         AFTER DELETE ON posts 
         BEGIN
@@ -108,24 +109,25 @@ function init_db()
     queries.insert_reply = db.prepare('INSERT INTO replies (post_id, content, created_at) VALUES (?, ?, ?)');
 
     queries.select_notification = db.prepare('SELECT * FROM notifications WHERE post_id = ?');
-    queries.insert_notification = db.prepare('INSERT INTO notifications (user_id, post_id, first_new_reply_id, created_at, num_of_replies) VALUES (?, ?, ?, ?, ?)');
+    queries.insert_notification = db.prepare(`
+        INSERT INTO notifications 
+        (user_id, post_id, first_new_reply_id, created_at, num_of_replies) 
+        VALUES (?, ?, ?, ?, ?)
+    `);
     queries.update_notification = db.prepare('UPDATE notifications SET num_of_replies = num_of_replies + 1 WHERE post_id = ?');
     queries.delete_notification = db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?');
 
-    queries.select_posts_count     = db.prepare('SELECT COUNT(*) as count FROM posts');
-    queries.select_posts_page_asc  = db.prepare('SELECT * FROM posts ORDER BY created_at ASC LIMIT ? OFFSET ?');
+    queries.select_posts_page_asc = db.prepare('SELECT * FROM posts ORDER BY created_at ASC LIMIT ? OFFSET ?');
     queries.select_posts_page_desc = db.prepare('SELECT * FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?');
     queries.select_posts_page_rand = db.prepare('SELECT * FROM posts ORDER BY RANDOM() LIMIT ?');
 
-    queries.select_user_posts_count         = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ?');
+    queries.select_user_posts_count = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ?');
     queries.select_user_notifications_count = db.prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = ?');
 
-    queries.select_user_posts_page             = db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
-    // queries.select_user_matching_posts         = db.prepare("SELECT * FROM posts WHERE user_id = ? AND LOWER(content) LIKE '%' || ? || '%'");
-    queries.select_user_matching_posts = db.prepare(`
-        SELECT p.* FROM posts p
-        JOIN posts_fts ON p.id = posts_fts.rowid 
-        WHERE posts_fts MATCH ? AND p.user_id = ?
+    queries.select_user_posts_page = db.prepare(`
+        SELECT * FROM posts 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC LIMIT ? OFFSET ?
     `);
 
     queries.select_user_notifications_page = db.prepare(`
@@ -133,6 +135,12 @@ function init_db()
         JOIN posts ON n.post_id = posts.id
         WHERE n.user_id = ? 
         ORDER BY n.created_at DESC LIMIT ? OFFSET ?
+    `);
+
+    queries.select_user_matching_posts = db.prepare(`
+        SELECT p.* FROM posts p
+        JOIN posts_fts ON p.id = posts_fts.rowid 
+        WHERE posts_fts MATCH ? AND p.user_id = ?
     `);
 
     queries.select_user_matching_notifications = db.prepare(`
@@ -288,36 +296,6 @@ db_ops.select_post = function(id)
     return { post, db_error };
 };
 
-db_ops.select_post_replies = function(post_id)
-{
-    const {
-        data: replies,
-        query_error: db_error,
-    } = exec_query('select_post_replies', 'all', post_id);
-
-    return { replies, db_error };
-}
-
-db_ops.select_user_posts_count = function(user_id)
-{
-    const {
-        data,
-        query_error: db_error,
-    } = exec_query('select_user_posts_count', 'get', user_id);
-
-    return { count: data?.count, db_error };
-};
-
-db_ops.select_user_notifications_count = function(user_id)
-{
-    const {
-        data,
-        query_error: db_error,
-    } = exec_query('select_user_notifications_count', 'get', user_id);
-
-    return { count: data?.count, db_error };
-};
-
 db_ops.select_notification = function(post_id)
 {
     const {
@@ -328,28 +306,14 @@ db_ops.select_notification = function(post_id)
     return { notification, db_error };
 };
 
-db_ops.select_user_posts_page = function(user_id, page, limit = DEFAULT_PAGE_SIZE)
+db_ops.select_post_replies = function(post_id)
 {
-    const offset = (page - 1) * limit;
-
     const {
-        data: posts,
+        data: replies,
         query_error: db_error,
-    } = exec_query('select_user_posts_page', 'all', user_id, limit, offset);
+    } = exec_query('select_post_replies', 'all', post_id);
 
-    return { posts, db_error };
-};
-
-db_ops.select_user_notifications_page = function(user_id, page, limit = DEFAULT_PAGE_SIZE)
-{
-    const offset = (page - 1) * limit;
-
-    const {
-        data: notifications,
-        query_error: db_error,
-    } = exec_query('select_user_notifications_page', 'all', user_id, limit, offset);
-
-    return { notifications, db_error };
+    return { replies, db_error };
 };
 
 db_ops.select_posts_page = function(page, sort, limit = DEFAULT_PAGE_SIZE)
@@ -384,15 +348,48 @@ db_ops.select_posts_page = function(page, sort, limit = DEFAULT_PAGE_SIZE)
     return { posts, db_error };
 };
 
-// Not sure what to do about this op.
-db_ops.select_posts_count = function()
+db_ops.select_user_posts_count = function(user_id)
 {
     const {
-        data: tot_num_of_posts,
-        query_error: db_error
-    } = exec_query('select_posts_count', 'get');
+        data,
+        query_error: db_error,
+    } = exec_query('select_user_posts_count', 'get', user_id);
 
-    return { tot_num_of_posts, db_error };
+    return { count: data?.count, db_error };
+};
+
+db_ops.select_user_posts_page = function(user_id, page, limit = DEFAULT_PAGE_SIZE)
+{
+    const offset = (page - 1) * limit;
+
+    const {
+        data: posts,
+        query_error: db_error,
+    } = exec_query('select_user_posts_page', 'all', user_id, limit, offset);
+
+    return { posts, db_error };
+};
+
+db_ops.select_user_notifications_count = function(user_id)
+{
+    const {
+        data,
+        query_error: db_error,
+    } = exec_query('select_user_notifications_count', 'get', user_id);
+
+    return { count: data?.count, db_error };
+};
+
+db_ops.select_user_notifications_page = function(user_id, page, limit = DEFAULT_PAGE_SIZE)
+{
+    const offset = (page - 1) * limit;
+
+    const {
+        data: notifications,
+        query_error: db_error,
+    } = exec_query('select_user_notifications_page', 'all', user_id, limit, offset);
+
+    return { notifications, db_error };
 };
 
 db_ops.select_user_matching_posts = function(user_id, search_term)
@@ -414,6 +411,7 @@ db_ops.select_user_matching_notifications = function(user_id, search_term)
 
     return { notifications, db_error };
 };
+
 
 /*
  *  DB Operations - UPDATE

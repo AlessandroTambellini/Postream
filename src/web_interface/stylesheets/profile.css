@@ -28,13 +28,28 @@ h2 {
     background-color: hsl(var(--hsl-f9), .5);
 }
 
-/* #posts-container:empty:after {
-    content: 'You didn\'t create any post yet.';
-} */
+#posts-container {
+    padding-inline: 2vw;
+}
 
 .post-card {
     margin-bottom: .5em;
-    max-width: min(var(--card-max-width), calc(100% - 4vw));
+    /* max-width: min(var(--card-max-width), calc(100% - 4vw)); */
+}
+
+#filter-posts-nav {
+    display: flex;
+    justify-content: center;
+    margin-inline: auto;
+    padding-inline: 2vw;
+}
+
+#search-post-form {
+    flex-grow: 2;
+}
+
+#search-post-form button {
+    margin-left: auto;
 }
 
 .feedback-card {

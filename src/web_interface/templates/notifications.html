@@ -27,15 +27,6 @@
             background-color: hsl(var(--hsl-f9), .5);
         }
 
-        /* #notifications-container:empty:after {
-            content: 'You don\'t have any notification :)';
-        } */
-
-        .notification-card {
-            max-width: min(var(--card-max-width), calc(100% - 2*var(--page-inline-padding)));
-            margin-bottom: .5em;
-        }
-
         #feedback-card-wrapper {
             position: sticky;
             top: 50%;
@@ -47,6 +38,28 @@
         .feedback-card {
             margin-inline: auto;
             box-shadow: 0px 4px 11px 2px var(--clr-b8);
+        }
+
+        #notifications-container {
+            padding-inline: 2vw;
+        }
+
+        .notification-card {
+            /* max-width: min(var(--card-max-width), calc(100% - 2*var(--page-inline-padding))); */
+            margin-bottom: .5em;
+        }
+
+        #filter-notifications-nav {
+            display: flex;
+            justify-content: center;
+        }
+
+        #search-notification-form {
+            flex-grow: 2;
+        }
+
+        #search-notification-form button {
+            margin-left: auto;
         }
     </style>
 </head>
@@ -75,15 +88,17 @@
 
         <div id="notifications-container" class="cards-container">{{ notification-cards }}</div>
 
-        <form id="load-page-form">
-            <input name="load-page-input" type="number" min="1" max='{{ tot-pages }}' value="1">
-            <button class="secondary-btn" aria-label="load a notifications page">Load Notifications Page</button>
-        </form>
-
-        <form id="search-notification-form">
-            <input name="search-notification-input" type="search" placeholder="Search Notification" required>
-            <button class="secondary-btn">Search</button>
-        </form>
+        <nav id="filter-notifications-nav">
+            <form id="load-page-form">
+                <input name="load-page-input" type="number" min="1" max='{{ tot-pages }}' value="1">
+                <button class="secondary-btn" type="submit" aria-label="load a notifications page">Load</button>
+            </form>
+    
+            <form id="search-notification-form">
+                <input name="search-notification-input" type="search" placeholder="Search Notification" required>
+                <button class="secondary-btn" type="submit">Search</button>
+            </form>
+        </nav>
     </main>
 
     <template id="notification-card-template">
@@ -111,12 +126,14 @@
         const notifications_page_input = load_page_form.querySelector('input');
         const search_notification_form = document.querySelector('#search-notification-form');
         const search_notification_input = search_notification_form.querySelector('input');
+        const notification_cards = notifications_container.querySelectorAll('.notification-card');
 
+        const DEFAULT_PAGE_SIZE = notification_cards.length;
         const displayed_notifications = new Set();
         let last_action_is_search = false;
         const num_of_pages = Number(notifications_page_input.max);
 
-        notifications_container.querySelectorAll('.notification-card').forEach(notification => {
+        notification_cards.forEach(notification => {
             displayed_notifications.add(Number(notification.dataset.notificationId));
         });
 
@@ -129,11 +146,9 @@
             e.preventDefault();
             hide_feedback_card(feedback_card);
 
-            const PAGE_SIZE = 3;
-
             const page  = Number(notifications_page_input.value);
 
-            const { status_code, payload: notifications, req_error } = await req('api/notifications/user/page', 'GET', { page, limit: PAGE_SIZE });
+            const { status_code, payload: notifications, req_error } = await req('api/notifications/user/page', 'GET', { page });
 
             if (last_action_is_search) {
                 notifications_container.replaceChildren();
@@ -152,9 +167,9 @@
                 }
             });
 
-            if (new_notifications_displayed < PAGE_SIZE && page < num_of_pages)
+            if (new_notifications_displayed < DEFAULT_PAGE_SIZE && page < num_of_pages)
             {
-                show_feedback_card(feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} notifications, ` +
+                show_feedback_card(feedback_card, 'info', `Expected to retrieve ${DEFAULT_PAGE_SIZE} notifications, ` +
                     `but ${new_notifications_displayed} notification${new_notifications_displayed === 1 ? ' was' : 's were'} ` +
                     'retrieved instead. Either this page was already loaded or new notifications where created in the meanwhile.');
             } else if (new_notifications_displayed === 0) {
@@ -192,10 +207,9 @@
 
             notification_card.querySelector('article').id = `notification-card-${id}`;
 
-            const post_content_snapshot = post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content;
-
             notification_card.querySelector('p').innerHTML =
-                `<b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>"${post_content_snapshot}"`;
+                `<b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>` + 
+                `"${post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content}"`;
 
             const a = notification_card.querySelector('footer a');
             a.href = `/read-post?id=${post_id}#reply-${first_new_reply_id}`;

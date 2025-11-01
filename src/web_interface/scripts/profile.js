@@ -51,12 +51,14 @@ const posts_page_input = load_page_form.querySelector('input');
 const retrieve_posts_feedback_card = document.querySelector('main > .feedback-card');
 const search_post_form = document.querySelector('#search-post-form');
 const search_post_input = search_post_form.querySelector('input');
+const post_cards = posts_container.querySelectorAll('.post-card');
 
+const DEFAULT_PAGE_SIZE = post_cards.length;
 const displayed_posts = new Set();
 let last_action_is_search = false;
 const num_of_pages = Number(posts_page_input.max);
 
-posts_container.querySelectorAll('.post-card').forEach(post => {
+post_cards.forEach(post => {
     displayed_posts.add(Number(post.dataset.postId));
 });
 
@@ -69,11 +71,9 @@ load_page_form.addEventListener('submit', async e =>
     e.preventDefault();
     hide_feedback_card(retrieve_posts_feedback_card);
 
-    const PAGE_SIZE = 3;
-
     const page = Number(posts_page_input.value);
 
-    const { status_code, payload: posts, req_error } = await req('api/posts/user/page', 'GET', { page, limit: PAGE_SIZE });
+    const { status_code, payload: posts, req_error } = await req('api/posts/user/page', 'GET', { page });
 
     // TODO handle possible error
 
@@ -93,8 +93,8 @@ load_page_form.addEventListener('submit', async e =>
         }
     });
 
-    if (new_posts_displayed < PAGE_SIZE && page < num_of_pages) {
-        const msg = `Expected to retrieve ${PAGE_SIZE} posts, ` +
+    if (new_posts_displayed < DEFAULT_PAGE_SIZE && page < num_of_pages) {
+        const msg = `Expected to retrieve ${DEFAULT_PAGE_SIZE} posts, ` +
             `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
             'retrieved instead. Either this page was already loaded or new posts where created in the meanwhile.';
         show_feedback_card(retrieve_posts_feedback_card, 'info', msg);
