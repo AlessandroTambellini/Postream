@@ -2,10 +2,13 @@ import * as http from 'node:http';
 import * as https from 'node:https';
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
+import { loadEnvFile, env } from 'node:process';
 
 import { handlers, get_asset } from './handlers.mjs';
 import { init_db, close_db } from './database.mjs';
-import { log_error, env } from './utils.js';
+import { log_error } from './utils.js';
+
+loadEnvFile();
 
 const PORT = env.NODE_ENV === 'production' ? 3001 : 3000;
 const PROTOCOL = env.NODE_ENV === 'production' ? 'https' : 'http';

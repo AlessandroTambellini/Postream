@@ -1,7 +1,8 @@
 import * as path from "node:path";
+import { env } from 'node:process';
 
 import { DEFAULT_PAGE_SIZE, db_ops } from "./database.mjs";
-import { hash_password, generate_password, log_error, env, read_file } from './utils.js';
+import { hash_password, generate_password, log_error, read_file } from './utils.js';
 import { DOMElements, fallback_page } from "./templates.mjs";
 import assert from "node:assert";
 
@@ -631,14 +632,10 @@ handlers['/api/post'].POST = function(req_data, res_data)
 
     const { content } = req_data.payload;
 
-    if (!content || typeof content !== 'string') {
-        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
-        return;
-    }
-
     const post_id = db_ops.insert_post(user_id, content);
 
     if (!post_id) {
+        // TODO not necessarily is a 500. it may be due to 'typeof content !== 'string''
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'post'))
     } else {
         res_data.success(200, { post_id });
@@ -685,11 +682,6 @@ handlers['/api/reply'].POST = function(req_data, res_data)
         return;
     }
 
-    if (!content || typeof content !== 'string') {
-        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
-        return;
-    }
-
     const { post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
@@ -705,6 +697,8 @@ handlers['/api/reply'].POST = function(req_data, res_data)
     const reply_id = db_ops.insert_reply(post_id, content);
 
     if (!reply_id) {
+        // TODO not necessarily is a 500. 
+        // it may be due to 'typeof content !== 'string'' ==> 400
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'reply'));
         return;
     }

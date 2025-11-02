@@ -1,11 +1,8 @@
 import * as path from "node:path";
 import crypto from 'node:crypto';
-import { parseEnv } from 'node:util';
-
+import { env } from 'node:process';
 import { readFile } from "node:fs/promises";
-
 const { createHmac } = await import('node:crypto');
-const env = await read_env_file();
 
 function generate_password()
 {
@@ -56,17 +53,6 @@ function log_error(error)
     console.error('ERROR: ', error.message + '\n' + code_stack.join('\n'));
 }
 
-async function read_env_file()
-{
-    const filepath = path.join(import.meta.dirname, '..', '.env');
-
-    const { file_content: env_content, fs_error } = await read_file(filepath, 'utf8', true);
-
-    // TODO manage the error. 
-    // also, also 'parseEnv' can throw an error
-    return parseEnv(env_content);
-}
-
 async function read_file(filepath, encoding = 'utf8', f_log_error = false)
 {
     let file_content = null, fs_error = null;
@@ -81,7 +67,6 @@ async function read_file(filepath, encoding = 'utf8', f_log_error = false)
 }
 
 export {
-    env,
     hash_password,
     generate_password,
     log_error,
