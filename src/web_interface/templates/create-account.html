@@ -115,7 +115,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, err_msg } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, construct_err_msg } from '../scripts/_universal.js';
 
         const create_account_form = document.querySelector('form');
         const feedback_card = create_account_form.querySelector('.feedback-card');
@@ -134,10 +134,11 @@
             const { status_code, payload, req_error } = await req('api/user', 'POST');
             
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', err_msg(status_code, 'user'));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(status_code));
             } else {
                 password_p.textContent = payload.password;
-                // Once a registration happens, the previous cookie is deleted to avoid conflicts with a previous user while logging in 
+                // Once a registration happens, 
+                // the previous cookie is deleted to avoid conflicts with a previous user in case of login
                 document.cookie = 'password_hash=';
                 password_container.classList.replace('display-none', 'display-block');
             }

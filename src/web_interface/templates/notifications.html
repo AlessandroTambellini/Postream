@@ -32,7 +32,7 @@
             top: 50%;
             left: 0;
             width: 100%;
-            padding-inline: var(--page-inline-padding);
+            padding-inline: var(--page-padding-inline);
         }
 
         .feedback-card {
@@ -41,17 +41,19 @@
         }
 
         #notifications-container {
-            padding-inline: 2vw;
+            padding-inline: var(--page-padding-inline);
         }
 
         .notification-card {
-            /* max-width: min(var(--card-max-width), calc(100% - 2*var(--page-inline-padding))); */
+            /* max-width: min(var(--card-max-width), calc(100% - 2*var(--page-padding-inline))); */
             margin-bottom: .5em;
         }
 
         #filter-notifications-nav {
             display: flex;
             justify-content: center;
+            max-width: calc(2*var(--page-padding-inline) + var(--card-max-width));
+            padding-inline: var(--page-padding-inline);
         }
 
         #search-notification-form {
@@ -118,7 +120,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, err_msg } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, construct_err_msg } from '../scripts/_universal.js';
 
         const feedback_card = document.querySelector('.feedback-card');
         const notifications_container = document.querySelector('#notifications-container');
@@ -146,9 +148,14 @@
             e.preventDefault();
             hide_feedback_card(feedback_card);
 
-            const page  = Number(notifications_page_input.value);
+            const page = Number(notifications_page_input.value);
 
             const { status_code, payload: notifications, req_error } = await req('api/notifications/user/page', 'GET', { page });
+
+            if (req_error) {
+                show_feedback_card(feedback_card, 'error', construct_err_msg(status_code, 'page', 'retrieve', req_error));
+                return;
+            }
 
             if (last_action_is_search) {
                 notifications_container.replaceChildren();
@@ -231,7 +238,7 @@
                 const { status_code, payload, req_error } = await req('api/user/notifications', 'DELETE', { id: notification_id });
 
                 if (req_error) {
-                    show_feedback_card(feedback_card, 'error', err_msg(status_code, 'notification', 'delete'));
+                    show_feedback_card(feedback_card, 'error', construct_err_msg(status_code, 'notification', 'delete'));
                 }
                 else {
                     const notification_card = document.querySelector(`#notification-card-${notification_id}`);

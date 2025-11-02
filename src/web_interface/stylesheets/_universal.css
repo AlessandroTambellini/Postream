@@ -8,8 +8,12 @@
 }
 
 :root {
-    --page-inline-padding: 2vw;
+    --page-padding-inline: 2vw;
     --page-padding-bottom: 15vh;
+    --card-text-length: 70ch;
+    --card-padding: 1em;
+    --card-border-thickness: 1px;
+    --card-max-width: calc(var(--card-text-length) + var(--card-padding)*2 + var(--card-border-thickness)*2);
 }
 
 :root
@@ -116,7 +120,7 @@ main {
     flex-grow: 2;
     max-width: 1200px;
     padding-block: 2vh;
-    padding-inline: var(--page-inline-padding);
+    padding-inline: var(--page-padding-inline);
     height: 100vh;
     overflow-y: scroll;
     scrollbar-width: none;
@@ -561,12 +565,7 @@ button {
  */
 
 .card {
-    --text-line-length: 70ch;
-    --padding: 1em;
-    --border-thickness: 1px;
-    --card-max-width: calc(var(--text-line-length) + var(--padding)*2 + var(--border-thickness)*2);
-
-    padding: var(--padding);
+    padding: var(--card-padding);
     border: 1px solid var(--clr-cc);
     box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
     max-width: var(--card-max-width);

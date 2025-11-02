@@ -215,22 +215,6 @@ db_ops.insert_token = function(user_id)
     return query_error ? null : data.lastInsertRowid;
 };
 
-function test()
-{
-    init_db()
-
-    let password_hash='123';
-
-    const {
-        data,
-        query_error,
-    } = exec_query('insert_user', 'run', password_hash);
-
-    console.log(data, query_error);
-}
-
-//test()
-
 db_ops.insert_post = function(user_id, content)
 {
     const {

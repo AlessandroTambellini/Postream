@@ -54,7 +54,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, err_msg, sanitize_input } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, construct_err_msg, sanitize_input } from '../scripts/_universal.js';
 
         const write_post_form = document.querySelector('form');
         const textarea = write_post_form.querySelector('textarea');
@@ -77,7 +77,7 @@
             const { status_code, req_error } = await req(path, method, null, { content });
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', err_msg(status_code, 'post', 'send'));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(status_code, 'post', 'send'));
             } else {
                 show_feedback_card(feedback_card, 'success', 'Post created successfully');
             }

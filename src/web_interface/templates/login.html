@@ -64,7 +64,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, err_msg, hide_feedback_card, show_feedback_card } from "../scripts/_universal.js";
+        import { req, construct_err_msg, hide_feedback_card, show_feedback_card } from "../scripts/_universal.js";
 
         const login_form = document.querySelector('form');
         const feedback_card = login_form.querySelector('.feedback-card');
@@ -81,14 +81,12 @@
             /*
             - If it's the first time that the user logs in, it's a POST.
             - If it isn't the first time that the user logs in, it's a PUT. But,
-                - If previously the user logged out, I don't have anymore the password_hash on the client. Therefore,
+                - if previously the user logged out, I don't have anymore the password_hash on the client. Therefore,
                 I first need to retrieve it (GET).
             */
 
-            // Let's try to directly make a POST. Perhaps is the first login ever.
+            // 1) Let's try to directly make a POST. Perhaps is the first login ever.
             const req_POST = await req(path, 'POST', null, { password });
-
-            console.log('req_POST', req_POST)
 
             if (!req_POST.req_error) {
                 document.cookie = `password_hash=${req_POST.payload.password_hash}`;
@@ -96,20 +94,18 @@
                 return;
             }
 
-            // Try to get the password_hash and then update the token
+            // 2) Otherwise, try to get the password_hash and then update the token
             const req_GET = await req(path, 'GET', { password });
 
             if (req_GET.req_error) {
-                show_feedback_card(feedback_card, 'error', err_msg(req_GET.status_code, 'password'));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_GET.status_code, 'password', req_GET.req_error));
                 return;
             }
 
             const req_PUT = await req(path, 'PUT', null, { password });
 
-            console.log('req_PUT', req_PUT)
-
             if (req_PUT.req_error) {
-                show_feedback_card(feedback_card, 'error', err_msg(req_PUT.status_code, 'password'));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_PUT.status_code, 'password', req_GET.req_error));
                 return;
             }
 

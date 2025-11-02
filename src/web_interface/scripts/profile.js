@@ -1,4 +1,4 @@
-import { req, hide_feedback_card, show_feedback_card, err_msg, prettify_date } from './_universal.js';
+import { req, hide_feedback_card, show_feedback_card, construct_err_msg, prettify_date } from './_universal.js';
 
 /*
  *
@@ -30,9 +30,8 @@ yes_btn.addEventListener('click', async e =>
     const { status_code, payload, req_error } = await req('api/post', 'DELETE', { id: post_id });
 
     if (req_error) {
-        show_feedback_card(delete_post_feedback_card, 'error', err_msg(status_code, 'post', 'delete'));
-    }
-    else {
+        show_feedback_card(delete_post_feedback_card, 'error', construct_err_msg(status_code, 'post', 'delete', req_error));
+    } else {
         delete_post_dialog.close();
         const post_card = document.querySelector(`#post-card-${post_id}`);
         post_card.classList.add('deleting');
@@ -75,7 +74,10 @@ load_page_form.addEventListener('submit', async e =>
 
     const { status_code, payload: posts, req_error } = await req('api/posts/user/page', 'GET', { page });
 
-    // TODO handle possible error
+    if (req_error) {
+        show_feedback_card(retrieve_posts_feedback_card, 'error', construct_err_msg(status_code, 'page', 'retrieve', req_error));
+        return;
+    }
 
     if (last_action_is_search) {
         posts_container.replaceChildren();

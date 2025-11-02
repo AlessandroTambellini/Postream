@@ -421,8 +421,16 @@ handlers['/api/user'].POST = function(req_data, res_data)
 
     /* I might check if an user with the generated password already exists,
     but, given that the probability of generating two times the same password
-    in my life time is 0, I don't do it. */
-    const password_hash = hash_password(password);
+    in my life time is 0, I don't do it. 
+    In the worst case, an error is reported while executing the query
+    (the password_hash has to be unique).  */
+
+    const { password_hash, hash_error } = hash_password(password, true);
+
+    if (hash_error) {
+        res_data.error(500, MSG_UNKNOWN_DB_ERROR('create', 'password'));
+        return;
+    }
 
     const user_id = db_ops.insert_user(password_hash);
 
@@ -461,12 +469,12 @@ handlers['/api/token'].GET = function(req_data, res_data)
 {
     const password = req_data.search_params.get('password');
 
-    if (!password || typeof password !== 'string') {
+    const { password_hash, hash_error } = hash_password(password);
+    
+    if (hash_error) {
         res_data.error(400, MSG_INVALID_SEARCH_PARAM('password'));
         return;
     }
-
-    const password_hash = hash_password(password);
 
     const { user, db_error } = db_ops.select_user(password_hash);
 
@@ -498,12 +506,12 @@ handlers['/api/token'].POST = function(req_data, res_data)
 {
     const { password } = req_data.payload;
 
-    if (!password || typeof password !== 'string') {
+    const { password_hash, hash_error } = hash_password(password);
+
+    if (hash_error) {
         res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('password'));
         return;
     }
-
-    const password_hash = hash_password(password);
 
     const { user, db_error } = db_ops.select_user(password_hash);
 
@@ -541,13 +549,13 @@ handlers['/api/token'].POST = function(req_data, res_data)
 handlers['/api/token'].PUT = function(req_data, res_data)
 {
     const { password } = req_data.payload;
-
-    if (!password || typeof password !== 'string') {
+    
+    const { password_hash, hash_error } = hash_password(password);
+    
+    if (hash_error) {
         res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('password'));
         return;
     }
-
-    const password_hash = hash_password(password);
 
     const { user, db_error} = db_ops.select_user(password_hash);
 
@@ -789,8 +797,9 @@ handlers['/api/posts/page'].GET = function(req_data, res_data)
         return;
     }
 
-    if (!['desc', 'asc', 'rand'].includes(sort)) {
-        res_data.error(400, `Invalid sorting option. Got '${sort}'. Valid options are: asc, desc, rand`);
+    const sorting_options = ['desc', 'asc', 'rand'];
+    if (!sorting_options.includes(sort)) {
+        res_data.error(400, `Invalid sorting option. Got '${sort}'. Valid options are ${sorting_options}`);
         return;
     }
 
@@ -1037,12 +1046,10 @@ async function get_page_template(template_name)
 
     const template_path = path.join(WEB_INTERFACE_PATH, 'templates', `${template_name}.html`);
 
-    const { file_content: page_template, fs_error } = await read_file(template_path);
+    const { file_content: page_template, fs_error } = await read_file(template_path, 'utf8', true);
 
-    if (fs_error){
-        log_error(fs_error);
-    }
-
+    // TODO manage the error
+    
     if (env.NODE_ENV === 'production' && page_template) {
         cached_templates.set(template_name, page_template);
     }

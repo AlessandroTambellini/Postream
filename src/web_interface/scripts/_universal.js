@@ -143,12 +143,13 @@ function hide_feedback_card(feedback_card) {
 }
 
 /* This function is used when the error sent from the server wouldn't be clear for the final user */
-function err_msg(status_code, entity, action)
+function construct_err_msg(status_code, entity, action, default_msg)
 {
-         if (status_code === 500) return 'Un unknown error has occured in the server. Please, try again later.';
+         if (status_code === 500) return 'Un unknown error has occured in the server.';
     else if (status_code === 413) return `The ${entity} is too big. Its max size is ~128KB (Roughly 50-60 pages of a book).`;
     else if (status_code === 401) return `You aren't authenticated. Please, login before trying to ${action} a ${entity}.`;
-    else return `Invalid ${entity}.`;
+    // else return `Invalid ${entity}.`;
+    else return default_msg;
 }
 
 function sanitize_input(input) {
@@ -169,7 +170,7 @@ export {
     req,
     show_feedback_card,
     hide_feedback_card,
-    err_msg,
+    construct_err_msg,
     prettify_date,
     sanitize_input,
 };

@@ -24,11 +24,19 @@ function generate_password()
     return password.join('');
 }
 
-function hash_password(password)
+function hash_password(password, f_log_error = false)
 {
-    return createHmac('sha256', env.HASHING_SECRET)
-        .update(password)
-        .digest('hex');
+    let password_hash = null, hash_error = null;
+    try {
+        password_hash = createHmac('sha256', env.HASHING_SECRET)
+            .update(password)
+            .digest('hex');
+    } catch (error) {
+        hash_error = true;
+        f_log_error && log_error(error);
+    }
+
+    return { password_hash, hash_error };
 }
 
 function log_error(error)
@@ -52,21 +60,21 @@ async function read_env_file()
 {
     const filepath = path.join(import.meta.dirname, '..', '.env');
 
-    const { file_content: env_content, fs_error } = await read_file(filepath);
+    const { file_content: env_content, fs_error } = await read_file(filepath, 'utf8', true);
 
-    if (fs_error)
-        log_error(fs_error);
-
+    // TODO manage the error. 
+    // also, also 'parseEnv' can throw an error
     return parseEnv(env_content);
 }
 
-async function read_file(filepath, encoding = 'utf8')
+async function read_file(filepath, encoding = 'utf8', f_log_error = false)
 {
     let file_content = null, fs_error = null;
     try {
         file_content = await readFile(filepath, { encoding });
     } catch (error) {
         fs_error = error;
+        f_log_error && log_error(error);
     }
 
     return { file_content, fs_error };
