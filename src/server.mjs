@@ -8,6 +8,8 @@ import { handlers, get_asset } from './handlers.mjs';
 import { init_db, close_db } from './database.mjs';
 import { log_error } from './utils.js';
 
+// I want a crash here in case of error. 
+// Don't even start the server.
 loadEnvFile();
 
 const PORT = env.NODE_ENV === 'production' ? 3001 : 3000;
