@@ -42,8 +42,6 @@ function handle_request(req, res)
     const { url, url_error } = get_url(req.url);
 
     if (url_error) {
-        // TODO what if the req has data? ==> req.on('data'
-        // what's the status code for invalid url?
         res_data.error(400, 'Invalid URL');
         write_res(res, res_data);
         return;
@@ -80,9 +78,25 @@ function handle_request(req, res)
             'path': scrub_path(url.pathname),
             'search_params': url.searchParams,
             'method': req.method.toUpperCase(),
-            'cookies': parse_cookies(req.headers),
-            'payload': convert_JSON_to_obj(Buffer.concat(body).toString()),
         };
+
+        const { cookies, cookies_error } = parse_cookies(req.headers);
+        if (cookies_error) {
+            res_data.error(400, cookies_error);
+            write_res(res, res_data);
+            return;
+        }
+
+        const JSON_payload = Buffer.concat(body).toString() || '{}';
+        const { obj, JSON_error } = convert_JSON_to_obj(JSON_payload);
+        if (JSON_error) {
+            res_data.error(400, JSON_error);
+            write_res(res, res_data);
+            return;
+        }
+        
+        req_data.cookies = cookies;
+        req_data.payload = obj;
 
         try {
             if (handlers[req_data.path]) {
@@ -168,37 +182,33 @@ function scrub_path(path)
 
 function parse_cookies(headers)
 {
-    /* Parsing errors are suppressed (e.g. missing value or URIError)
-    because the handler, to which the request will be routed to,
-    will complain about which cookie is missing or is invalid.
-    Also, I don't do any trimming of name and value,
-    because I've seen that Node.js already does that. */
-
     const cookies = {};
+    let cookies_error = null;
 
     (headers.cookie || '').split(';').forEach(cookie => {
         const [name, value] = cookie.split('=');
         if (name && value) {
             try {
                 cookies[name] = decodeURIComponent(value);
-            } catch (error) {}
+            } catch (error) {
+                cookies_error = error.message;
+            }
         }
     });
 
-    return cookies;
+    return { cookies, cookies_error };
 }
 
 function convert_JSON_to_obj(json)
 {
-    /* Not sure about the managing of json error.
-    just an empty catch() for now. */
-
-    // let obj = null; // JSON_error = null;
+    let obj = null, JSON_error = null;
     try {
-        return JSON.parse(json);
-    } catch (error) {}
-    // `The payload doesn't have a valid format: ${JSON_error}`
-    // JSON_error = error.message;
+        obj = JSON.parse(json);
+    } catch (error) {
+        JSON_error = error.message;
+    }
+
+    return { obj, JSON_error };
 }
 
 function handle_server_error(e)

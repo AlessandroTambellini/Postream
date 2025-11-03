@@ -3,6 +3,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { unlink } from 'node:fs/promises';
 import * as repl from 'node:repl';
 import Database from 'better-sqlite3';
+import { loadEnvFile } from 'node:process';
 
 import { log_error } from './utils.js';
 import { generate_password, hash_password } from "./utils.js";
@@ -497,6 +498,7 @@ async function rebuild_db()
     try {
         await unlink(DB_PATH);
         db = new Database(DB_PATH);
+        loadEnvFile();
         init_db();
     } catch (error) {
         log_error(error);
@@ -537,10 +539,18 @@ async function rebuild_db()
     console.log('Users:');
     for (let i = 0; i < users.length; i++) {
         const password = generate_password();
-        const user = db_ops.insert_user(hash_password(password));
+        const { password_hash, hash_error } = hash_password(password, true);
+        if (hash_error) {
+            return;
+        }
+        const user = db_ops.insert_user(password_hash);
         users[i] = user;
 
         console.log(`- password_${i}:`, password);
+    }
+
+    for (let i = 0; i < 20; i++) {
+        db_ops.insert_post(users[0], 'post ' + i);
     }
 
     db_ops.insert_post(users[0], long_post_chunks.join(''));
