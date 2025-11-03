@@ -1,9 +1,9 @@
 import * as path from "node:path";
 import { env } from 'node:process';
 
-import { DEFAULT_PAGE_SIZE, db_ops } from "./database.mjs";
+import { DEFAULT_PAGE_SIZE, db_ops } from "./database.js";
 import { hash_password, generate_password, log_error, read_file } from './utils.js';
-import { DOMElements, fallback_page } from "./templates.mjs";
+import { DOMElements, fallback_page } from "./templates.js";
 import assert from "node:assert";
 
 const WEB_INTERFACE_PATH = path.join(import.meta.dirname, 'web_interface');
@@ -82,10 +82,10 @@ handlers['/index'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { user_id, status_code } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
-    if (status_code === 500) {
-        res_data.page(status_code, fallback_page(status_code));
+    if (auth_error.code === 500) {
+        res_data.page(500, fallback_page(500));
         return;
     }
 
@@ -144,12 +144,12 @@ handlers['/profile'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { user_id, status_code } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
         // Even though there isn't the user_id, not necessarily is a 401. 
         // So, better to pass the status code
-        res_data.page(status_code, fallback_page(status_code));
+        res_data.page(auth_error.code, fallback_page(auth_error.code));
         return;
     }
 
@@ -176,17 +176,17 @@ handlers['/profile'].GET = async function(req_data, res_data)
 
 handlers['/notifications'].GET = async function(req_data, res_data)
 {
+    const { user_id, auth_error } = auth_user(req_data.cookies);
+
+    if (!user_id) {
+        res_data.page(auth_error.code, fallback_page(auth_error.code));
+        return;
+    }
+
     const { page_template, fs_error } = await get_page_template('notifications');
 
     if (fs_error) {
         res_data.page(500, fallback_page(500));
-        return;
-    }
-
-    const { user_id, status_code } = auth_user(req_data.cookies);
-
-    if (!user_id) {
-        res_data.page(status_code, fallback_page(status_code));
         return;
     }
 
@@ -228,10 +228,10 @@ handlers['/notifications'].GET = async function(req_data, res_data)
 
 handlers['/write-post'].GET = async function(req_data, res_data)
 {
-    const { user_id, status_code } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.page(status_code, fallback_page(status_code));
+        res_data.page(auth_error.code, fallback_page(auth_error.code));
         return;
     }
 
@@ -290,15 +290,21 @@ handlers['/read-post'].GET = async function(req_data, res_data)
 
     const post_id = req_data.search_params.get('id');
     const { post, db_error } = db_ops.select_post(post_id);
-    const { user_id, status_code } = auth_user(req_data.cookies);
 
-    if (db_error || status_code === 500) {
+    if (db_error) {
         res_data.page(500, fallback_page(500));
         return;
     }
 
     if (!post) {
         res_data.page(404, fallback_page(404));
+        return;
+    }
+
+    const { user_id, auth_error } = auth_user(req_data.cookies);
+
+    if (auth_error.code === 500) {
+        res_data.page(500, fallback_page(500));
         return;
     }
 
@@ -379,10 +385,10 @@ handlers['/logout'].GET = async function(req_data, res_data)
 
 handlers['/delete-account'].GET = async function(req_data, res_data)
 {
-    const { user_id, status_code } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.page(status_code, fallback_page(status_code));
+        res_data.page(auth_error.code, fallback_page(auth_error.code));
         return;
     }
 
@@ -444,10 +450,10 @@ handlers['/api/user'].POST = function(req_data, res_data)
 
 handlers['/api/user'].DELETE = function(req_data, res_data)
 {
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(status_code, auth_error);
+        res_data.error(auth_error.code, auth_error.msg);
         return;
     }
 
@@ -623,10 +629,10 @@ handlers['/api/post'].GET = function(req_data, res_data)
 
 handlers['/api/post'].POST = function(req_data, res_data)
 {
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(status_code, auth_error);
+        res_data.error(auth_error.code, auth_error.msg);
         return;
     }
 
@@ -644,10 +650,10 @@ handlers['/api/post'].POST = function(req_data, res_data)
 
 handlers['/api/post'].DELETE = function(req_data, res_data)
 {
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(status_code, auth_error);
+        res_data.error(auth_error.code, auth_error.msg);
         return;
     }
 
@@ -744,10 +750,10 @@ handlers['/api/reply'].POST = function(req_data, res_data)
 
 handlers['/api/user/notifications'].DELETE = function(req_data, res_data)
 {
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(status_code, auth_error);
+        res_data.error(auth_error.code, auth_error.msg);
         return;
     }
 
@@ -818,10 +824,10 @@ handlers['/api/posts/page'].GET = function(req_data, res_data)
 
 handlers['/api/notifications/user/page'].GET = function(req_data, res_data)
 {
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(status_code, auth_error);
+        res_data.error(auth_error.code, auth_error.msg);
         return;
     }
 
@@ -849,10 +855,10 @@ handlers['/api/notifications/user/page'].GET = function(req_data, res_data)
 
 handlers['/api/posts/user/page'].GET = function(req_data, res_data)
 {
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(status_code, auth_error);
+        res_data.error(auth_error.code, auth_error.msg);
         return;
     }
 
@@ -880,10 +886,10 @@ handlers['/api/posts/user/page'].GET = function(req_data, res_data)
 
 handlers['/api/posts/user/search'].GET = function(req_data, res_data)
 {
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
     
     if (!user_id) {
-        res_data.error(status_code, auth_error);
+        res_data.error(auth_error.code, auth_error.msg);
         return;
     }
 
@@ -905,10 +911,10 @@ handlers['/api/posts/user/search'].GET = function(req_data, res_data)
 
 handlers['/api/notifications/user/search'].GET = function(req_data, res_data)
 {
-    const { user_id, status_code, auth_error } = auth_user(req_data.cookies);
+    const { user_id, auth_error } = auth_user(req_data.cookies);
     
     if (!user_id) {
-        res_data.error(status_code, auth_error);
+        res_data.error(auth_error.code, auth_error.msg);
         return;
     }
 
@@ -930,7 +936,7 @@ handlers['/api/notifications/user/search'].GET = function(req_data, res_data)
 
 async function get_asset(req_data, res_data)
 {
-    /* 'get_asset' is called as the last routing option in case none of the previous ones matched the requested path.
+    /* 'get_asset' is called as the last resort in case none of the previous ones matched the requested path.
     So, not necessarily the request was made to get an asset. */
 
     const asset_path = path.join(WEB_INTERFACE_PATH, req_data.path);
@@ -989,44 +995,43 @@ function auth_user(cookies)
 
     const res = {
         user_id: null,
-        status_code: 200,
-        auth_error: null,
+        auth_error: {
+            code: -1,
+            msg: ''
+        },
     };
 
     if (!cookies || !cookies.password_hash) {
-        res.status_code = 401;
-        res.auth_error = MSG_INVALID_COOKIE('password_hash');
+        res.auth_error.code = 401;
+        res.auth_error.msg = MSG_INVALID_COOKIE('password_hash');
         return res;
     }
 
     const { user, db_error } = db_ops.select_user(cookies.password_hash);
 
     if (db_error) {
-        res.status_code = 500;
-        auth_error = MSG_UNKNOWN_DB_ERROR('select', 'user');
+        res.auth_error.code = 500;
+        res.auth_error.msg = MSG_UNKNOWN_DB_ERROR('select', 'user');
         return res;
     }
 
     if (!user) {
-        res.status_code = 404;
-        res.auth_error = MSG_NOT_FOUND('user', 'password');
+        res.auth_error.code = 404;
+        res.auth_error.msg = MSG_NOT_FOUND('user', 'password');
         return res;
     }
 
     const { token, db_error: token_error } = db_ops.select_token(user.id);
 
     if (token_error) {
-        res.status_code = 500;
-        res.auth_error = MSG_UNKNOWN_DB_ERROR('validate', 'token');
+        res.auth_error.code = 500;
+        res.auth_error.msg = MSG_UNKNOWN_DB_ERROR('validate', 'token');
     } else if (!token) {
-        res.status_code = 401;
-        res.auth_error = `Invalid 'password_hash'. It may be expired`;
+        res.auth_error.code = 401;
+        res.auth_error.msg = `Invalid 'password_hash'. It may be expired`;
     } else if (token.expires_at > new Date().toISOString()) {
         res.user_id = token.user_id;
     }
-
-    // mutual exclusion    
-    assert((res.user_id || res.auth_error) && !(res.user_id && res.auth_error));
 
     return res;
 }
@@ -1042,9 +1047,7 @@ async function get_page_template(template_name)
 
     const { file_content: page_template, fs_error } = await read_file(template_path, 'utf8', true);
 
-    // TODO manage the error
-    
-    if (env.NODE_ENV === 'production' && page_template) {
+    if (page_template && env.NODE_ENV === 'production') {
         cached_templates.set(template_name, page_template);
     }
 

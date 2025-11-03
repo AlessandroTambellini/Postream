@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { loadEnvFile, env } from 'node:process';
 
-import { handlers, get_asset } from './handlers.mjs';
-import { init_db, close_db } from './database.mjs';
+import { handlers, get_asset } from './handlers.js';
+import { init_db, close_db } from './database.js';
 import { log_error } from './utils.js';
 
 // I want a crash here in case of error. 
@@ -241,20 +241,6 @@ function shutdown_server(signal)
     });
 }
 
-function sanitize_url(url)
-{
-    let sanitized_url = url;
-
-    // new URL('//.../') causes a crash.
-    let forw_slash_instances = 0;
-    for (let i = 0; i < url.length; i++) {
-        if (url[i] === '/') forw_slash_instances++;
-    }
-    if (forw_slash_instances === url.length) sanitized_url = '/';
-
-    return sanitized_url;
-}
-
 class ResData {
     status_code = 500;
     payload = {};
@@ -274,8 +260,8 @@ class ResData {
         this.content_type = content_type;
     }
 
-    /* I creaed the 'page' method,
-    because calling 'res_data.success()' for a 500/401 page doesn't seem semantically clear to me. */
+    /* The 'page' method was added,
+    because calling 'res_data.success()' for a 500/401 fallback page doesn't seem semantically clear to me. */
     page(status_code, payload = '') {
         this.status_code = status_code;
         this.payload = payload;
