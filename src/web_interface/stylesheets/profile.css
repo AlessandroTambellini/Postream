@@ -108,7 +108,7 @@ h2 {
     background-color: rgba(var(--rgb-00), 0.1);
 }
 
-#delete-post-dialog form p {
+#delete-post-dialog form > p {
     margin: 1em .5em;
 }
 
@@ -121,6 +121,3 @@ h2 {
     background-color: #620000;
 }
 
-.feedback-card {
-    margin-top: 1em;
-}

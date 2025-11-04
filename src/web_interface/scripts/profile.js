@@ -98,7 +98,7 @@ load_page_form.addEventListener('submit', async e =>
     if (new_posts_displayed < DEFAULT_PAGE_SIZE && page < num_of_pages) {
         const msg = `Expected to retrieve ${DEFAULT_PAGE_SIZE} posts, ` +
             `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
-            'retrieved instead. Either this page was already loaded or new posts where created in the meanwhile.';
+            'retrieved instead. Either this page was already loaded or some post was created/deleted in the meanwhile.';
         show_feedback_card(retrieve_posts_feedback_card, 'info', msg);
     } else if (new_posts_displayed === 0) {
         show_feedback_card(retrieve_posts_feedback_card, 'info', 'There aren\'t other posts to show');
