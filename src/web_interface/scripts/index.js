@@ -81,7 +81,7 @@ async function fill_stream(flags, displayed_posts, f_reload = false)
 function identify_displayed_posts(flags, displayed_posts)
 {
     posts_container.querySelectorAll('.post-card').forEach(post => {
-        displayed_posts.add(post.dataset.postId)
+        displayed_posts.add(Number(post.dataset.postId));
     });
 
     // The posts are retrieved in descending order on first loading
