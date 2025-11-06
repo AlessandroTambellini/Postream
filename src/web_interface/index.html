@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Look at posts, make a post, possibly reply to some of them">
+    
+    <title>Postream</title>
+
+    <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <link rel='stylesheet' href='_universal.css'>
+    
+    <style>
+        #posts-container:empty:after {
+            content: 'There aren\'t posts yet.';
+        }
+
+        #posts-container > * {
+            margin-inline: auto;
+        }
+
+        #posts-container .post-card {
+            margin-bottom: .5em;
+        }
+
+        #filter-posts-nav > * {
+            margin-inline: auto;
+        }
+
+        #load-page-form button {
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const light_mode = localStorage.getItem('light-mode');
+        if (light_mode === 'moon-mode')
+        {
+            document.querySelector('html').classList.add('moon-mode');
+        }
+    </script>
+
+    <main>
+        <!-- It's necessary for this div to not have empty spaces inside because of #posts-container:empty CSS property. -->
+        <div id="posts-container" class="cards-container">{{ post-cards }}</div>   
+
+        <nav id="filter-posts-nav">
+            <form id="load-page-form">
+                <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
+                <div class="card feedback-card display-none">
+                    <span role='img' alt='feedback icon'></span>
+                    <p>
+                        <span class='type'></span>
+                        <span class='msg'></span>
+                    </p>
+                    <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
+                </div>
+
+                <button class="secondary-btn" type="submit" aria-label="load a posts page">Load</button>
+            </form>
+        </nav>
+    </main>
+
+    {{ #side-panel }}
+
+    <script type="module">
+        import { req, show_feedback_card, hide_feedback_card, prettify_date, construct_err_msg } from '_universal.js';
+
+        const posts_container = document.querySelector('#posts-container');
+        const load_page_form = document.querySelector('#load-page-form');
+        const load_page_input = load_page_form.querySelector('input');
+        const feedback_card = document.querySelector('.feedback-card');
+
+        const DEFAULT_PAGE_SIZE = posts_container.querySelectorAll('.post-card').length;
+        const last_page = Number(load_page_input.max);
+        const displayed_posts = new Set();
+
+        posts_container.querySelectorAll('.post-card').forEach(post => {
+            displayed_posts.add(Number(post.dataset.postId));
+        });
+
+        load_page_form.addEventListener('submit', async e => 
+        {
+            e.preventDefault();
+            hide_feedback_card(feedback_card);
+
+            const page = last_page - Number(load_page_input.value) + 1;
+
+            const { payload: posts, req_error } = await req('api/posts/page', 'GET', { page, format: 'html' });
+
+            if (req_error) {
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
+                return;
+            }
+
+            let new_posts_displayed = 0;
+            posts.forEach(post => {
+                if (!displayed_posts.has(post.id)) {
+                    displayed_posts.add(post.id);
+                    new_posts_displayed++;
+                    const post_node = document.createRange().createContextualFragment(post.card);
+                    posts_container.appendChild(post_node);
+                }
+            });
+
+            if (new_posts_displayed < DEFAULT_PAGE_SIZE && page < last_page)
+            {
+                show_feedback_card(feedback_card, 'info', `Expected to retrieve ${DEFAULT_PAGE_SIZE} posts, ` +
+                    `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
+                    'retrieved instead. Either this page was already loaded or new posts where created in the meanwhile.');
+            } else if (!new_posts_displayed) {
+                show_feedback_card(feedback_card, 'info', 'There aren\'t other posts to show');
+            }
+        });
+    </script>
+</body>
+</html>

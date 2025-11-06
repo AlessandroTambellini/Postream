@@ -65,10 +65,9 @@ document.querySelectorAll('.feedback-card').forEach(feedback_card => {
  *  Utils
  */
 
-async function req(path, method, search_params = null, payload_obj = null)
+async function req(path, method, search_params, payload_obj = null)
 {
-    const response = {
-        status_code: -1,
+    const res = {
         payload: null,
         req_error: null,
     };
@@ -88,20 +87,23 @@ async function req(path, method, search_params = null, payload_obj = null)
         }
 
         const server_res = await fetch(url, options);
-        response.status_code = server_res.status;
-
         const payload = await server_res.json();
 
-        if (payload.Error) response.req_error = payload.Error;
-        else response.payload = payload;
+        if (payload.Error) {
+            res.req_error = {};
+            res.req_error.msg = payload.Error;
+            // The status is used only in case of error.
+            res.req_error.code = server_res.status;
+        }
+        else res.payload = payload;
 
     } catch (error) {
         console.error('ERROR:', error);
-        response.req_error = error.message;
-        return response;
+        res.req_error = error.message;
+        return res;
     }
 
-    return response;
+    return res;
 }
 
 function prettify_date(date)

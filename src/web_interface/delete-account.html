@@ -8,7 +8,7 @@
     <title>Postream / Delete Account</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='../stylesheets/_universal.css'>
+    <link rel='stylesheet' href='_universal.css'>
       
     <style>
         form {
@@ -65,7 +65,7 @@
     {{ #side-panel }}
     
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, construct_err_msg } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, construct_err_msg } from '_universal.js';
 
         const delete_account_form = document.querySelector('form');
         const feedback_card = delete_account_form.querySelector('.feedback-card');
@@ -80,10 +80,10 @@
             const path = delete_account_form.attributes.action.value;
             const method = delete_account_form.attributes.method.value;
             
-            const { status_code, req_error } = await req(path, method);
+            const { req_error } = await req(path, method);
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(status_code, 'user', 'delete'));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'user', 'delete'));
             } else {
                 document.cookie = 'password_hash=';
                 location.href = '/';

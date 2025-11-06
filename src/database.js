@@ -105,37 +105,36 @@ function init_db()
     queries.insert_post = db.prepare('INSERT INTO posts (user_id, content, created_at) VALUES (?, ?, ?)');
     queries.select_post = db.prepare('SELECT * FROM posts WHERE id = ?');
     queries.delete_post = db.prepare('DELETE FROM posts WHERE id = ? AND user_id = ?');
-    queries.select_post_replies = db.prepare('SELECT * FROM replies WHERE post_id = ? ORDER BY created_at DESC');
-
+    
     queries.insert_reply = db.prepare('INSERT INTO replies (post_id, content, created_at) VALUES (?, ?, ?)');
-
-    queries.select_notification = db.prepare('SELECT * FROM notifications WHERE post_id = ?');
+    queries.select_post_replies = db.prepare('SELECT * FROM replies WHERE post_id = ? ORDER BY created_at DESC');
+    
     queries.insert_notification = db.prepare(`
-        INSERT INTO notifications 
-        (user_id, post_id, first_new_reply_id, created_at, num_of_replies) 
+        INSERT INTO notifications (user_id, post_id, first_new_reply_id, created_at, num_of_replies) 
         VALUES (?, ?, ?, ?, ?)
     `);
+    queries.select_notification = db.prepare('SELECT * FROM notifications WHERE post_id = ?');
     queries.update_notification = db.prepare('UPDATE notifications SET num_of_replies = num_of_replies + 1 WHERE post_id = ?');
     queries.delete_notification = db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?');
-
-    queries.select_posts_page_asc = db.prepare('SELECT * FROM posts ORDER BY created_at ASC LIMIT ? OFFSET ?');
-    queries.select_posts_page_desc = db.prepare('SELECT * FROM posts ORDER BY created_at DESC LIMIT ? OFFSET ?');
-    queries.select_posts_page_rand = db.prepare('SELECT * FROM posts ORDER BY RANDOM() LIMIT ?');
-
+    
+    queries.select_posts_count = db.prepare('SELECT COUNT(*) as count FROM posts');
     queries.select_user_posts_count = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ?');
     queries.select_user_notifications_count = db.prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = ?');
-
+    
+    queries.select_posts_page = db.prepare(`
+        SELECT * FROM posts 
+        ORDER BY created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
+    `);
     queries.select_user_posts_page = db.prepare(`
         SELECT * FROM posts 
         WHERE user_id = ? 
-        ORDER BY created_at DESC LIMIT ? OFFSET ?
+        ORDER BY created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
     `);
-
     queries.select_user_notifications_page = db.prepare(`
         SELECT n.*, posts.content AS post_content FROM notifications n
         JOIN posts ON n.post_id = posts.id
         WHERE n.user_id = ? 
-        ORDER BY n.created_at DESC LIMIT ? OFFSET ?
+        ORDER BY n.created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
     `);
 
     queries.select_user_matching_posts = db.prepare(`
@@ -143,7 +142,6 @@ function init_db()
         JOIN posts_fts ON p.id = posts_fts.rowid 
         WHERE posts_fts MATCH ? AND p.user_id = ?
     `);
-
     queries.select_user_matching_notifications = db.prepare(`
         SELECT n.*, posts.content AS post_content FROM notifications n
         JOIN posts ON n.post_id = posts.id
@@ -176,7 +174,7 @@ Therefore, a 500 status code is returned and a made up message based on the cont
 */
 
 const TOKEN_DURATION_IN_HOURS = 24 * 7;
-const DEFAULT_PAGE_SIZE = 20;
+const PAGE_SIZE = 20;
 
 function exec_query(query, action, ...args)
 {
@@ -301,36 +299,44 @@ db_ops.select_post_replies = function(post_id)
     return { replies, db_error };
 };
 
-db_ops.select_posts_page = function(page, sort, limit = DEFAULT_PAGE_SIZE)
+db_ops.select_posts_page = function(page = 1)
 {
-    const offset = (page - 1) * limit;
-
-    const sorting_type = {
-        'desc': {
-            query: 'select_posts_page_desc',
-            args: [limit, offset],
-        },
-        'asc': {
-            query: 'select_posts_page_asc',
-            args: [limit, offset],
-        },
-        'rand': {
-            query: 'select_posts_page_rand',
-            args: [limit],
-        },
-    };
-
-    if (!sorting_type[sort]) {
-        log_error(new Error(`The sorting '${sort}' isn't supported`));
-        return { posts: [], tot_num_of_posts: 0, db_error: false };
-    }
-
     const {
         data: posts,
         query_error: db_error,
-    } = exec_query(sorting_type[sort].query, 'all', ...sorting_type[sort].args);
+    } = exec_query('select_posts_page', 'all', (page-1) * PAGE_SIZE);
 
     return { posts, db_error };
+};
+
+db_ops.select_user_posts_page = function(user_id, page = 1)
+{
+    const {
+        data: posts,
+        query_error: db_error,
+    } = exec_query('select_user_posts_page', 'all', user_id, (page - 1) * PAGE_SIZE);
+
+    return { posts, db_error };
+};
+
+db_ops.select_user_notifications_page = function(user_id, page = 1)
+{
+    const {
+        data: notifications,
+        query_error: db_error,
+    } = exec_query('select_user_notifications_page', 'all', user_id, (page - 1) * PAGE_SIZE);
+
+    return { notifications, db_error };
+};
+
+db_ops.select_posts_count = function()
+{
+    const {
+        data,
+        query_error: db_error,
+    } = exec_query('select_posts_count', 'get');
+
+    return { count: data?.count, db_error };
 };
 
 db_ops.select_user_posts_count = function(user_id)
@@ -343,18 +349,6 @@ db_ops.select_user_posts_count = function(user_id)
     return { count: data?.count, db_error };
 };
 
-db_ops.select_user_posts_page = function(user_id, page, limit = DEFAULT_PAGE_SIZE)
-{
-    const offset = (page - 1) * limit;
-
-    const {
-        data: posts,
-        query_error: db_error,
-    } = exec_query('select_user_posts_page', 'all', user_id, limit, offset);
-
-    return { posts, db_error };
-};
-
 db_ops.select_user_notifications_count = function(user_id)
 {
     const {
@@ -363,18 +357,6 @@ db_ops.select_user_notifications_count = function(user_id)
     } = exec_query('select_user_notifications_count', 'get', user_id);
 
     return { count: data?.count, db_error };
-};
-
-db_ops.select_user_notifications_page = function(user_id, page, limit = DEFAULT_PAGE_SIZE)
-{
-    const offset = (page - 1) * limit;
-
-    const {
-        data: notifications,
-        query_error: db_error,
-    } = exec_query('select_user_notifications_page', 'all', user_id, limit, offset);
-
-    return { notifications, db_error };
 };
 
 db_ops.select_user_matching_posts = function(user_id, search_term)
@@ -549,7 +531,8 @@ async function rebuild_db()
         console.log(`- password_${i}:`, password);
     }
 
-    for (let i = 0; i < 20; i++) {
+    // 40 posts are crated to show the pagination feature
+    for (let i = 0; i < 40; i++) {
         db_ops.insert_post(users[0], 'post ' + i);
     }
 
@@ -568,7 +551,7 @@ async function rebuild_db()
 }
 
 export {
-    DEFAULT_PAGE_SIZE,
+    PAGE_SIZE,
     init_db,
     close_db,
     db_ops,

@@ -7,7 +7,7 @@
     <title>Postream / Write Post</title>
     
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='../stylesheets/_universal.css'>
+    <link rel='stylesheet' href='_universal.css'>
       
     <style>
         button[type=submit] {
@@ -54,7 +54,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, construct_err_msg, sanitize_input } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, construct_err_msg, sanitize_input } from '_universal.js';
 
         const write_post_form = document.querySelector('form');
         const textarea = write_post_form.querySelector('textarea');
@@ -74,10 +74,10 @@
             
             const content = sanitize_input(textarea.value);
             
-            const { status_code, req_error } = await req(path, method, null, { content });
+            const { req_error } = await req(path, method, null, { content });
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(status_code, 'post', 'send'));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'post', 'send'));
             } else {
                 show_feedback_card(feedback_card, 'success', 'Post created successfully');
             }

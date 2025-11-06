@@ -8,7 +8,7 @@
     <title>Postream / Login</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='../stylesheets/_universal.css'>
+    <link rel='stylesheet' href='_universal.css'>
 
     <style>
         label[for=password] {
@@ -64,7 +64,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, construct_err_msg, hide_feedback_card, show_feedback_card } from "../scripts/_universal.js";
+        import { req, construct_err_msg, hide_feedback_card, show_feedback_card } from "_universal.js";
 
         const login_form = document.querySelector('form');
         const feedback_card = login_form.querySelector('.feedback-card');
@@ -98,14 +98,14 @@
             const req_GET = await req(path, 'GET', { password });
 
             if (req_GET.req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_GET.status_code, 'password', req_GET.req_error));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_GET.req_error.code, 'password', req_GET.req_error.msg));
                 return;
             }
 
             const req_PUT = await req(path, 'PUT', null, { password });
 
             if (req_PUT.req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_PUT.status_code, 'password', req_GET.req_error));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_PUT.req_error.code, 'password', req_GET.req_error.msg));
                 return;
             }
 

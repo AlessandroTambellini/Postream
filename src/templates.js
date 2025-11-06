@@ -208,6 +208,10 @@ I would have to read it from disk and potentially have the same issue. */
 function fallback_page(status_code, custom_msg)
 {
     const statuses = {
+        400: {
+            reason: 'Bad Request',
+            msg: null,
+        },
         401: {
             reason: 'Unauthorized Access',
             msg: "You cannot access the content of this page because you are logged out. " +
@@ -215,7 +219,7 @@ function fallback_page(status_code, custom_msg)
         },
         404: {
             reason: 'Not Found',
-            msg: "The resource you requested to access doesn't exist. "
+            msg: "The requested resource doesn't exist. "
         },
         500: {
             reason: 'Server Error',
@@ -233,42 +237,42 @@ function fallback_page(status_code, custom_msg)
     const { reason, msg } = statuses[status_code];
 
     return (
-        `<!DOCTYPE html>` +
-        `<html lang="en">` +
-        `<head>` +
-            `<meta charset="UTF-8">` +
-            `<meta name="viewport" content="width=device-width, initial-scale=1.0">` +
+        '<!DOCTYPE html>' +
+        '<html lang="en">' +
+        '<head>' +
+            '<meta charset="UTF-8">' +
+            '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
             `<meta name="description" content="Redirection page for ${reason}">` +
 
             `<title>Page ${status_code}</title>` +
 
-            `<link rel="icon" type="image/webp" href="../assets/logo.webp">` +
-            `<link rel="stylesheet" href="../stylesheets/_universal.css">` +
-            `<script type="module" src="../scripts/_universal.js"></script>` +
+            '<link rel="icon" type="image/webp" href="../assets/logo.webp">' +
+            '<link rel="stylesheet" href="_universal.css">' +
+            '<script type="module" src="_universal.js"></script>' +
 
-            `<style> ` +
-                `h1 {` +
-                    `text-align: center;` +
-                `}` +
-            `</style>` +
-        `</head>` +
-        `<body>` +
-            `<script>` +
-                `const light_mode = localStorage.getItem('light-mode');` +
-                `if (light_mode === 'moon-mode')` +
-                `{` +
-                    `document.querySelector('html').classList.add('moon-mode');` +
-                `}` +
-            `</script>` +
+            '<style> ' +
+                'h1 {' +
+                    'text-align: center;' +
+                '}' +
+            '</style>' +
+        '</head>' +
+        '<body>' +
+            '<script>' +
+                'const light_mode = localStorage.getItem("light-mode");' +
+                'if (light_mode === "moon-mode")' +
+                '{' +
+                    'document.querySelector("html").classList.add("moon-mode");' +
+                '}' +
+            '</script>' +
 
-            `<main>` +
+            '<main>' +
                 `<h1>${reason} | ${status_code}</h1>` +
                 DOMElements['.info-msg'](msg) +
-            `</main>` +
+            '</main>' +
 
             DOMElements['#side-panel'](false) +
-        `</body>` +
-        `</html>`
+        '</body>' +
+        '</html>'
     );
 }
 

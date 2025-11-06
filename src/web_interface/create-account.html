@@ -8,7 +8,7 @@
     <title>Postream / Create Account</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='../stylesheets/_universal.css'>
+    <link rel='stylesheet' href='_universal.css'>
             
     <style>
         form {
@@ -114,7 +114,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, construct_err_msg } from '../scripts/_universal.js';
+        import { req, show_feedback_card, hide_feedback_card, construct_err_msg } from '_universal.js';
 
         const create_account_form = document.querySelector('form');
         const feedback_card = create_account_form.querySelector('.feedback-card');
@@ -130,10 +130,10 @@
             e.preventDefault();
             hide_feedback_card(feedback_card);
             
-            const { status_code, payload, req_error } = await req('api/user', 'POST');
+            const { payload, req_error } = await req('api/user', 'POST');
             
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(status_code));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code));
             } else {
                 password_p.textContent = payload.password;
                 // Once a registration happens, 
