@@ -8,7 +8,7 @@
     <title>Postream / Write Reply</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='_universal.css'>
+    <link rel='stylesheet' href='./_universal.css'>
 
     <style>
         form {
@@ -36,7 +36,14 @@
     <h1 class="visually-hidden">Write Reply</h1>
 
     <main>
+        
         {{ .post-card }}
+
+        <script type="module">
+            import { prettify_date } from './_universal.js';
+            const time = document.querySelector('.post-card time');
+            time.textContent = prettify_date(time.dateTime);
+        </script>
 
         <form id="reply-form" action="api/reply" method="POST">
             <textarea name="reply-textarea" placeholder="_"></textarea>
@@ -59,25 +66,29 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, construct_err_msg, sanitize_input } from '_universal.js';
+        import { 
+            req, 
+            show_feedback_card, 
+            hide_feedback_card, 
+            construct_err_msg, 
+            sanitize_input,
+        } from './_universal.js';
 
         const write_reply_form = document.querySelector('form');
         const textarea = write_reply_form.querySelector('textarea');
-        const submit_reply_btn = write_reply_form.querySelector('button[type=submit]');
+        const submit_btn = write_reply_form.querySelector('button[type=submit]');
         const feedback_card = write_reply_form.querySelector('.feedback-card');
 
-        write_reply_form.addEventListener('submit', handle_reply_submission);
-
-        async function handle_reply_submission(e)
+        write_reply_form.addEventListener('submit', async e => 
         {
             e.preventDefault();
-            submit_reply_btn.disabled = true;
+            submit_btn.disabled = true;
             hide_feedback_card(feedback_card);
 
             const path = write_reply_form.attributes.action.value;
             const method = write_reply_form.attributes.method.value;
 
-            const post_id = document.URL.split('?id=')[1];
+            const post_id = document.querySelector('.post-card').dataset.postId;
             const content = sanitize_input(textarea.value);
 
             const { req_error } = await req(path, method, null, { post_id, content });
@@ -88,8 +99,8 @@
                 show_feedback_card(feedback_card, 'success', 'Reply created successfully');
             }
 
-            submit_reply_btn.disabled = false;
-        }
+            submit_btn.disabled = false;
+        });
     </script>
 </body>
 </html>

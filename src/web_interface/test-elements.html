@@ -8,7 +8,7 @@
     <title>Postream / Test Elements</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='_universal.css'>
+    <link rel='stylesheet' href='./_universal.css'>
 
     <style>
         .card {
@@ -35,8 +35,8 @@
 <body>
     <script>
         const light_mode = localStorage.getItem('light-mode');
-        if (light_mode === 'moon-mode')
-        {
+        
+        if (light_mode === 'moon-mode') {
             document.querySelector('html').classList.add('moon-mode');
         }
     </script>
@@ -44,8 +44,16 @@
     <main>
         {{ .post-card }}
         {{ .reply-card }}
-        {{ .notification-card }}
+        
+        <script type="module">
+            import { prettify_date } from './_universal.js';
+            let time = document.querySelector('.post-card time');
+            time.textContent = prettify_date(time.dateTime);
+            time = document.querySelector('.reply-card time');
+            time.textContent = prettify_date(time.dateTime);
+        </script>
 
+        {{ .notification-card }}
         {{ .profile-picture }}
 
         <button class="primary-btn">Load</button>
@@ -83,7 +91,7 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { hide_feedback_card } from '_universal.js';
+        import { hide_feedback_card } from './_universal.js';
 
         document.querySelectorAll('main a').forEach(a => {
             a.addEventListener('click', e => e.preventDefault());

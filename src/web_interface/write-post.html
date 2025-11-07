@@ -7,7 +7,7 @@
     <title>Postream / Write Post</title>
     
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='_universal.css'>
+    <link rel='stylesheet' href='./_universal.css'>
       
     <style>
         button[type=submit] {
@@ -54,19 +54,23 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, construct_err_msg, sanitize_input } from '_universal.js';
+        import { 
+            req, 
+            show_feedback_card, 
+            hide_feedback_card, 
+            construct_err_msg, 
+            sanitize_input,
+        } from './_universal.js';
 
         const write_post_form = document.querySelector('form');
         const textarea = write_post_form.querySelector('textarea');
-        const upload_btn = write_post_form.querySelector('button[type=submit]');
+        const submit_btn = write_post_form.querySelector('button[type=submit]');
         const feedback_card = write_post_form.querySelector('.feedback-card');
 
-        write_post_form.addEventListener('submit', handle_post_submission);
-
-        async function handle_post_submission(e)
+        write_post_form.addEventListener('submit', async e => 
         {
             e.preventDefault();
-            upload_btn.disabled = true;
+            submit_btn.disabled = true;
             hide_feedback_card(feedback_card);
 
             const path = write_post_form.attributes.action.value;
@@ -82,8 +86,8 @@
                 show_feedback_card(feedback_card, 'success', 'Post created successfully');
             }
 
-            upload_btn.disabled = false;
-        }
+            submit_btn.disabled = false;
+        });
     </script>
 </body>
 </html>

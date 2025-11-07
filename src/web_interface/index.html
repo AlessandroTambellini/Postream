@@ -8,7 +8,7 @@
     <title>Postream</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='_universal.css'>
+    <link rel='stylesheet' href='./_universal.css'>
     
     <style>
         #posts-container:empty:after {
@@ -65,19 +65,28 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, prettify_date, construct_err_msg } from '_universal.js';
+        import { 
+            req, 
+            show_feedback_card, 
+            hide_feedback_card, 
+            prettify_date, 
+            construct_err_msg 
+        } from './_universal.js';
 
         const posts_container = document.querySelector('#posts-container');
+        const post_cards = posts_container.querySelectorAll('.post-card');
         const load_page_form = document.querySelector('#load-page-form');
         const load_page_input = load_page_form.querySelector('input');
         const feedback_card = document.querySelector('.feedback-card');
 
-        const DEFAULT_PAGE_SIZE = posts_container.querySelectorAll('.post-card').length;
+        const PAGE_SIZE = post_cards.length;
         const last_page = Number(load_page_input.max);
         const displayed_posts = new Set();
 
-        posts_container.querySelectorAll('.post-card').forEach(post => {
+        post_cards.forEach(post => {
             displayed_posts.add(Number(post.dataset.postId));
+            const time = post.querySelector('time');
+            time.textContent = prettify_date(time.dateTime);
         });
 
         load_page_form.addEventListener('submit', async e => 
@@ -99,14 +108,16 @@
                 if (!displayed_posts.has(post.id)) {
                     displayed_posts.add(post.id);
                     new_posts_displayed++;
-                    const post_node = document.createRange().createContextualFragment(post.card);
-                    posts_container.appendChild(post_node);
+                    const post_card = document.createRange().createContextualFragment(post.card);
+                    const time = post_card.querySelector('time');
+                    time.textContent = prettify_date(time.dateTime);
+                    posts_container.appendChild(post_card);
                 }
             });
 
-            if (new_posts_displayed < DEFAULT_PAGE_SIZE && page < last_page)
+            if (new_posts_displayed < PAGE_SIZE && page < last_page)
             {
-                show_feedback_card(feedback_card, 'info', `Expected to retrieve ${DEFAULT_PAGE_SIZE} posts, ` +
+                show_feedback_card(feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} posts, ` +
                     `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
                     'retrieved instead. Either this page was already loaded or new posts where created in the meanwhile.');
             } else if (!new_posts_displayed) {

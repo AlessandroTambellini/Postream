@@ -8,7 +8,7 @@
     <title>Postream / Profile</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='_universal.css'>
+    <link rel='stylesheet' href='./_universal.css'>
 
     <style>
         /* It's fundamental to keep the selector 'main' because '.profile-picture'
@@ -95,8 +95,6 @@
             background-color: #620000;
         }
     </style>
-
-    <script type="module" src="../scripts/profile.js"></script>
 </head>
 <body>
     <script>
@@ -168,140 +166,155 @@
     {{ #side-panel }}
 
     <script type="module">
-import { req, hide_feedback_card, show_feedback_card, construct_err_msg } from './_universal.js';
+        import { 
+            req,
+            hide_feedback_card,
+            show_feedback_card,
+            prettify_date,
+            construct_err_msg 
+        } from './_universal.js';
 
-const posts_container = document.querySelector('#posts-container');
-const load_page_form = document.querySelector('#load-page-form');
-const load_page_input = load_page_form.querySelector('input');
-const search_post_form = document.querySelector('#search-post-form');
-const search_post_input = search_post_form.querySelector('input');
-const post_cards = posts_container.querySelectorAll('.post-card');
+        const posts_container = document.querySelector('#posts-container');
+        const post_cards = posts_container.querySelectorAll('.post-card');
 
-const delete_post_dialog = document.querySelector('#delete-post-dialog');
-const close_dialog_btn = delete_post_dialog.querySelector('.close-btn');
-const delete_post_btn = delete_post_dialog.querySelector('button[type=submit]');
+        const load_page_form = document.querySelector('#load-page-form');
+        const load_page_input = load_page_form.querySelector('input');
+        const search_post_form = document.querySelector('#search-post-form');
+        const search_post_input = search_post_form.querySelector('input');
 
-const load_page_feedback_card = document.querySelector('#load-page-form .feedback-card');
-const search_post_feedback_card = document.querySelector('#lsearch-post-form .feedback-card');
-const delete_post_feedback_card = document.querySelector('#delete-post-dialog .feedback-card');
+        const delete_post_dialog = document.querySelector('#delete-post-dialog');
+        const close_dialog_btn = delete_post_dialog.querySelector('.close-btn');
+        const delete_post_btn = delete_post_dialog.querySelector('button[type=submit]');
 
-const DEFAULT_PAGE_SIZE = post_cards.length;
-const displayed_posts = new Set();
-let last_action_is_search = false;
-const last_page = Number(load_page_input.max);
+        const load_page_feedback_card = document.querySelector('#load-page-form .feedback-card');
+        const search_post_feedback_card = document.querySelector('#lsearch-post-form .feedback-card');
+        const delete_post_feedback_card = document.querySelector('#delete-post-dialog .feedback-card');
 
-/* I'd like to close the dialog when clicking on its background,
-but I can't append a listener to '::backdrop',
-and using e.composedPath() or e.currentTarget doesn't really help,
-because ::backdrop is still part of the dialog.
-The only option would be to let the elements inside the dialog fill all the space available
-inside the dialog itself, but it's a bit of an hack and not really precise. */
-close_dialog_btn.addEventListener("click", () => {
-    delete_post_dialog.close();
-    hide_feedback_card(delete_post_feedback_card);
-});
+        const PAGE_SIZE = post_cards.length;
+        const displayed_posts = new Set();
+        const last_page = Number(load_page_input.max);
+        let last_action_is_search = false;
 
-delete_post_btn.addEventListener('click', async e =>
-{
-    e.preventDefault();
-
-    const post_id = delete_post_dialog.returnValue;
-    const { req_error } = await req('api/post', 'DELETE', { id: post_id });
-
-    if (req_error) {
-        show_feedback_card(delete_post_feedback_card, 'error', construct_err_msg(req_error.code, 'post', 'delete', req_error.msg));
-    } else {
-        delete_post_dialog.close();
-        const post_card = document.querySelector(`#post-card-${post_id}`);
-        post_card.classList.add('deleting');
-    }
-});
-
-post_cards.forEach(post => {
-    displayed_posts.add(Number(post.dataset.postId));
-});
-
-document.querySelectorAll('.delete-post-btn').forEach(button => {
-    append_delete_post_listener(button);
-});
-
-load_page_form.addEventListener('submit', async e =>
-{
-    e.preventDefault();
-    hide_feedback_card(load_page_feedback_card);
-
-    const page = last_page - Number(load_page_input.value) + 1;
-
-    const { payload: posts, req_error } = await req('api/posts/user/page', 'GET', { page, format: 'html' });
-
-    if (req_error) {
-        show_feedback_card(load_page_feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
-        return;
-    }
-
-    if (last_action_is_search) {
-        posts_container.replaceChildren();
-        displayed_posts.clear();
-        last_action_is_search = false;
-    }
-
-    let new_posts_displayed = 0;
-    posts.forEach(post => {
-        if (!displayed_posts.has(post.id)) {
-            displayed_posts.add(post.id);
-            new_posts_displayed++;
-            const post_card = document.createRange().createContextualFragment(post.card);
+        post_cards.forEach(post_card => {
+            displayed_posts.add(Number(post_card.dataset.postId));
+            const time = post_card.querySelector('time');
+            time.textContent = prettify_date(time.dateTime);
             append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
-            posts_container.appendChild(post_card);
-        }
-    });
-
-    if (new_posts_displayed < DEFAULT_PAGE_SIZE && page < last_page) {
-        const msg = `Expected to retrieve ${DEFAULT_PAGE_SIZE} posts, ` +
-            `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
-            'retrieved instead. Either this page was already loaded or some post was created/deleted in the meanwhile.';
-        show_feedback_card(load_page_feedback_card, 'info', msg);
-    } else if (new_posts_displayed === 0) {
-        show_feedback_card(load_page_feedback_card, 'info', 'There aren\'t other posts to show');
-    }
-
-});
-
-search_post_form.addEventListener('submit', async e =>
-{
-    e.preventDefault();
-    hide_feedback_card(search_post_feedback_card);
-
-    const { payload: posts, req_error } = await req('api/posts/user/search', 'GET', { 
-        search_term: search_post_input.value,
-        format: 'html',
-    });
-
-    if (req_error) {
-        show_feedback_card(search_post_feedback_card, 'error', req_error.msg);
-    } else {
-        last_action_is_search = true;
-        posts_container.replaceChildren();
-        posts.forEach(post => {
-            const post_card = document.createRange().createContextualFragment(post.card);
-            append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
-            posts_container.appendChild(post_card);
         });
 
-        if (posts.length === 0) {
-            show_feedback_card(search_post_feedback_card, 'info', 'There aren\'t posts matching the search parameters');
-        }
-    }
-});
+        /* I'd like to close the dialog when clicking on its background,
+        but I can't append a listener to '::backdrop',
+        and using e.composedPath() or e.currentTarget doesn't really help,
+        because ::backdrop is still part of the dialog.
+        The only option would be to let the elements inside the dialog fill all the space available
+        inside the dialog itself, but it's a bit of an hack and not really precise. */
+        close_dialog_btn.addEventListener("click", () => {
+            delete_post_dialog.close();
+            hide_feedback_card(delete_post_feedback_card);
+        });
 
-function append_delete_post_listener(btn)
-{
-    btn.addEventListener('click', () =>
-    {
-        delete_post_dialog.showModal();
-        delete_post_dialog.returnValue = btn.dataset.postId;
-    });
-}
+        delete_post_btn.addEventListener('click', async e =>
+        {
+            e.preventDefault();
+            // TODO is e.preventDefault(); useful? 
+            // and shouldn't hide_feedback_card()?
+
+            const post_id = delete_post_dialog.returnValue;
+            const { req_error } = await req('api/post', 'DELETE', { id: post_id });
+
+            if (req_error) {
+                show_feedback_card(delete_post_feedback_card, 'error', construct_err_msg(req_error.code, 'post', 'delete', req_error.msg));
+            } else {
+                delete_post_dialog.close();
+                const post_card = document.querySelector(`#post-card-${post_id}`);
+                post_card.classList.add('deleting');
+            }
+        });
+
+        load_page_form.addEventListener('submit', async e =>
+        {
+            e.preventDefault();
+            hide_feedback_card(load_page_feedback_card);
+
+            const page = last_page - Number(load_page_input.value) + 1;
+
+            const { 
+                payload: posts, 
+                req_error, 
+            } = await req('api/posts/user/page', 'GET', { page, format: 'html' });
+
+            if (req_error) {
+                show_feedback_card(load_page_feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
+                return;
+            }
+
+            if (last_action_is_search) {
+                posts_container.replaceChildren();
+                displayed_posts.clear();
+                last_action_is_search = false;
+            }
+
+            let new_posts_displayed = 0;
+            posts.forEach(post => {
+                if (!displayed_posts.has(post.id)) {
+                    displayed_posts.add(post.id);
+                    new_posts_displayed++;
+                    const post_card = document.createRange().createContextualFragment(post.card);
+                    const time = post_card.querySelector('time');
+                    time.textContent = prettify_date(time.dateTime);
+                    append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
+                    posts_container.appendChild(post_card);
+                }
+            });
+
+            if (new_posts_displayed < PAGE_SIZE && page < last_page) {
+                const msg = `Expected to retrieve ${PAGE_SIZE} posts, ` +
+                    `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
+                    'retrieved instead. Either this page was already loaded or some post was created/deleted in the meanwhile.';
+                show_feedback_card(load_page_feedback_card, 'info', msg);
+            } else if (new_posts_displayed === 0) {
+                show_feedback_card(load_page_feedback_card, 'info', 'There aren\'t other posts to show');
+            }
+
+        });
+
+        search_post_form.addEventListener('submit', async e =>
+        {
+            e.preventDefault();
+            hide_feedback_card(search_post_feedback_card);
+
+            const { payload: posts, req_error } = await req('api/posts/user/search', 'GET', { 
+                search_term: search_post_input.value,
+                format: 'html',
+            });
+
+            if (req_error) {
+                show_feedback_card(search_post_feedback_card, 'error', req_error.msg);
+            } else {
+                last_action_is_search = true;
+                posts_container.replaceChildren();
+                posts.forEach(post => {
+                    const post_card = document.createRange().createContextualFragment(post.card);
+                    const time = post_card.querySelector('time');
+                    time.textContent = prettify_date(time.dateTime);
+                    append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
+                    posts_container.appendChild(post_card);
+                });
+
+                if (posts.length === 0) {
+                    show_feedback_card(search_post_feedback_card, 'info', 'There aren\'t posts matching the search parameters');
+                }
+            }
+        });
+
+        function append_delete_post_listener(btn)
+        {
+            btn.addEventListener('click', () =>
+            {
+                delete_post_dialog.showModal();
+                delete_post_dialog.returnValue = btn.dataset.postId;
+            });
+        }
     </script>
 </body>
 </html>

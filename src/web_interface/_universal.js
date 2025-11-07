@@ -1,16 +1,3 @@
-//
-// Convert dates to local time
-
-document.querySelectorAll('.post-card').forEach(post => {
-    const time = post.querySelector('time');
-    time.textContent = prettify_date(time.dateTime);
-});
-document.querySelectorAll('.reply-card').forEach(reply => {
-    const time = reply.querySelector('time');
-    time.textContent = prettify_date(time.dateTime);
-});
-
-
 /*
  *
  *  Side-Panel

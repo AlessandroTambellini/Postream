@@ -81,6 +81,7 @@ function handle_request(req, res)
         };
 
         const { cookies, cookies_error } = parse_cookies(req.headers);
+        
         if (cookies_error) {
             res_data.error(400, cookies_error);
             write_res(res, res_data);
@@ -89,6 +90,7 @@ function handle_request(req, res)
 
         const JSON_payload = Buffer.concat(body).toString() || '{}';
         const { obj, JSON_error } = convert_JSON_to_obj(JSON_payload);
+        
         if (JSON_error) {
             res_data.error(400, JSON_error);
             write_res(res, res_data);
@@ -104,16 +106,14 @@ function handle_request(req, res)
             } else {
                 await get_asset(req_data, res_data);
             }
-
-            write_res(res, res_data);
-
         } catch (error) {
             log_error(error);
-            if (!res.headersSent) {
-                res_data.error(500, 'An unexpected error has occurred while processing the request');
-                write_res(res, res_data);
-            }
+            res_data.error(500, 'An unexpected error has occurred while processing the request');
+            write_res(res, res_data);
+            return;
         }
+
+        write_res(res, res_data);
     });
 
     req.on('error', err => {
@@ -131,25 +131,28 @@ function handle_request(req, res)
 
 function write_res(res, res_data)
 {
-    try {
-        const payload = res_data.content_type === 'application/json' ? JSON.stringify(res_data.payload) : res_data.payload;
-
-        res.strictContentLength = true;
-        res.writeHead(res_data.status_code, {
-            'Content-Length': Buffer.byteLength(payload),
-            'Content-Type': res_data.content_type,
-            'X-Frame-Options': 'SAMEORIGIN',
-        });
-
-        res.end(payload);
-
-    } catch (error) {
-        log_error(error);
-        if (!res.headersSent) {
+    let payload;
+    if (res_data.content_type === 'application/json')
+    {
+        const { json, obj_error } = convert_obj_to_JSON(res_data.payload);
+        if (obj_error) {
             res.writeHead(500, { 'Content-Type': 'text/plain' });
             res.end('Internal Server Error');
+            return;
         }
+        payload = json;
+    } else {
+        payload = res_data.payload;
     }
+
+    res.strictContentLength = true;
+    res.writeHead(res_data.status_code, {
+        'Content-Length': Buffer.byteLength(payload),
+        'Content-Type': res_data.content_type,
+        'X-Frame-Options': 'SAMEORIGIN',
+    });
+
+    res.end(payload);
 }
 
 function get_url(url_string)
@@ -209,6 +212,19 @@ function convert_JSON_to_obj(json)
     }
 
     return { obj, JSON_error };
+}
+
+function convert_obj_to_JSON(obj)
+{
+    let json = null, obj_error = null;
+    try {
+        json = JSON.stringify(obj);
+    } catch (error) {
+        obj_error = true;
+        log_error(error);
+    }
+
+    return { json, obj_error };
 }
 
 function handle_server_error(e)

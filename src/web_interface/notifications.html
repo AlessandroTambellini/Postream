@@ -8,7 +8,7 @@
     <title>Postream / Notifications</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='_universal.css'>
+    <link rel='stylesheet' href='./_universal.css'>
 
     <style>
         h1 {
@@ -48,7 +48,9 @@
     <main>
         <h1>Notifications</h1>
 
-        <div id="notifications-container" class="cards-container">{{ notification-cards }}</div>
+        <div id="notifications-container" class="cards-container">
+            {{ notification-cards }}
+        </div>
 
         <nav id="filter-notifications-nav">
             <form id="load-page-form">
@@ -84,40 +86,47 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, show_feedback_card, hide_feedback_card, construct_err_msg } from '_universal.js';
+        import { 
+            req, 
+            show_feedback_card, 
+            hide_feedback_card, 
+            construct_err_msg, 
+        } from './_universal.js';
 
-        const feedback_card = document.querySelector('.feedback-card');
         const notifications_container = document.querySelector('#notifications-container');
+        const notification_cards = notifications_container.querySelectorAll('.notification-card');
         const load_page_form = document.querySelector('#load-page-form');
         const load_page_input = load_page_form.querySelector('input');
         const search_notification_form = document.querySelector('#search-notification-form');
         const search_notification_input = search_notification_form.querySelector('input');
-        const notification_cards = notifications_container.querySelectorAll('.notification-card');
+        
+        const load_page_feedback_card = load_page_form.querySelector('.feedback-card');
+        const search_notification_feedback_card = search_notification_form.querySelector('.feedback-card');
 
-        const DEFAULT_PAGE_SIZE = notification_cards.length;
+        const PAGE_SIZE = notification_cards.length;
         const displayed_notifications = new Set();
         const last_page = Number(load_page_input.max);
         let last_action_is_search = false;
 
-        notification_cards.forEach(notification => {
-            displayed_notifications.add(Number(notification.dataset.notificationId));
-        });
-
-        document.querySelectorAll('.delete-notification-btn').forEach(button => {
-            append_delete_notification_listener(button);
+        notification_cards.forEach(notification_card => {
+            displayed_notifications.add(Number(notification_card.dataset.notificationId));
+            append_delete_notification_listener(notification_card.querySelector('.delete-notification-form'));
         });
 
         load_page_form.addEventListener('submit', async e =>
         {
             e.preventDefault();
-            hide_feedback_card(feedback_card);
+            hide_feedback_card(load_page_feedback_card);
 
             const page = last_page - Number(load_page_input.value) + 1;
 
-            const { payload: notifications, req_error } = await req('api/notifications/user/page', 'GET', { page, format: 'html' });
+            const { 
+                payload: notifications, 
+                req_error,
+            } = await req('api/notifications/user/page', 'GET', { page, format: 'html' });
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
+                show_feedback_card(load_page_feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
                 return;
             }
 
@@ -134,64 +143,72 @@
                     displayed_notifications.add(notification.id);
                     new_notifications_displayed++;
                     const notification_card = document.createRange().createContextualFragment(notification.card);
-                    append_delete_notification_listener(notification_card.querySelector('.delete-notification-btn'));
+                    append_delete_notification_listener(notification_card.querySelector('.delete-notification-form'));
                     notifications_container.appendChild(notification_card);
                 }
             });
 
-            if (new_notifications_displayed < DEFAULT_PAGE_SIZE && page < last_page)
+            if (new_notifications_displayed < PAGE_SIZE && page < last_page)
             {
-                show_feedback_card(feedback_card, 'info', `Expected to retrieve ${DEFAULT_PAGE_SIZE} notifications, ` +
+                show_feedback_card(fload_page_feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} notifications, ` +
                     `but ${new_notifications_displayed} notification${new_notifications_displayed === 1 ? ' was' : 's were'} ` +
                     'retrieved instead. Either this page was already loaded or new notifications where created in the meanwhile.');
             } else if (new_notifications_displayed === 0) {
-                show_feedback_card(feedback_card, 'info', 'There aren\'t other notifications to show');
+                show_feedback_card(load_page_feedback_card, 'info', 'There aren\'t other notifications to show');
             }
         });
 
         search_notification_form.addEventListener('submit', async e =>
         {
             e.preventDefault();
-            hide_feedback_card(feedback_card);
+            hide_feedback_card(search_notification_feedback_card);
 
-            const { payload: notifications, req_error } = await req('api/notifications/user/search', 'GET', { 
+            const { 
+                payload: notifications, 
+                req_error, 
+            } = await req('api/notifications/user/search', 'GET', { 
                 search_term: search_notification_input.value,
                 format: 'html',
             });
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', req_error.msg);
+                show_feedback_card(search_notification_feedback_card, 'error', req_error.msg);
             } else {
                 last_action_is_search = true;
                 notifications_container.replaceChildren();
                 notifications.forEach(notification => {
                     const notification_card = document.createRange().createContextualFragment(notification.card);
-                    append_delete_notification_listener(notification_card.querySelector('.delete-notification-btn'));
+                    append_delete_notification_listener(notification_card.querySelector('.delete-notification-form'));
                     notifications_container.appendChild(notification_card);
                 });
 
                 if (notifications.length === 0) {
-                    show_feedback_card(feedback_card, 'info', 'There aren\'t notifications matching the search parameters');
+                    show_feedback_card(search_notification_feedback_card, 'info', 'There aren\'t notifications matching the search parameters');
                 }
             }
         });
 
-        function append_delete_notification_listener(button)
+        function append_delete_notification_listener(form)
         {
-            button.addEventListener('click', async () =>
+            form.addEventListener('submit', async e =>
             {
+                const feedback_card = form.querySelector('.feedback-card');
+                const btn = form.querySelector('button[type=submit]');
+                
+                e.preventDefault();
+                btn.disabled = true;
                 hide_feedback_card(feedback_card);
 
-                const notification_id = button.dataset.notificationId;
+                const notification_id = form.dataset.notificationId;
                 const { req_error } = await req('api/user/notifications', 'DELETE', { id: notification_id });
 
                 if (req_error) {
                     show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'notification', 'delete'));
+                    btn.disabled = false;
                 }
                 else {
                     const notification_card = document.querySelector(`#notification-card-${notification_id}`);
                     notification_card.classList.add('deleting');
-                    button.disabled = true;
                 }
             });
         }

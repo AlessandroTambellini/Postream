@@ -8,7 +8,7 @@
     <title>Postream / Read Post</title>
 
     <link rel="icon" type="image/webp" href="../assets/logo.webp">
-    <link rel='stylesheet' href='_universal.css'>
+    <link rel='stylesheet' href='./_universal.css'>
       
     <script type='module' src="_universal.js"></script>
 
@@ -21,17 +21,13 @@
             margin-top: .5em;
             margin-inline: auto;
         }
-
-        #replies-container:empty:after {
-            content: 'There aren\'t replies.';
-        }
     </style>
 </head>
 <body>
     <script>
+        // light_mode, used in the side-nav
         const light_mode = localStorage.getItem('light-mode');
-        if (light_mode === 'moon-mode')
-        {
+        if (light_mode === 'moon-mode') {
             document.querySelector('html').classList.add('moon-mode');
         }
     </script>
@@ -39,11 +35,20 @@
     <h1 class="visually-hidden">Read Post</h1>
     
     <main>
+        
         {{ .post-card }}
-        <div id="replies-container" class="cards-container">{{ replies }}</div>
+        
+        <script type="module">
+            import { prettify_date } from './_universal.js';
+            const time = document.querySelector('.post-card time');
+            time.textContent = prettify_date(time.dateTime);
+        </script>
+
+        <div id="replies-container" class="cards-container">
+            {{ replies }}
+        </div>
     </main>
 
     {{ #side-panel }}
-    
 </body>
 </html>

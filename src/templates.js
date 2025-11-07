@@ -71,11 +71,23 @@ DOMElements['.notification-card'] = function(notification)
                 `<b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>` + 
                 `"${post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content}"` + 
             '</p>' +
-            `<footer>` +
-                `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>Read-${num_of_replies === 1 ? 'Reply' : 'Replies'}</a>` +
-                `<button type='button' data-notification-id=${id} class='delete-notification-btn secondary-btn'>Delete</button>` +
-            `</footer>` +
-        `</article>`
+            '<footer>' +
+                `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>` +
+                    `Read-${num_of_replies === 1 ? 'Reply' : 'Replies'}` + 
+                '</a>' +
+                `<form class="delete-notification-form" data-notification-id=${id}>` +
+                    '<div class="card feedback-card display-none">' +
+                        "<span role='img' alt='feedback icon'></span>" +
+                        '<p>' +
+                            "<span class='type'></span>" +
+                            "<span class='msg'></span>" +
+                        '</p>' +
+                        "<button class='close-btn' type='button' aria-label='close feedback'>🗙</button>" +
+                    '</div>' +
+                    "<button type=submit class='secondary-btn'>Delete</button>" +
+                '</form>' +
+            '</footer>' +
+        '</article>'
     );
 }
 
