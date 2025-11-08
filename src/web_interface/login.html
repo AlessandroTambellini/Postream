@@ -79,6 +79,7 @@
             const password = password_input.value;
 
             /*
+            NOTE: if already logged in and you login again, you simply extend the session
             - If it's the first time that the user logs in, it's a POST.
             - If it isn't the first time that the user logs in, it's a PUT. But,
                 - if previously the user logged out, I don't have anymore the password_hash on the client. Therefore,

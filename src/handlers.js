@@ -61,8 +61,8 @@ const handlers = {};
 ].forEach(path => {
     handlers[path] = async function(req_data, res_data) {
         if (this[path][req_data.method]) {
-            // The page handlers aren't asynchronous.
-            // Still, using async also for them doesn't create an issue.
+            // Page handlers aren't asynchronous, while APIs are. 
+            // Using async for both isn't an issue.
             await this[path][req_data.method](req_data, res_data);
         } else {
             res_data.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
@@ -87,14 +87,15 @@ handlers['/index'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { count, db_error } = db_ops.select_posts_count();
+    const { count, db_error } = db_ops.count_posts();
     const last_page = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
 
-    const { posts, db_error: posts_error } = db_ops.select_posts_page();
+    const { data: posts, db_error: posts_error } = db_ops.select_posts_page();
 
-    const post_cards = posts_error ?
-        DOMElements['.info-msg'](APOLOGY_MSG('posts')) :
-        posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
+    let post_cards;
+    if (posts_error) post_cards = DOMElements['.info-msg'](APOLOGY_MSG('posts'));
+    else if (posts.length === 0) post_cards = DOMElements['.info-msg']('There aren\'t posts.');
+    else post_cards = posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
 
     const res = page
         .replace('{{ post-cards }}', post_cards)
@@ -123,10 +124,10 @@ handlers['/profile'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { count, db_error } = db_ops.select_user_posts_count(user_id);
+    const { count, db_error } = db_ops.count_user_posts(user_id);
     const pages = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
 
-    const { posts, db_error: posts_error } = db_ops.select_user_posts_page(user_id);
+    const { data: posts, db_error: posts_error } = db_ops.select_user_posts_page(user_id);    
 
     let post_cards;
 
@@ -160,10 +161,10 @@ handlers['/notifications'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { count, db_error } = db_ops.select_user_notifications_count(user_id);
+    const { count, db_error } = db_ops.count_user_notifications(user_id);
     const pages = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
 
-    const { notifications, db_error: notifications_error } = db_ops.select_user_notifications_page(user_id);
+    const { data: notifications, db_error: notifications_error } = db_ops.select_user_notifications_page(user_id);
 
     if (notifications_error) {
         res_data.page(500, fallback_page(500, APOLOGY_MSG('notifications')));
@@ -177,7 +178,7 @@ handlers['/notifications'].GET = async function(req_data, res_data)
     else {
         notification_cards = new Array(notifications.length);
         notifications.forEach(notification => {
-            const { post, db_error } = db_ops.select_post(notification.post_id)
+            const { data: post, db_error } = db_ops.select_post(notification.post_id)
             if (!db_error) {
                 notification.post_content = post.content;
                 notification_cards.push(DOMElements['.notification-card'](notification));
@@ -267,7 +268,7 @@ handlers['/write-reply'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { post, db_error } = db_ops.select_post(post_id);
+    const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
         res_data.page(500, fallback_page(500));
@@ -304,7 +305,7 @@ handlers['/read-post'].GET = async function(req_data, res_data)
         return;
     }
 
-    const { post, db_error } = db_ops.select_post(post_id);
+    const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
         res_data.page(500, fallback_page(500));
@@ -323,21 +324,35 @@ handlers['/read-post'].GET = async function(req_data, res_data)
         return;
     }
 
-    const reply_cards = [];
+    let reply_cards;
+    let load_page_form = '';
     if (post.user_id === user_id)
     {
-        const { replies, db_error } = db_ops.select_post_replies(post_id);
+        const { count, db_error } = db_ops.count_post_replies();
 
-        if (db_error) {
-            reply_cards.push(DOMElements['.info-msg'](APOLOGY_MSG('replies')));
-        } else {
+        // I ignore the db_error
+        if (count) {
+            load_page_form = DOMElements['#load-page-form'](Math.ceil(count/PAGE_SIZE));
+        }
+
+        const { 
+            data: replies, 
+            db_error: replies_error 
+        } = db_ops.select_post_replies_page(post_id);
+
+        if (replies_error) reply_cards = DOMElements['.info-msg'](APOLOGY_MSG('replies'));
+        else if (replies.length === 0) reply_cards = DOMElements['.info-msg']('There aren\'t replies.');
+        else {
+            reply_cards = new Array(replies.length);
             reply_cards.push(...replies.map(reply => DOMElements['.reply-card'](reply)));
+            reply_cards = reply_cards.join('')
         }
     }
 
     const res = page
         .replace('{{ .post-card }}', DOMElements['.post-card'](post, user_id && post.user_id !== user_id ? 2 : 0))
-        .replace('{{ replies }}', reply_cards.join(''))
+        .replace('{{ replies }}', reply_cards)
+        .replace('{{ load-page-form }}', load_page_form)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'read-post'))
     ;
 
@@ -367,22 +382,23 @@ handlers['/test-elements'].GET = async function(req_data, res_data)
         num_of_replies: 2,
     };
 
-    const res = page
+    res_data.page(200, page
         .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
         .replace('{{ .post-card }}', DOMElements['.post-card'](card))
         .replace('{{ .reply-card }}', DOMElements['.reply-card'](card))
         .replace('{{ .notification-card }}', DOMElements['.notification-card'](notif_card))
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'test-elements'))
-    ;
-
-    res_data.page(200, res);
+    );
 };
 
 handlers['/logout'].GET = async function(req_data, res_data)
 {
-    /* Why should I auth an user before logging him out?
-    Logging out means deleting a cookie. Delete it if you want.
-    TODO review this comment */
+    const { user_id, auth_error } = auth_user(req_data.cookies);
+
+    if (!user_id) {
+        res_data.page(auth_error.code, fallback_page(auth_error.code));
+        return;
+    }
 
     const { page, fs_error } = await get_page('logout');
 
@@ -391,11 +407,9 @@ handlers['/logout'].GET = async function(req_data, res_data)
         return;
     }
 
-    const res = page
+    res_data.page(200, page
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'logout'))
-    ;
-
-    res_data.page(200, res);
+    );
 };
 
 handlers['/delete-account'].GET = async function(req_data, res_data)
@@ -414,11 +428,9 @@ handlers['/delete-account'].GET = async function(req_data, res_data)
         return;
     }
 
-    const res = page
+    res_data.page(200, page
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'delete-account'))
-    ;
-
-    res_data.page(200, res);
+    );
 };
 
 handlers['/logo'].GET = async function(req_data, res_data)
@@ -428,7 +440,7 @@ handlers['/logo'].GET = async function(req_data, res_data)
     if (fs_error) {
         res_data.page(500, fallback_page(500));
     } else {
-        res_data.page(200, res);
+        res_data.page(200, page);
     }
 };
 
@@ -472,14 +484,14 @@ handlers['/api/user'].DELETE = function(req_data, res_data)
         return;
     }
 
-    const { is_user_deleted, db_error } = db_ops.delete_user(user_id);
+    const { is_data_deleted, db_error } = db_ops.delete_user(user_id);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'user'));
         return;
     }
 
-    if (!is_user_deleted) {
+    if (!is_data_deleted) {
         res_data.error(404, MSG_NOT_FOUND('user', 'user_id'));
         return;
     }
@@ -498,7 +510,7 @@ handlers['/api/token'].GET = function(req_data, res_data)
         return;
     }
 
-    const { user, db_error } = db_ops.select_user(password_hash);
+    const { data: user, db_error } = db_ops.select_user(password_hash);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'user'));
@@ -510,7 +522,10 @@ handlers['/api/token'].GET = function(req_data, res_data)
         return;
     }
 
-    const { token, db_error: token_error } = db_ops.select_token(user.id);
+    const { 
+        data: token, 
+        db_error: token_error, 
+    } = db_ops.select_token(user.id);
 
     if (token_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('validate', 'token'));
@@ -535,7 +550,7 @@ handlers['/api/token'].POST = function(req_data, res_data)
         return;
     }
 
-    const { user, db_error } = db_ops.select_user(password_hash);
+    const { data: user, db_error } = db_ops.select_user(password_hash);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'user'));
@@ -547,7 +562,7 @@ handlers['/api/token'].POST = function(req_data, res_data)
         return;
     }
 
-    const { token, db_error: token_error } = db_ops.select_token(user.id);
+    const { data: token, db_error: token_error } = db_ops.select_token(user.id);
 
     if (token_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('validate', 'token'));
@@ -579,7 +594,7 @@ handlers['/api/token'].PUT = function(req_data, res_data)
         return;
     }
 
-    const { user, db_error} = db_ops.select_user(password_hash);
+    const { data: user, db_error} = db_ops.select_user(password_hash);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'user'));
@@ -591,7 +606,7 @@ handlers['/api/token'].PUT = function(req_data, res_data)
         return;
     }
 
-    const { token, db_error: token_error } = db_ops.select_token(user.id);
+    const { data: token, db_error: token_error } = db_ops.select_token(user.id);
 
     if (token_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'token'));
@@ -627,7 +642,7 @@ handlers['/api/post'].GET = function(req_data, res_data)
         return;
     }
 
-    const { post, db_error } = db_ops.select_post(post_id);
+    const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'post'));
@@ -652,6 +667,11 @@ handlers['/api/post'].POST = function(req_data, res_data)
     }
 
     const { content } = req_data.payload;
+
+    if (!content) {
+        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
+        return;
+    }
 
     const post_id = db_ops.insert_post(user_id, content);
 
@@ -679,14 +699,14 @@ handlers['/api/post'].DELETE = function(req_data, res_data)
         return;
     }
 
-    const { is_post_deleted, db_error } = db_ops.delete_post(post_id, user_id);
+    const { is_data_deleted, db_error } = db_ops.delete_post(post_id, user_id);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'post'));
         return;
     }
 
-    if (!is_post_deleted) {
+    if (!is_data_deleted) {
         res_data.error(404,  `Either the post for the specified 'id' doesn't exist, or you aren't the owner of that post`);
         return;
     }
@@ -703,7 +723,7 @@ handlers['/api/reply'].POST = function(req_data, res_data)
         return;
     }
 
-    const { post, db_error } = db_ops.select_post(post_id);
+    const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'post'));
@@ -779,14 +799,14 @@ handlers['/api/user/notifications'].DELETE = function(req_data, res_data)
         return;
     }
 
-    const { is_notification_deleted, db_error } = db_ops.delete_notification(notification_id, user_id);
+    const { is_data_deleted, db_error } = db_ops.delete_notification(notification_id, user_id);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'notification'));
         return;
     }
 
-    if (!is_notification_deleted) {
+    if (!is_data_deleted) {
         res_data.error(404,  `Either the notification for the specified 'id' doesn't exist, or you aren't the owner of that notification`);
         return;
     }
@@ -812,7 +832,7 @@ handlers['/api/posts/page'].GET = function(req_data, res_data)
         return;
     }
 
-    const { posts, db_error } = db_ops.select_posts_page(page);
+    const { data: posts, db_error } = db_ops.select_posts_page(page);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('get', 'posts'));
@@ -851,7 +871,7 @@ handlers['/api/posts/user/page'].GET = function(req_data, res_data)
         return;
     }
 
-    const { posts, db_error } = db_ops.select_user_posts_page(user_id, page);
+    const { data: posts, db_error } = db_ops.select_user_posts_page(user_id, page);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('retrieve', 'user posts'));
@@ -890,7 +910,7 @@ handlers['/api/notifications/user/page'].GET = function(req_data, res_data)
         return;
     }
 
-    const { notifications, db_error } = db_ops.select_user_notifications_page(user_id, page);
+    const { data: notifications, db_error } = db_ops.select_user_notifications_page(user_id, page);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('retrieve', 'user notifications'));
@@ -929,7 +949,7 @@ handlers['/api/posts/user/search'].GET = function(req_data, res_data)
         return;
     }
 
-    const { posts, db_error } = db_ops.select_user_matching_posts(user_id, search_term);
+    const { data: posts, db_error } = db_ops.select_user_posts_match(user_id, search_term);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('get', 'matching posts'));
@@ -968,7 +988,7 @@ handlers['/api/notifications/user/search'].GET = function(req_data, res_data)
         return;
     }
 
-    const { notifications, db_error } = db_ops.select_user_matching_notifications(user_id, search_term);
+    const { data: notifications, db_error } = db_ops.select_user_notifications_match(user_id, search_term);
 
     if (db_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('get', 'matching notifications'));
@@ -984,6 +1004,7 @@ handlers['/api/notifications/user/search'].GET = function(req_data, res_data)
         }
     }
 };
+
 
 async function get_asset(req_data, res_data)
 {
@@ -1036,60 +1057,6 @@ async function get_asset(req_data, res_data)
     res_data.success(200, asset, essence);
 }
 
-
-/*
- *
- *  Miscellaneous
- */
-
-function auth_user(cookies)
-{
-    /* The auth_error msg is meant for the backend APIs, not for the request of web pages,
-    because for the latter the err messages are framed a bit differently for the final user. */
-
-    const res = {
-        user_id: null,
-        auth_error: {
-            code: -1,
-            msg: ''
-        },
-    };
-
-    if (!cookies || !cookies.password_hash) {
-        res.auth_error.code = 401;
-        res.auth_error.msg = MSG_INVALID_COOKIE('password_hash');
-        return res;
-    }
-
-    const { user, db_error } = db_ops.select_user(cookies.password_hash);
-
-    if (db_error) {
-        res.auth_error.code = 500;
-        res.auth_error.msg = MSG_UNKNOWN_DB_ERROR('select', 'user');
-        return res;
-    }
-
-    if (!user) {
-        res.auth_error.code = 404;
-        res.auth_error.msg = MSG_NOT_FOUND('user', 'password');
-        return res;
-    }
-
-    const { token, db_error: token_error } = db_ops.select_token(user.id);
-
-    if (token_error) {
-        res.auth_error.code = 500;
-        res.auth_error.msg = MSG_UNKNOWN_DB_ERROR('validate', 'token');
-    } else if (!token) {
-        res.auth_error.code = 401;
-        res.auth_error.msg = `Invalid 'password_hash'. It may be expired`;
-    } else if (token.expires_at > new Date().toISOString()) {
-        res.user_id = token.user_id;
-    }
-
-    return res;
-}
-
 async function get_page(page_name)
 {
     // Only for production, otherwise isn't possible to update a page during development
@@ -1110,6 +1077,54 @@ async function get_page(page_name)
     }
 
     return { page, fs_error };
+}
+
+function auth_user(cookies)
+{
+    /* The auth_error msg is meant for the backend APIs, not for the request of web pages,
+    because for the latter the err messages are framed a bit differently for the final user. */
+
+    const res = {
+        user_id: null,
+        auth_error: {
+            code: -1,
+            msg: ''
+        },
+    };
+
+    if (!cookies || !cookies.password_hash) {
+        res.auth_error.code = 401;
+        res.auth_error.msg = MSG_INVALID_COOKIE('password_hash');
+        return res;
+    }
+
+    const { data: user, db_error } = db_ops.select_user(cookies.password_hash);
+
+    if (db_error) {
+        res.auth_error.code = 500;
+        res.auth_error.msg = MSG_UNKNOWN_DB_ERROR('select', 'user');
+        return res;
+    }
+
+    if (!user) {
+        res.auth_error.code = 404;
+        res.auth_error.msg = MSG_NOT_FOUND('user', 'password');
+        return res;
+    }
+
+    const { data: token, db_error: token_error } = db_ops.select_token(user.id);
+
+    if (token_error) {
+        res.auth_error.code = 500;
+        res.auth_error.msg = MSG_UNKNOWN_DB_ERROR('validate', 'token');
+    } else if (!token) {
+        res.auth_error.code = 401;
+        res.auth_error.msg = `Invalid 'password_hash'. It may be expired`;
+    } else if (token.expires_at > new Date().toISOString()) {
+        res.user_id = token.user_id;
+    }
+
+    return res;
 }
 
 

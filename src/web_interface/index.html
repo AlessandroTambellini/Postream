@@ -11,10 +11,6 @@
     <link rel='stylesheet' href='./_universal.css'>
     
     <style>
-        #posts-container:empty:after {
-            content: 'There aren\'t posts yet.';
-        }
-
         #posts-container > * {
             margin-inline: auto;
         }
@@ -42,8 +38,9 @@
     </script>
 
     <main>
-        <!-- It's necessary for this div to not have empty spaces inside because of #posts-container:empty CSS property. -->
-        <div id="posts-container" class="cards-container">{{ post-cards }}</div>   
+        <div id="posts-container" class="cards-container">
+            {{ post-cards }}
+        </div>   
 
         <nav id="filter-posts-nav">
             <form id="load-page-form">
@@ -70,7 +67,7 @@
             show_feedback_card, 
             hide_feedback_card, 
             prettify_date, 
-            construct_err_msg 
+            construct_err_msg,
         } from './_universal.js';
 
         const posts_container = document.querySelector('#posts-container');
@@ -114,15 +111,18 @@
                     posts_container.appendChild(post_card);
                 }
             });
-
-            if (new_posts_displayed < PAGE_SIZE && page < last_page)
-            {
-                show_feedback_card(feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} posts, ` +
-                    `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
-                    'retrieved instead. Either this page was already loaded or new posts where created in the meanwhile.');
-            } else if (!new_posts_displayed) {
-                show_feedback_card(feedback_card, 'info', 'There aren\'t other posts to show');
-            }
+            
+            if (!new_posts_displayed) {
+                show_feedback_card(feedback_card, 'info', 'All the posts of this page already loaded');
+            } 
+            // if (new_posts_displayed < PAGE_SIZE)
+            // {
+            //     else if (page < last_page) {
+            //         // show_feedback_card(feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} posts, ` +
+            //         //     `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
+            //         //     'retrieved instead. Either this page was already loaded or new posts where created in the meanwhile.');
+            //     }
+            // } 
         });
     </script>
 </body>

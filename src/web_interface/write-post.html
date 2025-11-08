@@ -75,13 +75,12 @@
 
             const path = write_post_form.attributes.action.value;
             const method = write_post_form.attributes.method.value;
-            
             const content = sanitize_input(textarea.value);
             
             const { req_error } = await req(path, method, null, { content });
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'post', 'send'));
+                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error, 'post', 'send'));
             } else {
                 show_feedback_card(feedback_card, 'success', 'Post created successfully');
             }

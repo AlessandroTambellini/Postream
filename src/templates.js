@@ -132,6 +132,27 @@ DOMElements['.profile-picture'] = function(max_num_of_circles, picture_size)
     return `<span class="profile-picture" role="img">${circles.join('')}</span>`;
 };
 
+DOMElements['#load-page-form'] = function(last_page)
+{
+    const load_page_form = `
+        <form id="load-page-form">
+            <input name="load-page-input" type="number" min="1" max='${last_page}' value="${last_page}">
+            <div class="card feedback-card display-none">
+                <span role='img' alt='feedback icon'></span>
+                <p>
+                    <span class='type'></span>
+                    <span class='msg'></span>
+                </p>
+                <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
+            </div>
+
+            <button class="secondary-btn" type="submit" aria-label="load a posts page">Load</button>
+        </form>
+    `;
+
+    return load_page_form;
+}
+
 DOMElements['#side-panel'] = function(user_id, page = '')
 {
     let menu_entries = user_id ?

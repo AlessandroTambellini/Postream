@@ -2,21 +2,232 @@ import * as path from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 import { unlink } from 'node:fs/promises';
 import * as repl from 'node:repl';
-import Database from 'better-sqlite3';
 import { loadEnvFile } from 'node:process';
+import Database from 'better-sqlite3';
 
 import { log_error } from './utils.js';
 import { generate_password, hash_password } from "./utils.js";
 
 const DB_DIR = path.join(import.meta.dirname, '..', 'data');
 const DB_PATH = path.join(DB_DIR, 'postream.db');
+const db_ops = {};
+const PAGE_SIZE = 20;
+const queries = {};
 
 if (!existsSync(DB_DIR)) {
     mkdirSync(DB_DIR, { recursive: true });
 }
 
 let db = new Database(DB_PATH);
-const queries = {};
+
+
+/*
+ *
+ *  DB Operations
+ */
+
+db_ops.insert_user = (password_hash) => (
+    insert_data('insert_user', password_hash)
+);
+
+db_ops.insert_token = (user_id) => (
+    insert_data('insert_token', user_id, get_token_expiration())
+);
+
+db_ops.insert_post = (user_id, content) => (
+    insert_data('insert_post', user_id, content, new Date().toISOString())
+);
+
+db_ops.insert_reply = (post_id, content) => (
+    insert_data('insert_reply', post_id, content, new Date().toISOString())
+);
+
+db_ops.insert_notification = (user_id, post_id, first_new_reply_id) => (
+    insert_data('insert_notification', user_id, post_id, first_new_reply_id, new Date().toISOString(), 1)
+);
+
+db_ops.select_token = (user_id) => (
+    select_data('select_token', user_id)
+);
+
+db_ops.select_user = (password_hash) => (
+    select_data('select_user', password_hash)
+);
+
+db_ops.select_post = (id) => (
+    select_data('select_post', id)
+);
+
+db_ops.select_notification = (post_id) => (
+    select_data('select_notification', post_id)
+);
+
+db_ops.count_posts = () => (
+    count_data('count_posts')
+);
+
+db_ops.count_user_posts = (user_id) => (
+    count_data('count_user_posts', user_id)
+);
+
+db_ops.count_user_notifications = (user_id) => (
+    count_data('count_user_notifications', user_id)
+);
+
+db_ops.count_post_replies = (post_id) => (
+    count_data('count_post_replies', post_id)
+);
+
+db_ops.select_posts_page = (page = 1) => (
+    select_data_page('select_posts_page', page)
+);
+
+db_ops.select_user_posts_page = (user_id, page = 1) => (
+    select_data_page('select_user_posts_page', page, user_id)
+);
+
+db_ops.select_user_notifications_page = (user_id, page = 1) => (
+    select_data_page('select_user_notifications_page', user_id, page)
+);
+
+db_ops.select_post_replies_page = (post_id, page = 1) => (
+    select_data_page('select_post_replies_page', post_id, page)
+);
+
+db_ops.select_user_posts_match = (user_id, search_term) => (
+    select_data_match('select_user_posts_match', user_id, search_term)
+);
+
+db_ops.select_user_notifications_match = (user_id, search_term) => (
+    select_data_match('select_user_notifications_match', user_id, search_term)
+);
+
+db_ops.update_token = (user_id) => (
+    update_data('update_token', 'run', get_token_expiration(), user_id)
+);
+
+db_ops.update_notification = (post_id) => (
+    update_data('update_notification', post_id)
+);
+
+db_ops.delete_post = (post_id, user_id) => (
+    delete_data('delete_post', post_id, user_id)
+);
+
+db_ops.delete_user = (user_id) => (
+    delete_data('delete_user', user_id)
+);
+
+db_ops.delete_notification = (notification_id, user_id) => (
+    delete_data('delete_notification', notification_id, user_id)
+);
+
+function get_token_expiration()
+{
+    let expires_at = new Date();
+    expires_at.setHours(expires_at.getHours() + 24*7);
+    expires_at = expires_at.toISOString();
+    return expires_at;
+}
+
+function insert_data(query, ...args)
+{
+    const { 
+        data, 
+        query_error 
+    } = exec_query(query, 'run', ...args);
+
+    return query_error ? null : data.lastInsertRowid;
+}
+
+function select_data(query, ...args)
+{
+    const {
+        data,
+        query_error,
+    } = exec_query(query, 'get', ...args);
+
+    return { 
+        data, 
+        db_error: query_error 
+    };
+}
+
+function update_data(query, ...args)
+{
+    const {
+        data,
+        query_error,
+    } = exec_query(query, 'run', ...args);
+   
+    return {
+        is_data_updated: data?.changes > 0,
+        db_error: query_error,
+    };
+}
+
+function delete_data(query, ...args) 
+{
+    const {
+        data,
+        query_error,
+    } = exec_query(query, 'run', ...args);
+
+    return {
+        is_data_deleted: data?.changes > 0,
+        db_error: query_error,
+    };
+}
+
+function count_data(query, ...args) 
+{
+    const { data, db_error } = select_data(query, ...args);
+
+    return {
+        count: data?.count,
+        db_error,
+    };
+}
+
+function select_data_page(query, page, ...args)
+{
+    const {
+        data,
+        query_error,
+    } = exec_query(query, 'all', ...args, (page-1) * PAGE_SIZE);
+
+    return { 
+        data,
+        db_error: query_error,
+    };
+}
+
+function select_data_match(query, ...args)
+{
+    const {
+        data,
+        query_error,
+    } = exec_query(query, 'all', ...args);
+
+    return { 
+        data, 
+        db_error: query_error 
+    };
+}
+
+function exec_query(query, action, ...args)
+{
+    let data = null, query_error = false;
+    
+    try {
+        data = queries[query][action](...args);
+    } catch (error) {
+        query_error = true;
+        log_error(error);
+    }
+
+    return { data, query_error };
+}
 
 function init_db()
 {
@@ -117,10 +328,11 @@ function init_db()
     queries.update_notification = db.prepare('UPDATE notifications SET num_of_replies = num_of_replies + 1 WHERE post_id = ?');
     queries.delete_notification = db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?');
     
-    queries.select_posts_count = db.prepare('SELECT COUNT(*) as count FROM posts');
-    queries.select_user_posts_count = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ?');
-    queries.select_user_notifications_count = db.prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = ?');
-    
+    queries.count_posts = db.prepare('SELECT COUNT(*) as count FROM posts');
+    queries.count_user_posts = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ?');
+    queries.count_user_notifications = db.prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = ?');
+    queries.count_post_replies = db.prepare('SELECT COUNT(*) as count FROM replies WHERE post_id = ?');
+
     queries.select_posts_page = db.prepare(`
         SELECT * FROM posts 
         ORDER BY created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
@@ -136,13 +348,21 @@ function init_db()
         WHERE n.user_id = ? 
         ORDER BY n.created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
     `);
-
-    queries.select_user_matching_posts = db.prepare(`
-        SELECT p.* FROM posts p
-        JOIN posts_fts ON p.id = posts_fts.rowid 
-        WHERE posts_fts MATCH ? AND p.user_id = ?
+    queries.select_post_replies_page = db.prepare(`
+        SELECT * FROM replies
+        WHERE post_id = ?
+        ORDER BY created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
     `);
-    queries.select_user_matching_notifications = db.prepare(`
+
+    queries.select_user_posts_match = db.prepare(`
+        SELECT p.* FROM posts p
+        WHERE p.user_id = ? AND LOWER(p.content) LIKE '%' || ? || '%'
+    `);
+        // SELECT p.* FROM posts p
+        // JOIN posts_fts ON p.id = posts_fts.rowid 
+        // WHERE p.user_id = ? AND posts_fts MATCH ?
+
+    queries.select_user_notifications_match = db.prepare(`
         SELECT n.*, posts.content AS post_content FROM notifications n
         JOIN posts ON n.post_id = posts.id
         WHERE n.user_id = ? AND LOWER(posts.content) LIKE '%' || ? || '%'
@@ -154,325 +374,28 @@ function close_db() {
     db.close();
 }
 
-
-/*
- *
- *  DB Operations
- */
-
-const db_ops = {};
-
-/*
-NOTES about db_ops:
-1) db_ops are wrappers around queries.
-They don't perform any type of cheking on the arguments because
-That task is already performed by the handlers before calling these methods
-
-2) I don't think it's useful to report to the user the exact error message in case of a
-database exception because it's not directly correleted with its request.
-Therefore, a 500 status code is returned and a made up message based on the context.
-*/
-
-const TOKEN_DURATION_IN_HOURS = 24 * 7;
-const PAGE_SIZE = 20;
-
-function exec_query(query, action, ...args)
+if (process.argv[1] === import.meta.filename)
 {
-    let data = null, query_error = false;
-    try {
-        data = queries[query][action](...args);
-    } catch (error) {
-        query_error = true;
-        log_error(error);
+    // -s stands for seed
+    if (process.argv.includes('-s'))
+    {
+        repl.start({
+            prompt: 'This operation will erase the existing database and create a new one with the seed data. ' +
+                'Do you want to continue? (y/n) ',
+            eval: async answer => {
+                if (answer.trim().toLowerCase() === 'y') {
+                    await rebuild_db();
+                } else {
+                    console.log('Operation aborted.');
+                }
+                process.exit(0);
+            },
+        });
+    } else {
+        init_db();
+
+        // Usually I do tests here.
     }
-
-    return { data, query_error };
-}
-
-/*
- *  DB Operations - INSERT
- */
-
-db_ops.insert_user = function(password_hash)
-{
-    const { data, query_error } = exec_query('insert_user', 'run', password_hash);
-
-    return query_error ? null : data.lastInsertRowid;
-};
-
-db_ops.insert_token = function(user_id)
-{
-    let expires_at = new Date();
-    expires_at.setHours(expires_at.getHours() + TOKEN_DURATION_IN_HOURS);
-    expires_at = expires_at.toISOString();
-
-    const {
-        data,
-        query_error,
-    } = exec_query('insert_token', 'run', user_id, expires_at);
-
-    return query_error ? null : data.lastInsertRowid;
-};
-
-db_ops.insert_post = function(user_id, content)
-{
-    const {
-        data,
-        query_error,
-    } = exec_query('insert_post', 'run', user_id, content, new Date().toISOString());
-
-    return query_error ? null : data.lastInsertRowid;
-};
-
-db_ops.insert_reply = function(post_id, content)
-{
-    const {
-        data,
-        query_error,
-    } = exec_query('insert_reply', 'run', post_id, content, new Date().toISOString());
-
-    return query_error ? null : data.lastInsertRowid;
-};
-
-db_ops.insert_notification = function(user_id, post_id, first_new_reply_id)
-{
-    const {
-        data,
-        query_error,
-    } = exec_query('insert_notification', 'run', user_id, post_id, first_new_reply_id, new Date().toISOString(), 1);
-
-    return query_error ? null : data.lastInsertRowid;
-};
-
-
-/*
- *  DB Operations - SELECT
- */
-
-db_ops.select_token = function(user_id)
-{
-    const {
-        data: token,
-        query_error: db_error,
-    } = exec_query('select_token', 'get', user_id);
-
-    return { token, db_error };
-};
-
-db_ops.select_user = function(password_hash)
-{
-    const {
-        data: user,
-        query_error: db_error,
-    } = exec_query('select_user', 'get', password_hash);
-
-    return { user, db_error }
-};
-
-db_ops.select_post = function(id)
-{
-    const {
-        data: post,
-        query_error: db_error,
-    } = exec_query('select_post', 'get', id);
-
-    return { post, db_error };
-};
-
-db_ops.select_notification = function(post_id)
-{
-    const {
-        data: notification,
-        query_error: db_error,
-    } = exec_query('select_notification', 'get', post_id);
-
-    return { notification, db_error };
-};
-
-db_ops.select_post_replies = function(post_id)
-{
-    const {
-        data: replies,
-        query_error: db_error,
-    } = exec_query('select_post_replies', 'all', post_id);
-
-    return { replies, db_error };
-};
-
-db_ops.select_posts_page = function(page = 1)
-{
-    const {
-        data: posts,
-        query_error: db_error,
-    } = exec_query('select_posts_page', 'all', (page-1) * PAGE_SIZE);
-
-    return { posts, db_error };
-};
-
-db_ops.select_user_posts_page = function(user_id, page = 1)
-{
-    const {
-        data: posts,
-        query_error: db_error,
-    } = exec_query('select_user_posts_page', 'all', user_id, (page - 1) * PAGE_SIZE);
-
-    return { posts, db_error };
-};
-
-db_ops.select_user_notifications_page = function(user_id, page = 1)
-{
-    const {
-        data: notifications,
-        query_error: db_error,
-    } = exec_query('select_user_notifications_page', 'all', user_id, (page - 1) * PAGE_SIZE);
-
-    return { notifications, db_error };
-};
-
-db_ops.select_posts_count = function()
-{
-    const {
-        data,
-        query_error: db_error,
-    } = exec_query('select_posts_count', 'get');
-
-    return { count: data?.count, db_error };
-};
-
-db_ops.select_user_posts_count = function(user_id)
-{
-    const {
-        data,
-        query_error: db_error,
-    } = exec_query('select_user_posts_count', 'get', user_id);
-
-    return { count: data?.count, db_error };
-};
-
-db_ops.select_user_notifications_count = function(user_id)
-{
-    const {
-        data,
-        query_error: db_error,
-    } = exec_query('select_user_notifications_count', 'get', user_id);
-
-    return { count: data?.count, db_error };
-};
-
-db_ops.select_user_matching_posts = function(user_id, search_term)
-{
-    const {
-        data: posts,
-        query_error: db_error,
-    } = exec_query('select_user_matching_posts', 'all', search_term, user_id);
-
-    return { posts, db_error };
-};
-
-db_ops.select_user_matching_notifications = function(user_id, search_term)
-{
-    const {
-        data: notifications,
-        query_error: db_error,
-    } = exec_query('select_user_matching_notifications', 'all', user_id, search_term);
-
-    return { notifications, db_error };
-};
-
-
-/*
- *  DB Operations - UPDATE
- */
-
-db_ops.update_token = function(user_id)
-{
-    let expires_at = new Date();
-    expires_at.setHours(expires_at.getHours() + TOKEN_DURATION_IN_HOURS);
-    expires_at = expires_at.toISOString();
-
-    const {
-        data,
-        query_error: db_error,
-    } = exec_query('update_token', 'run', expires_at, user_id);
-
-    return {
-        is_token_updated: data?.changes > 0,
-        db_error,
-    };
-};
-
-db_ops.update_notification = function(post_id)
-{
-    const {
-        data,
-        query_error: db_error,
-    } = exec_query('update_notification', 'run', post_id);
-
-    return {
-        is_notification_updated: data?.changes > 0,
-        db_error,
-    };
-};
-
-/*
- *
- *  DB Operations - DELETE
- */
-
-db_ops.delete_post = function(post_id, user_id)
-{
-    const {
-        data,
-        query_error,
-    } = exec_query('delete_post', 'run', post_id, user_id);
-
-    return {
-        is_post_deleted: data?.changes > 0,
-        db_error: query_error,
-    };
-};
-
-db_ops.delete_user = function(user_id)
-{
-    const {
-        data,
-        query_error,
-    } = exec_query('delete_user', 'run', user_id);
-
-    return {
-        is_user_deleted: data?.changes > 0,
-        db_error: query_error,
-    };
-};
-
-db_ops.delete_notification = function(notification_id, user_id)
-{
-    const {
-        data,
-        query_error,
-    } = exec_query('delete_notification', 'run', notification_id, user_id);
-
-    return {
-        is_notification_deleted: data?.changes > 0,
-        db_error: query_error,
-    };
-};
-
-// For the future: import.meta.main
-if (process.argv.includes('--run-seed') || process.argv.includes('-S'))
-{
-    repl.start({
-        prompt: 'This operation will erase the existing database and create a new one with the seed data. ' +
-            'Do you want to continue? (y/n) ',
-        eval: async answer => {
-            if (answer.trim().toLowerCase() === 'y') {
-                await rebuild_db();
-            } else {
-                console.log('Operation aborted.');
-            }
-            process.exit(0);
-        },
-    });
 }
 
 async function rebuild_db()
@@ -514,8 +437,6 @@ async function rebuild_db()
         '\n141.0_ 141.0.2 141.0.3\n140.0_ 140.0.1 140.0.2 140.0.4 140.1.0 140.2.0 140.3.0 140.3.1 140.4.0\n' +
         '139.0_ 139.0.1 139.0.4\n138.0_ 138.0.1 138.0.3 138.0.4\n137.0_';
 
-    // ---------------- //
-
     const users = new Array(3);
 
     console.log('Users:');
@@ -538,9 +459,12 @@ async function rebuild_db()
 
     db_ops.insert_post(users[0], long_post_chunks.join(''));
     db_ops.insert_post(users[0], list);
-
+    
     db_ops.insert_post(users[1], code);
+    db_ops.insert_post(users[1], long_post_chunks.join(''));
     db_ops.insert_post(users[1], firefox_releases);
+
+    // TODO add replies to show the pagination feature also in the replies
 
     console.log('\nDatabase rebuilt successfully ✅');
     console.log('\nThings I suggest to do to fully experience the website:');

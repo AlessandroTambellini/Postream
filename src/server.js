@@ -8,8 +8,8 @@ import { handlers, get_asset } from './handlers.js';
 import { init_db, close_db } from './database.js';
 import { log_error } from './utils.js';
 
-// I want a crash here in case of error. 
-// Don't even start the server.
+// I don't handle a possible error, because if it happens, 
+// I want a crash before starting the server.
 loadEnvFile();
 
 const PORT = env.NODE_ENV === 'production' ? 3001 : 3000;
@@ -17,23 +17,26 @@ const PROTOCOL = env.NODE_ENV === 'production' ? 'https' : 'http';
 const MAX_BUFFER_SIZE = 128 * 1024; // 128KB
 const CERTIFICATES_PATH = path.join(import.meta.dirname, '..');
 
-const server = PROTOCOL === 'https' ?
-    https.createServer({
-        key: readFileSync(join(CERTIFICATES_PATH, 'private-key.pem')),
-        cert: readFileSync(join(CERTIFICATES_PATH, 'certificate.pem')),
-    }) : http.createServer();
+if (process.argv[1] === import.meta.filename)
+{
+    const server = PROTOCOL === 'https' ?
+        https.createServer({
+            key: readFileSync(join(CERTIFICATES_PATH, 'private-key.pem')),
+            cert: readFileSync(join(CERTIFICATES_PATH, 'certificate.pem')),
+        }) : http.createServer();
 
-server.on('request', handle_request);
-server.on('listening', () => console.log(`INFO: Server started on ${PROTOCOL}://localhost:${PORT}`));
-server.on('error', handle_server_error);
+    server.on('request', handle_request);
+    server.on('listening', () => console.log(`INFO: Server started on ${PROTOCOL}://localhost:${PORT}`));
+    server.on('error', e => handle_server_error(server, e));
 
-process.on('SIGHUP', shutdown_server);
-process.on('SIGINT', shutdown_server);
-process.on('SIGTERM', shutdown_server);
-
-init_db();
-
-server.listen(PORT);
+    process.on('SIGHUP', sig => shutdown_server(server, sig));
+    process.on('SIGINT', sig => shutdown_server(server, sig));
+    process.on('SIGTERM', sig => shutdown_server(server, sig));
+    
+    init_db();
+    
+    server.listen(PORT);
+}
 
 function handle_request(req, res)
 {
@@ -227,7 +230,7 @@ function convert_obj_to_JSON(obj)
     return { json, obj_error };
 }
 
-function handle_server_error(e)
+function handle_server_error(server, e)
 {
     if (e.code === 'EADDRINUSE') {
         console.error('ERROR: Address in use, retrying.');
@@ -240,13 +243,13 @@ function handle_server_error(e)
     }
 }
 
-function shutdown_server(signal)
+function shutdown_server(server, signal)
 {
     const signals = {
         SIGHUP: 1,
         SIGINT: 2,
         SIGTERM: 15,
-    };
+    };  
 
     console.log(`\nINFO: Shutting down. Signal ${signals[signal]}.`);
     server.close(() => {
