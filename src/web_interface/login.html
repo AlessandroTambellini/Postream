@@ -64,16 +64,16 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, construct_err_msg, hide_feedback_card, show_feedback_card } from "./_universal.js";
+        import { req, FeedbackCard } from "./_universal.js";
 
         const login_form = document.querySelector('form');
-        const feedback_card = login_form.querySelector('.feedback-card');
+        const feedback_card = new FeedbackCard(login_form.querySelector('.feedback-card'));
         const password_input = login_form.querySelector('input[name=password]');
 
         login_form.addEventListener('submit', async e =>
         {
             e.preventDefault();
-            hide_feedback_card(feedback_card);
+            feedback_card.hide();
 
             const path = login_form.attributes.action.value;
             const password = password_input.value;
@@ -99,14 +99,14 @@
             const req_GET = await req(path, 'GET', { password });
 
             if (req_GET.req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_GET.req_error.code, 'password', req_GET.req_error.msg));
+                feedback_card.show('error', req_GET.req_error.interpret('password'));
                 return;
             }
 
             const req_PUT = await req(path, 'PUT', null, { password });
 
             if (req_PUT.req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_PUT.req_error.code, 'password', req_GET.req_error.msg));
+                feedback_card.show('error', req_PUT.req_error.interpret('password'));
                 return;
             }
 

@@ -64,17 +64,15 @@
     <script type="module">
         import { 
             req, 
-            show_feedback_card, 
-            hide_feedback_card, 
             prettify_date, 
-            construct_err_msg,
+            FeedbackCard,
         } from './_universal.js';
 
         const posts_container = document.querySelector('#posts-container');
         const post_cards = posts_container.querySelectorAll('.post-card');
         const load_page_form = document.querySelector('#load-page-form');
         const load_page_input = load_page_form.querySelector('input');
-        const feedback_card = document.querySelector('.feedback-card');
+        const feedback_card = new FeedbackCard(document.querySelector('.feedback-card'));
 
         const PAGE_SIZE = post_cards.length;
         const last_page = Number(load_page_input.max);
@@ -89,14 +87,14 @@
         load_page_form.addEventListener('submit', async e => 
         {
             e.preventDefault();
-            hide_feedback_card(feedback_card);
+            feedback_card.hide();
 
             const page = last_page - Number(load_page_input.value) + 1;
 
             const { payload: posts, req_error } = await req('api/posts/page', 'GET', { page, format: 'html' });
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
+                feedback_card.show('error', req_error.interpret('page', 'retrieve'));
                 return;
             }
 
@@ -113,7 +111,7 @@
             });
             
             if (!new_posts_displayed) {
-                show_feedback_card(feedback_card, 'info', 'All the posts of this page already loaded');
+                feedback_card.show('info', 'All the posts of this page already loaded');
             } 
             // if (new_posts_displayed < PAGE_SIZE)
             // {

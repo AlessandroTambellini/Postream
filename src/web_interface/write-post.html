@@ -33,8 +33,8 @@
     
         <form action="api/post" method="POST">
                 
-            <textarea name="post-textarea" placeholder="_"></textarea> 
-            <!-- rows="20" -->
+            <textarea name="post-textarea" placeholder="_">
+            </textarea> 
             
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
@@ -56,22 +56,20 @@
     <script type="module">
         import { 
             req, 
-            show_feedback_card, 
-            hide_feedback_card, 
-            construct_err_msg, 
             sanitize_input,
+            FeedbackCard,
         } from './_universal.js';
 
         const write_post_form = document.querySelector('form');
         const textarea = write_post_form.querySelector('textarea');
         const submit_btn = write_post_form.querySelector('button[type=submit]');
-        const feedback_card = write_post_form.querySelector('.feedback-card');
+        const feedback_card = new FeedbackCard(write_post_form.querySelector('.feedback-card'));
 
         write_post_form.addEventListener('submit', async e => 
         {
             e.preventDefault();
             submit_btn.disabled = true;
-            hide_feedback_card(feedback_card);
+            feedback_card.hide();
 
             const path = write_post_form.attributes.action.value;
             const method = write_post_form.attributes.method.value;
@@ -80,9 +78,9 @@
             const { req_error } = await req(path, method, null, { content });
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error, 'post', 'send'));
+                feedback_card.show('error', req_error.interpret('post', 'send'));
             } else {
-                show_feedback_card(feedback_card, 'success', 'Post created successfully');
+                feedback_card.show('success', 'Post created successfully');
             }
 
             submit_btn.disabled = false;

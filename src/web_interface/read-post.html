@@ -53,7 +53,19 @@
             });
         </script>
 
-        {{ load-page-form }}
+        <form id="load-page-form">
+            <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
+            <div class="card feedback-card display-none">
+                <span role='img' alt='feedback icon'></span>
+                <p>
+                    <span class='type'></span>
+                    <span class='msg'></span>
+                </p>
+                <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
+            </div>
+
+            <button class="secondary-btn" type="submit" aria-label="load a posts page">Load</button>
+        </form>
     </main>
 
     {{ #side-panel }}
@@ -61,39 +73,37 @@
     <script type="module">
         import { 
             req, 
-            show_feedback_card, 
-            hide_feedback_card, 
             prettify_date, 
-            construct_err_msg, 
+            FeedbackCard,
         } from './_universal.js';
 
+        const post_card = document.querySelector('.post-card');
         const replies_container = document.querySelector('#replies-container');
         const replies = replies_container.querySelectorAll('.reply-card');
         const load_page_form = document.querySelector('#load-page-form');
-
-        // if (!load_page_form) return;
-
         const load_page_input = load_page_form.querySelector('input');
-        const feedback_card = document.querySelector('.feedback-card');
+        const feedback_card = new FeedbackCard(document.querySelector('.feedback-card'));
 
         const PAGE_SIZE = replies.length;
         const last_page = Number(load_page_input.max);
-        const displayed_posts = new Set();
+        const displayed_replies = new Set();
 
         load_page_form.addEventListener('submit', async e => 
         {
             e.preventDefault();
-            hide_feedback_card(feedback_card);
-
-            const page = last_page - Number(load_page_input.value) + 1;
+            feedback_card.hide();
 
             const { 
                 payload: replies, 
                 req_error 
-            } = await req('api/replies/page', 'GET', { page, format: 'html' });
+            } = await req('api/replies/page', 'GET', { 
+                post_id: post_card.dataset.postId, 
+                page: last_page - Number(load_page_input.value) + 1, 
+                format: 'html' 
+            });
 
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
+                feedback_card.show('error', req_error.interpret('page', 'retrieve'));
                 return;
             }
 
@@ -110,7 +120,7 @@
             });
 
             if (!new_replies_displayed) {
-                show_feedback_card(feedback_card, 'info', 'All the replies of this page already loaded');
+                feedback_card.show('info', 'All the replies of this page already loaded');
             }
         });
     </script>

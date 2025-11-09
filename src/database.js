@@ -87,11 +87,11 @@ db_ops.select_user_posts_page = (user_id, page = 1) => (
 );
 
 db_ops.select_user_notifications_page = (user_id, page = 1) => (
-    select_data_page('select_user_notifications_page', user_id, page)
+    select_data_page('select_user_notifications_page', page, user_id)
 );
 
 db_ops.select_post_replies_page = (post_id, page = 1) => (
-    select_data_page('select_post_replies_page', post_id, page)
+    select_data_page('select_post_replies_page', page, post_id)
 );
 
 db_ops.select_user_posts_match = (user_id, search_term) => (
@@ -276,34 +276,7 @@ function init_db()
         
         -- Usage: retrieve posts in index and profile pages
         CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
-
-        -- Usage: search posts in profile and notifications pages
-        CREATE VIRTUAL TABLE IF NOT EXISTS posts_fts 
-        USING fts5(content, content_rowid UNINDEXED);
-
-        -- Autosync for post INSERT
-        CREATE TRIGGER IF NOT EXISTS posts_ai 
-        AFTER INSERT ON posts 
-        BEGIN
-            INSERT INTO posts_fts(rowid, content) 
-            VALUES (new.id, new.content);
-        END;
-
-        -- Autosync for post DELETE
-        CREATE TRIGGER IF NOT EXISTS posts_ad 
-        AFTER DELETE ON posts 
-        BEGIN
-            DELETE FROM posts_fts WHERE rowid = old.id;
-        END;
     `);
-
-    const count = db.prepare('SELECT COUNT(*) as count FROM posts_fts').get();
-    if (count.count === 0) {
-        db.exec(`
-            INSERT INTO posts_fts(rowid, content) 
-            SELECT id, content FROM posts
-        `);
-    }
 
     queries.insert_user = db.prepare('INSERT INTO users (password_hash) VALUES (?)');
     queries.select_user = db.prepare('SELECT * FROM users WHERE password_hash = ?');
@@ -342,26 +315,22 @@ function init_db()
         WHERE user_id = ? 
         ORDER BY created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
     `);
+    queries.select_post_replies_page = db.prepare(`
+        SELECT * FROM replies
+        WHERE post_id = ?
+        ORDER BY created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
+    `);
     queries.select_user_notifications_page = db.prepare(`
         SELECT n.*, posts.content AS post_content FROM notifications n
         JOIN posts ON n.post_id = posts.id
         WHERE n.user_id = ? 
         ORDER BY n.created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
     `);
-    queries.select_post_replies_page = db.prepare(`
-        SELECT * FROM replies
-        WHERE post_id = ?
-        ORDER BY created_at DESC LIMIT ${PAGE_SIZE} OFFSET ?
-    `);
 
     queries.select_user_posts_match = db.prepare(`
         SELECT p.* FROM posts p
         WHERE p.user_id = ? AND LOWER(p.content) LIKE '%' || ? || '%'
     `);
-        // SELECT p.* FROM posts p
-        // JOIN posts_fts ON p.id = posts_fts.rowid 
-        // WHERE p.user_id = ? AND posts_fts MATCH ?
-
     queries.select_user_notifications_match = db.prepare(`
         SELECT n.*, posts.content AS post_content FROM notifications n
         JOIN posts ON n.post_id = posts.id
@@ -460,11 +429,13 @@ async function rebuild_db()
     db_ops.insert_post(users[0], long_post_chunks.join(''));
     db_ops.insert_post(users[0], list);
     
-    db_ops.insert_post(users[1], code);
+    let post_id = db_ops.insert_post(users[1], code);
     db_ops.insert_post(users[1], long_post_chunks.join(''));
     db_ops.insert_post(users[1], firefox_releases);
 
-    // TODO add replies to show the pagination feature also in the replies
+    for (let i = 0; i < 45; i++) {
+        db_ops.insert_reply(post_id, `console.log('Hello World');`);
+    }
 
     console.log('\nDatabase rebuilt successfully ✅');
     console.log('\nThings I suggest to do to fully experience the website:');

@@ -88,9 +88,7 @@
     <script type="module">
         import { 
             req, 
-            show_feedback_card, 
-            hide_feedback_card, 
-            construct_err_msg, 
+            FeedbackCard,
         } from './_universal.js';
 
         const notifications_container = document.querySelector('#notifications-container');
@@ -100,8 +98,8 @@
         const search_notification_form = document.querySelector('#search-notification-form');
         const search_notification_input = search_notification_form.querySelector('input');
         
-        const load_page_feedback_card = load_page_form.querySelector('.feedback-card');
-        const search_notification_feedback_card = search_notification_form.querySelector('.feedback-card');
+        const load_page_feedback_card = new FeedbackCard(load_page_form.querySelector('.feedback-card'));
+        const search_notification_feedback_card = new FeedbackCard(search_notification_form.querySelector('.feedback-card'));
 
         const PAGE_SIZE = notification_cards.length;
         const displayed_notifications = new Set();
@@ -116,7 +114,7 @@
         load_page_form.addEventListener('submit', async e =>
         {
             e.preventDefault();
-            hide_feedback_card(load_page_feedback_card);
+            load_page_feedback_card.hide();
 
             const page = last_page - Number(load_page_input.value) + 1;
 
@@ -126,7 +124,7 @@
             } = await req('api/notifications/user/page', 'GET', { page, format: 'html' });
 
             if (req_error) {
-                show_feedback_card(load_page_feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
+                load_page_feedback_card.show('error', req_error.interpret('page', 'retrieve'));
                 return;
             }
 
@@ -148,20 +146,15 @@
                 }
             });
 
-            if (new_notifications_displayed < PAGE_SIZE && page < last_page)
-            {
-                show_feedback_card(fload_page_feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} notifications, ` +
-                    `but ${new_notifications_displayed} notification${new_notifications_displayed === 1 ? ' was' : 's were'} ` +
-                    'retrieved instead. Either this page was already loaded or new notifications where created in the meanwhile.');
-            } else if (new_notifications_displayed === 0) {
-                show_feedback_card(load_page_feedback_card, 'info', 'There aren\'t other notifications to show');
+            if (!new_notifications_displayed) {
+                load_page_feedback_card.show('info', 'All the notifications of this page already loaded');
             }
         });
 
         search_notification_form.addEventListener('submit', async e =>
         {
             e.preventDefault();
-            hide_feedback_card(search_notification_feedback_card);
+            search_notification_feedback_card.hide();
 
             const { 
                 payload: notifications, 
@@ -172,7 +165,7 @@
             });
 
             if (req_error) {
-                show_feedback_card(search_notification_feedback_card, 'error', req_error.msg);
+                search_notification_feedback_card.show('error', req_error.msg);
             } else {
                 last_action_is_search = true;
                 notifications_container.replaceChildren();
@@ -183,7 +176,7 @@
                 });
 
                 if (notifications.length === 0) {
-                    show_feedback_card(search_notification_feedback_card, 'info', 'There aren\'t notifications matching the search parameters');
+                    search_notification_feedback_card.show('info', 'There aren\'t notifications matching the search parameters');
                 }
             }
         });
@@ -192,18 +185,18 @@
         {
             form.addEventListener('submit', async e =>
             {
-                const feedback_card = form.querySelector('.feedback-card');
+                const feedback_card = new FeedbackCard(form.querySelector('.feedback-card'));
                 const btn = form.querySelector('button[type=submit]');
                 
                 e.preventDefault();
                 btn.disabled = true;
-                hide_feedback_card(feedback_card);
+                feedback_card.hide();
 
                 const notification_id = form.dataset.notificationId;
                 const { req_error } = await req('api/user/notifications', 'DELETE', { id: notification_id });
 
                 if (req_error) {
-                    show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'notification', 'delete'));
+                    feedback_card.show('error', req_error.interpret('notification', 'delete'));
                     btn.disabled = false;
                 }
                 else {

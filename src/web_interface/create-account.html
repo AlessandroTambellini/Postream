@@ -11,13 +11,21 @@
     <link rel='stylesheet' href='./_universal.css'>
             
     <style>
+        :root {
+            --password-bkg: #fff9f9;
+        }
+        
+        :root.moon-mode {
+            --password-bkg: #000606;
+        }
+
         form {
             padding-block: 1em;
         }
 
         div:has(#password) {
             position: relative;
-            background-color: var(--clr-e8);
+            background-color: var(--password-bkg);
             border: 2px solid rosybrown;
             border-radius: 8px;
             width: fit-content;
@@ -116,31 +124,26 @@
     <script type="module">
         import { 
             req, 
-            show_feedback_card, 
-            hide_feedback_card, 
-            construct_err_msg, 
+            FeedbackCard,
         } from './_universal.js';
 
-        // if you are already logged in, ou are switched to the newly created account
+        // It is possible to create an account while logged-in.
 
         const create_account_form = document.querySelector('form');
-        const feedback_card = create_account_form.querySelector('.feedback-card');
+        const feedback_card = new FeedbackCard(create_account_form.querySelector('.feedback-card'));
         const password_container = document.querySelector('div:has(#password)');
         const password_p = document.querySelector('#password');
         const copy_password_btn = password_container.querySelector('button');
 
-        create_account_form.addEventListener('submit', handle_registration);
-        copy_password_btn.addEventListener('click', copy_password);
-
-        async function handle_registration(e) 
+        create_account_form.addEventListener('submit', async e => 
         {
             e.preventDefault();
-            hide_feedback_card(feedback_card);
+            feedback_card.hide();
             
             const { payload, req_error } = await req('api/user', 'POST');
             
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code));
+                feedback_card.show('error', req_error.interpret());
             } else {
                 password_p.textContent = payload.password;
                 // Once a registration happens, 
@@ -148,10 +151,10 @@
                 document.cookie = 'password_hash=';
                 password_container.classList.replace('display-none', 'display-block');
             }
-        }
+        });
 
         let timeout_id = -1;
-        function copy_password() 
+        copy_password_btn.addEventListener('click', () => 
         {
             clearTimeout(timeout_id);
             navigator.clipboard.writeText(password_p.textContent);
@@ -163,7 +166,7 @@
                 copy_password_btn.classList.replace('btn-clicked', 'btn-unclicked');
                 copy_password_btn.textContent = 'Copy';
             }, 3000);
-        }
+        });     
     </script>
 </body>
 </html>

@@ -168,10 +168,8 @@
     <script type="module">
         import { 
             req,
-            hide_feedback_card,
-            show_feedback_card,
             prettify_date,
-            construct_err_msg 
+            FeedbackCard,
         } from './_universal.js';
 
         const posts_container = document.querySelector('#posts-container');
@@ -185,10 +183,8 @@
         const delete_post_dialog = document.querySelector('#delete-post-dialog');
         const close_dialog_btn = delete_post_dialog.querySelector('.close-btn');
         const delete_post_btn = delete_post_dialog.querySelector('button[type=submit]');
-
-        const load_page_feedback_card = document.querySelector('#load-page-form .feedback-card');
-        const search_post_feedback_card = document.querySelector('#search-post-form .feedback-card');
-        const delete_post_feedback_card = document.querySelector('#delete-post-dialog .feedback-card');
+        const search_post_feedback_card = new FeedbackCard(search_post_form.querySelector('.feedback-card'));
+        const delete_post_feedback_card = new FeedbackCard(delete_post_dialog.querySelector('.feedback-card'));
 
         const PAGE_SIZE = post_cards.length;
         const displayed_posts = new Set();
@@ -210,7 +206,7 @@
         inside the dialog itself, but it's a bit of an hack and not really precise. */
         close_dialog_btn.addEventListener("click", () => {
             delete_post_dialog.close();
-            hide_feedback_card(delete_post_feedback_card);
+            delete_post_feedback.hide();
         });
 
         delete_post_btn.addEventListener('click', async e =>
@@ -223,7 +219,7 @@
             const { req_error } = await req('api/post', 'DELETE', { id: post_id });
 
             if (req_error) {
-                show_feedback_card(delete_post_feedback_card, 'error', construct_err_msg(req_error.code, 'post', 'delete', req_error.msg));
+                delete_post_feedback_card.show('error', req_error.interpret('post', 'delete'));
             } else {
                 delete_post_dialog.close();
                 const post_card = document.querySelector(`#post-card-${post_id}`);
@@ -234,7 +230,7 @@
         load_page_form.addEventListener('submit', async e =>
         {
             e.preventDefault();
-            hide_feedback_card(load_page_feedback_card);
+            load_page_feedback_card.hide();
 
             const page = last_page - Number(load_page_input.value) + 1;
 
@@ -244,7 +240,7 @@
             } = await req('api/posts/user/page', 'GET', { page, format: 'html' });
 
             if (req_error) {
-                show_feedback_card(load_page_feedback_card, 'error', construct_err_msg(req_error.code, 'page', 'retrieve', req_error.msg));
+                load_page_feedback_card.show('error', req_error.interpret('page', 'retrieve'));
                 return;
             }
 
@@ -267,21 +263,15 @@
                 }
             });
 
-            if (new_posts_displayed < PAGE_SIZE && page < last_page) {
-                const msg = `Expected to retrieve ${PAGE_SIZE} posts, ` +
-                    `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
-                    'retrieved instead. Either this page was already loaded or some post was created/deleted in the meanwhile.';
-                show_feedback_card(load_page_feedback_card, 'info', msg);
-            } else if (new_posts_displayed === 0) {
-                show_feedback_card(load_page_feedback_card, 'info', 'There aren\'t other posts to show');
+            if (!new_posts_displayed) {
+                load_page_feedback_card.show('info', 'All the posts of this page already loaded');
             }
-
         });
 
         search_post_form.addEventListener('submit', async e =>
         {
             e.preventDefault();
-            hide_feedback_card(search_post_feedback_card);
+            search_post_feedback_card.hide();
 
             const { payload: posts, req_error } = await req('api/posts/user/search', 'GET', { 
                 search_term: search_post_input.value,
@@ -289,7 +279,7 @@
             });
 
             if (req_error) {
-                show_feedback_card(search_post_feedback_card, 'error', req_error.msg);
+                search_post_feedback_card.show('error', req_error.msg);
             } else {
                 last_action_is_search = true;
                 posts_container.replaceChildren();
@@ -302,7 +292,7 @@
                 });
 
                 if (posts.length === 0) {
-                    show_feedback_card(search_post_feedback_card, 'info', 'There aren\'t posts matching the search parameters');
+                    search_post_feedback_card.show('info', 'There aren\'t posts matching the search parameters');
                 }
             }
         });

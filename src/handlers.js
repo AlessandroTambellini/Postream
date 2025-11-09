@@ -52,6 +52,7 @@ const handlers = {};
     '/api/post',
     '/api/reply',
     '/api/posts/page',
+    '/api/replies/page',
     '/api/user/notifications',
     '/api/posts/user/page',
     '/api/notifications/user/page',
@@ -125,7 +126,7 @@ handlers['/profile'].GET = async function(req_data, res_data)
     }
 
     const { count, db_error } = db_ops.count_user_posts(user_id);
-    const pages = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
+    const last_page = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
 
     const { data: posts, db_error: posts_error } = db_ops.select_user_posts_page(user_id);    
 
@@ -138,7 +139,7 @@ handlers['/profile'].GET = async function(req_data, res_data)
     const res = page
         .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
         .replace('{{ post-cards }}', post_cards)
-        .replaceAll('{{ last-page }}', pages)
+        .replaceAll('{{ last-page }}', last_page)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'profile'))
     ;
 
@@ -280,9 +281,16 @@ handlers['/write-reply'].GET = async function(req_data, res_data)
         return;
     }
 
+    const { user_id, auth_error } = auth_user(req_data.cookies);
+
+    if (auth_error.code === 500) {
+        res_data.page(500, fallback_page(500));
+        return;
+    }
+
     const res = page
         .replace('{{ .post-card }}', DOMElements['.post-card'](post))
-        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'write-reply'))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'write-reply'))
     ;
 
     res_data.page(200, res);
@@ -324,17 +332,13 @@ handlers['/read-post'].GET = async function(req_data, res_data)
         return;
     }
 
-    let reply_cards;
-    let load_page_form = '';
+    let reply_cards = '';
+    let last_page;
     if (post.user_id === user_id)
     {
-        const { count, db_error } = db_ops.count_post_replies();
-
-        // I ignore the db_error
-        if (count) {
-            load_page_form = DOMElements['#load-page-form'](Math.ceil(count/PAGE_SIZE));
-        }
-
+        const { count, db_error } = db_ops.count_post_replies(post_id);
+        last_page = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
+        
         const { 
             data: replies, 
             db_error: replies_error 
@@ -352,7 +356,7 @@ handlers['/read-post'].GET = async function(req_data, res_data)
     const res = page
         .replace('{{ .post-card }}', DOMElements['.post-card'](post, user_id && post.user_id !== user_id ? 2 : 0))
         .replace('{{ replies }}', reply_cards)
-        .replace('{{ load-page-form }}', load_page_form)
+        .replaceAll('{{ last-page }}', last_page)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'read-post'))
     ;
 
@@ -668,7 +672,7 @@ handlers['/api/post'].POST = function(req_data, res_data)
 
     const { content } = req_data.payload;
 
-    if (!content) {
+    if (!content || typeof content !== 'string') {
         res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
         return;
     }
@@ -676,7 +680,6 @@ handlers['/api/post'].POST = function(req_data, res_data)
     const post_id = db_ops.insert_post(user_id, content);
 
     if (!post_id) {
-        // TODO not necessarily is a 500. it may be due to 'typeof content !== 'string''
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'post'))
     } else {
         res_data.success(200, { post_id });
@@ -722,6 +725,11 @@ handlers['/api/reply'].POST = function(req_data, res_data)
         res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('post_id'));
         return;
     }
+    
+    if (!content || typeof content !== 'string') {
+        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
+        return;
+    }
 
     const { data: post, db_error } = db_ops.select_post(post_id);
 
@@ -738,15 +746,16 @@ handlers['/api/reply'].POST = function(req_data, res_data)
     const reply_id = db_ops.insert_reply(post_id, content);
 
     if (!reply_id) {
-        // TODO not necessarily is a 500. 
-        // it may be due to 'typeof content !== 'string'' ==> 400
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'reply'));
         return;
     }
 
-    const { notification, db_error: notif_db_error } = db_ops.select_notification(post_id);
+    const { 
+        notification, 
+        db_error: notification_error 
+    } = db_ops.select_notification(post_id);
 
-    if (notif_db_error) {
+    if (notification_error) {
         res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'notification'));
         return;
     }
@@ -845,6 +854,51 @@ handlers['/api/posts/page'].GET = function(req_data, res_data)
             res_data.success(200, post_cards);
         } else {
             res_data.success(200, posts);
+        }
+    }
+};
+
+handlers['/api/replies/page'].GET = function(req_data, res_data)
+{
+    const { user_id, auth_error } = auth_user(req_data.cookies);
+
+    if (!user_id) {
+        res_data.error(auth_error.code, auth_error.msg);
+        return;
+    } 
+
+    const post_id = parseInt(req_data.search_params.get('post_id'));
+    const page = parseInt(req_data.search_params.get('page'));
+    const format = req_data.search_params.get('format') || 'js';
+
+    if (!post_id) {
+        res_data.error(400, MSG_INVALID_SEARCH_PARAM('post_id'));
+        return;
+    }
+
+    if (!page) {
+        res_data.error(400, MSG_INVALID_SEARCH_PARAM('page'));
+        return;
+    }
+
+    if (!['js', 'html'].includes(format)) {
+        res_data.error(400, `Invalid format option. Got '${format}'. Valid options are: js, html`);
+        return;
+    }
+
+    const { data: replies, db_error } = db_ops.select_post_replies_page(post_id, page);
+
+    if (db_error) {
+        res_data.error(500, MSG_UNKNOWN_DB_ERROR('retrieve', 'replies'));
+    } else {
+        if (format === 'html') {
+            const reply_cards = replies.map(reply => ({ 
+                id: reply.id, 
+                card: DOMElements['.reply-card'](reply, 1, true)
+            }));
+            res_data.success(200, reply_cards);
+        } else {
+            res_data.success(200, replies);
         }
     }
 };

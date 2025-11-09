@@ -68,22 +68,20 @@
     <script type="module">
         import { 
             req, 
-            show_feedback_card, 
-            hide_feedback_card, 
-            construct_err_msg, 
             sanitize_input,
+            FeedbackCard,
         } from './_universal.js';
 
         const write_reply_form = document.querySelector('form');
         const textarea = write_reply_form.querySelector('textarea');
         const submit_btn = write_reply_form.querySelector('button[type=submit]');
-        const feedback_card = write_reply_form.querySelector('.feedback-card');
+        const feedback_card = new FeedbackCard(write_reply_form.querySelector('.feedback-card'));
 
         write_reply_form.addEventListener('submit', async e => 
         {
             e.preventDefault();
             submit_btn.disabled = true;
-            hide_feedback_card(feedback_card);
+            feedback_card.hide();
 
             const path = write_reply_form.attributes.action.value;
             const method = write_reply_form.attributes.method.value;
@@ -91,12 +89,12 @@
             const post_id = document.querySelector('.post-card').dataset.postId;
             const content = sanitize_input(textarea.value);
 
-            const { req_error } = await req(path, method, null, { post_id, content });
-
+            const { payload, req_error } = await req(path, method, null, { post_id, content });
+            
             if (req_error) {
-                show_feedback_card(feedback_card, 'error', construct_err_msg(req_error.code, 'reply', 'send'));
+                feedback_card.show('error', req_error.interpret('reply', 'send'));
             } else {
-                show_feedback_card(feedback_card, 'success', 'Reply created successfully');
+                feedback_card.show('success', 'Reply created successfully');
             }
 
             submit_btn.disabled = false;

@@ -447,7 +447,8 @@ li[itemprop=delete-account]::before {
 /* I created these states because sometimes in JS you may write e.g. 'div.style.display = "flex"',
 but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
 that has higher priority compared to the CSS classes.
-And so, sometimes elements are shown/hidden unexpectedly because of the usage different specificities (especially in a big codebase).
+And so, sometimes elements are shown/hidden unexpectedly because of the usage different specificities 
+(especially in a big codebase).
 Therefore, I tend to be cautious in doing inline styling . */
 
 .display-block {
