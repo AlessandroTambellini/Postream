@@ -40,12 +40,6 @@ moon_mode_btn.addEventListener('click', () =>
     localStorage.setItem("light-mode", "moon-mode");
 });
 
-// document.querySelectorAll('.feedback-card').forEach(feedback_card => {
-//     feedback_card.querySelector('.close-btn').addEventListener('click', () => {
-//         hide_feedback_card(feedback_card);
-//     });
-// })
-
 
 /*
  *
@@ -153,7 +147,9 @@ function sanitize_input(input) {
 class FeedbackCard {
     constructor(element) {
         this.element = element;
-        this.element.querySelector('.close-btn').addEventListener('click', this.hide);
+        this.element.querySelector('.close-btn').addEventListener('click', () => {
+            this.hide();
+        });
     }
 
     show(type, msg) 

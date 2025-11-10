@@ -54,7 +54,7 @@ DOMElements['.reply-card'] = function(reply)
     const { id, content, created_at } = reply;
 
     return (
-        `<article id='reply-${id}' class='card reply-card'>` +
+        `<article id='reply-${id}' data-reply-id=${id} class='card reply-card'>` +
             `<p>${content}</p>` +
             `<time datetime="${created_at}"></time>` +
         `</article>`

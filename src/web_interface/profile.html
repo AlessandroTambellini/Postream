@@ -183,6 +183,8 @@
         const delete_post_dialog = document.querySelector('#delete-post-dialog');
         const close_dialog_btn = delete_post_dialog.querySelector('.close-btn');
         const delete_post_btn = delete_post_dialog.querySelector('button[type=submit]');
+
+        const load_page_feedback_card = new FeedbackCard(load_page_form.querySelector('.feedback-card'));
         const search_post_feedback_card = new FeedbackCard(search_post_form.querySelector('.feedback-card'));
         const delete_post_feedback_card = new FeedbackCard(delete_post_dialog.querySelector('.feedback-card'));
 
@@ -205,15 +207,13 @@
         The only option would be to let the elements inside the dialog fill all the space available
         inside the dialog itself, but it's a bit of an hack and not really precise. */
         close_dialog_btn.addEventListener("click", () => {
+            delete_post_feedback_card.hide();
             delete_post_dialog.close();
-            delete_post_feedback.hide();
         });
 
         delete_post_btn.addEventListener('click', async e =>
         {
-            e.preventDefault();
-            // TODO is e.preventDefault(); useful? 
-            // and shouldn't hide_feedback_card()?
+            delete_post_feedback_card.hide();
 
             const post_id = delete_post_dialog.returnValue;
             const { req_error } = await req('api/post', 'DELETE', { id: post_id });

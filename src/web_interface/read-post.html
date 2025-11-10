@@ -79,14 +79,18 @@
 
         const post_card = document.querySelector('.post-card');
         const replies_container = document.querySelector('#replies-container');
-        const replies = replies_container.querySelectorAll('.reply-card');
+        const reply_cards = replies_container.querySelectorAll('.reply-card');
         const load_page_form = document.querySelector('#load-page-form');
         const load_page_input = load_page_form.querySelector('input');
         const feedback_card = new FeedbackCard(document.querySelector('.feedback-card'));
 
-        const PAGE_SIZE = replies.length;
+        const PAGE_SIZE = reply_cards.length;
         const last_page = Number(load_page_input.max);
         const displayed_replies = new Set();
+
+        reply_cards.forEach(reply => {
+            displayed_replies.add(Number(reply.dataset.replyId));
+        });
 
         load_page_form.addEventListener('submit', async e => 
         {
@@ -99,7 +103,7 @@
             } = await req('api/replies/page', 'GET', { 
                 post_id: post_card.dataset.postId, 
                 page: last_page - Number(load_page_input.value) + 1, 
-                format: 'html' 
+                format: 'html',
             });
 
             if (req_error) {

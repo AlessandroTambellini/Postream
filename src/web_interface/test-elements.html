@@ -91,17 +91,15 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { hide_feedback_card } from './_universal.js';
+        import { FeedbackCard } from './_universal.js';
 
         document.querySelectorAll('main a').forEach(a => {
             a.addEventListener('click', e => e.preventDefault());
         });
 
-        document.querySelectorAll('.feedback-card').forEach(card => {
-            card.querySelector('.close-btn').addEventListener('click', () => {
-                hide_feedback_card(card);
-            });
-        });
+        document.querySelectorAll('.feedback-card').forEach(card => (
+            new FeedbackCard(card)
+        ));
     </script>
 </body>
 </html>
