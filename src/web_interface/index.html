@@ -11,12 +11,15 @@
     <link rel='stylesheet' href='./_universal.css'>
     
     <style>
-        #posts-container > * {
-            margin-inline: auto;
-        }
-
         #posts-container .post-card {
             margin-bottom: .5em;
+        }
+
+        #posts-container hr {
+            width: 10ch;
+            margin-left: 0;
+            margin-block: 1em;
+            border-top: 1px solid var(--clr-b8);
         }
 
         #filter-posts-nav > * {
@@ -76,10 +79,10 @@
 
         const PAGE_SIZE = post_cards.length;
         const last_page = Number(load_page_input.max);
-        const displayed_posts = new Set();
+        const displayed_pages = new Set();
+        displayed_pages.add(last_page);
 
         post_cards.forEach(post => {
-            displayed_posts.add(Number(post.dataset.postId));
             const time = post.querySelector('time');
             time.textContent = prettify_date(time.dateTime);
         });
@@ -88,39 +91,35 @@
         {
             e.preventDefault();
             feedback_card.hide();
+            
+            const input_value = Number(load_page_input.value);
+            if (displayed_pages.has(input_value)) {
+                feedback_card.show('info', `Page ${input_value} already loaded.`);
+                return;
+            }
 
-            const page = last_page - Number(load_page_input.value) + 1;
-
-            const { payload: posts, req_error } = await req('api/posts/page', 'GET', { page, format: 'html' });
+            const { 
+                payload: posts, 
+                req_error,
+            } = await req('api/posts/page', 'GET', { 
+                page: last_page - input_value + 1, 
+                format: 'html',
+            });
 
             if (req_error) {
                 feedback_card.show('error', req_error.interpret('page', 'retrieve'));
                 return;
             }
 
-            let new_posts_displayed = 0;
+            displayed_pages.add(input_value);
+
+            posts_container.appendChild(document.createElement('hr'));
             posts.forEach(post => {
-                if (!displayed_posts.has(post.id)) {
-                    displayed_posts.add(post.id);
-                    new_posts_displayed++;
-                    const post_card = document.createRange().createContextualFragment(post.card);
-                    const time = post_card.querySelector('time');
-                    time.textContent = prettify_date(time.dateTime);
-                    posts_container.appendChild(post_card);
-                }
+                const post_card = document.createRange().createContextualFragment(post.card);
+                const time = post_card.querySelector('time');
+                time.textContent = prettify_date(time.dateTime);
+                posts_container.appendChild(post_card);
             });
-            
-            if (!new_posts_displayed) {
-                feedback_card.show('info', 'All the posts of this page already loaded');
-            } 
-            // if (new_posts_displayed < PAGE_SIZE)
-            // {
-            //     else if (page < last_page) {
-            //         // show_feedback_card(feedback_card, 'info', `Expected to retrieve ${PAGE_SIZE} posts, ` +
-            //         //     `but ${new_posts_displayed} post${new_posts_displayed === 1 ? ' was' : 's were'} ` +
-            //         //     'retrieved instead. Either this page was already loaded or new posts where created in the meanwhile.');
-            //     }
-            // } 
         });
     </script>
 </body>

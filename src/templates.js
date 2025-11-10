@@ -14,13 +14,23 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content
             '<p>',
     ];
 
-    /* ~(Half a page of a book) */
-    const MAX_CHARS_PER_POST_PREVIEW = 55*20;
+    const PAGE_SIZE = 70*40;
 
-    if (cut_post_content && content.length > MAX_CHARS_PER_POST_PREVIEW)
-        post_card.push(content.substring(0, MAX_CHARS_PER_POST_PREVIEW) + `...<a href='/read-post?id=${id}'>Read-Entirely</a>`);
-    else
-        post_card.push(content);
+    if (cut_post_content && content.length > PAGE_SIZE/2) {
+        post_card.push(content.substring(0, PAGE_SIZE/2) + 
+            `...<a href='/read-post?id=${id}'>Read-Entirely</a>`);
+    } else {
+        if (content.length > PAGE_SIZE) {
+            let pages = Math.ceil(content.length/PAGE_SIZE)
+            const post_pages = new Array(pages);
+            for (let i = 0; i < pages; i++) {
+                post_pages[i] = content.substring(i*PAGE_SIZE, i*PAGE_SIZE + PAGE_SIZE) + `<span class='page-label display-block'>${i+1}</span>`
+            }
+            post_card.push(post_pages.join(''));
+        } else {
+            post_card.push(content);
+        }
+    }
 
     post_card.push('</p>');
     post_card.push(`<time datetime="${created_at}"></time>`);

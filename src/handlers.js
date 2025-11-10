@@ -333,7 +333,7 @@ handlers['/read-post'].GET = async function(req_data, res_data)
     }
 
     let reply_cards = '';
-    let last_page;
+    let last_page = 1;
     if (post.user_id === user_id)
     {
         const { count, db_error } = db_ops.count_post_replies(post_id);

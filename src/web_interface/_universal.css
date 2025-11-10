@@ -439,51 +439,6 @@ li[itemprop=delete-account]::before {
     margin-left: 1em;
 }
 
-/*
- *
- *  States
- */
-
-/* I created these states because sometimes in JS you may write e.g. 'div.style.display = "flex"',
-but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
-that has higher priority compared to the CSS classes.
-And so, sometimes elements are shown/hidden unexpectedly because of the usage different specificities 
-(especially in a big codebase).
-Therefore, I tend to be cautious in doing inline styling . */
-
-.display-block {
-    display: block;
-}
-
-.display-flex {
-    display: flex;
-}
-
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-.display-none {
-    display: none;
-}
-
-.display-opaque {
-    opacity: .5;
-    user-select: none;
-}
-.display-opaque a,
-.display-opaque button {
-    pointer-events: none;
-}
-
 
 /*
  *
@@ -853,4 +808,50 @@ form > .feedback-card {
 
     /* So that I refer to top and left by the center */
     transform: translate(-50%, -50%);
+}
+
+
+/*
+ *
+ *  States
+ */
+
+/* I created these states because sometimes in JS you may write e.g. 'div.style.display = "flex"',
+but, by doing so, you embed CSS in the HTML ==> '<div style="display: flex"></div>',
+that has higher priority compared to the CSS classes.
+And so, sometimes elements are shown/hidden unexpectedly because of the usage different specificities 
+(especially in a big codebase).
+Therefore, I tend to be cautious in doing inline styling . */
+
+.display-block {
+    display: block;
+}
+
+.display-flex {
+    display: flex;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.display-none {
+    display: none;
+}
+
+.display-opaque {
+    opacity: .5;
+    user-select: none;
+}
+.display-opaque a,
+.display-opaque button {
+    pointer-events: none;
 }

@@ -298,7 +298,11 @@ function init_db()
         VALUES (?, ?, ?, ?, ?)
     `);
     queries.select_notification = db.prepare('SELECT * FROM notifications WHERE post_id = ?');
-    queries.update_notification = db.prepare('UPDATE notifications SET num_of_replies = num_of_replies + 1 WHERE post_id = ?');
+    queries.update_notification = db.prepare(`
+        UPDATE notifications 
+        SET num_of_replies = num_of_replies + 1 
+        WHERE post_id = ?
+    `);
     queries.delete_notification = db.prepare('DELETE FROM notifications WHERE id = ? AND user_id = ?');
     
     queries.count_posts = db.prepare('SELECT COUNT(*) as count FROM posts');
@@ -330,11 +334,13 @@ function init_db()
     queries.select_user_posts_match = db.prepare(`
         SELECT p.* FROM posts p
         WHERE p.user_id = ? AND LOWER(p.content) LIKE '%' || ? || '%'
+        LIMIT ${PAGE_SIZE}
     `);
     queries.select_user_notifications_match = db.prepare(`
         SELECT n.*, posts.content AS post_content FROM notifications n
         JOIN posts ON n.post_id = posts.id
         WHERE n.user_id = ? AND LOWER(posts.content) LIKE '%' || ? || '%'
+        LIMIT ${PAGE_SIZE}
         ORDER BY n.created_at DESC
     `);
 }

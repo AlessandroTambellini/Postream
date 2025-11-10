@@ -21,6 +21,12 @@
             margin-top: .5em;
             margin-inline: auto;
         }
+
+        .page-label {
+            text-align: right;
+            color: var(--clr-6a);
+            padding-bottom: 1em;
+        }
     </style>
 </head>
 <body>
@@ -107,7 +113,9 @@
             });
 
             if (req_error) {
-                feedback_card.show('error', req_error.interpret('page', 'retrieve'));
+                feedback_card.show('error', req_error.code === 401 ? 
+                    'Only the author of the post can visualize the replies.' : 
+                    req_error.interpret('replies page', 'retrieve'));
                 return;
             }
 

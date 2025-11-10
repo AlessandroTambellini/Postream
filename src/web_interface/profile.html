@@ -189,12 +189,12 @@
         const delete_post_feedback_card = new FeedbackCard(delete_post_dialog.querySelector('.feedback-card'));
 
         const PAGE_SIZE = post_cards.length;
-        const displayed_posts = new Set();
+        const displayed_pages = new Set();
         const last_page = Number(load_page_input.max);
+        displayed_pages.add(last_page);
         let last_action_is_search = false;
 
         post_cards.forEach(post_card => {
-            displayed_posts.add(Number(post_card.dataset.postId));
             const time = post_card.querySelector('time');
             time.textContent = prettify_date(time.dateTime);
             append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
@@ -232,12 +232,21 @@
             e.preventDefault();
             load_page_feedback_card.hide();
 
-            const page = last_page - Number(load_page_input.value) + 1;
+            const requested_page = Number(load_page_input.value);
+            if (displayed_pages.has(requested_page)) {
+                load_page_feedback_card.show('info', `Page ${requested_page} already loaded.`);
+                return;
+            }
 
             const { 
                 payload: posts, 
                 req_error, 
-            } = await req('api/posts/user/page', 'GET', { page, format: 'html' });
+            } = await req('api/posts/user/page', 'GET', { 
+                // The 'page' of the search params is overturned 
+                // because on the server the pages are in opposite order
+                page: last_page - requested_page + 1, 
+                format: 'html',
+            });
 
             if (req_error) {
                 load_page_feedback_card.show('error', req_error.interpret('page', 'retrieve'));
@@ -246,26 +255,20 @@
 
             if (last_action_is_search) {
                 posts_container.replaceChildren();
-                displayed_posts.clear();
+                displayed_pages.clear();
                 last_action_is_search = false;
             }
 
-            let new_posts_displayed = 0;
+            posts_container.appendChild(document.createElement('hr'));
             posts.forEach(post => {
-                if (!displayed_posts.has(post.id)) {
-                    displayed_posts.add(post.id);
-                    new_posts_displayed++;
-                    const post_card = document.createRange().createContextualFragment(post.card);
-                    const time = post_card.querySelector('time');
-                    time.textContent = prettify_date(time.dateTime);
-                    append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
-                    posts_container.appendChild(post_card);
-                }
+                const post_card = document.createRange().createContextualFragment(post.card);
+                const time = post_card.querySelector('time');
+                time.textContent = prettify_date(time.dateTime);
+                append_delete_post_listener(post_card.querySelector('.delete-post-btn'));
+                posts_container.appendChild(post_card);
             });
 
-            if (!new_posts_displayed) {
-                load_page_feedback_card.show('info', 'All the posts of this page already loaded');
-            }
+            displayed_pages.add(requested_page);
         });
 
         search_post_form.addEventListener('submit', async e =>
