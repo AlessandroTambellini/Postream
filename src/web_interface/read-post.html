@@ -21,12 +21,6 @@
             margin-top: .5em;
             margin-inline: auto;
         }
-
-        .page-label {
-            text-align: right;
-            color: var(--clr-6a);
-            padding-bottom: 1em;
-        }
     </style>
 </head>
 <body>
@@ -59,7 +53,7 @@
             });
         </script>
 
-        <form id="load-page-form">
+        <form id="load-page-form" action="api/replies/page" method="get">
             <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
@@ -80,61 +74,59 @@
         import { 
             req, 
             prettify_date, 
-            FeedbackCard,
+            Form,
         } from './_universal.js';
 
         const post_card = document.querySelector('.post-card');
         const replies_container = document.querySelector('#replies-container');
         const reply_cards = replies_container.querySelectorAll('.reply-card');
-        const load_page_form = document.querySelector('#load-page-form');
-        const load_page_input = load_page_form.querySelector('input');
-        const feedback_card = new FeedbackCard(document.querySelector('.feedback-card'));
+        
+        const load_page = new Form(document.querySelector('#load-page-form'), req_page);
+        const load_page_input = load_page.form.querySelector('input');
 
         const PAGE_SIZE = reply_cards.length;
+        const displayed_pages = new Set();
         const last_page = Number(load_page_input.max);
-        const displayed_replies = new Set();
+        displayed_pages.add(last_page);
 
-        reply_cards.forEach(reply => {
-            displayed_replies.add(Number(reply.dataset.replyId));
-        });
-
-        load_page_form.addEventListener('submit', async e => 
+        async function req_page(_this, res) 
         {
-            e.preventDefault();
-            feedback_card.hide();
+            const requested_page = Number(load_page_input.value);
 
+            if (displayed_pages.has(requested_page)) {
+                res.type = 'info';
+                res.msg = 'All the notifications of this page already loaded';
+                return;
+            }
+            
             const { 
                 payload: replies, 
                 req_error 
-            } = await req('api/replies/page', 'GET', { 
+            } = await req(_this.action, _this.method, { 
                 post_id: post_card.dataset.postId, 
-                page: last_page - Number(load_page_input.value) + 1, 
+                page: last_page - requested_page + 1, 
                 format: 'html',
             });
-
+            
             if (req_error) {
-                feedback_card.show('error', req_error.code === 401 ? 
+                res.type = 'error';
+                res.msg = req_error.code === 401 ? 
                     'Only the author of the post can visualize the replies.' : 
-                    req_error.interpret('replies page', 'retrieve'));
+                    req_error.interpret('replies page', 'retrieve')
+                ;
                 return;
             }
 
-            let new_replies_displayed = 0;
+            replies_container.appendChild(document.createElement('hr'));
             replies.forEach(reply => {
-                if (!displayed_replies.has(reply.id)) {
-                    displayed_replies.add(reply.id);
-                    new_replies_displayed++;
-                    const reply_card = document.createRange().createContextualFragment(reply.card);
-                    const time = reply_card.querySelector('time');
-                    time.textContent = prettify_date(time.dateTime);
-                    replies_container.appendChild(reply_card);
-                }
+                const reply_card = document.createRange().createContextualFragment(reply.card);
+                const time = reply_card.querySelector('time');
+                time.textContent = prettify_date(time.dateTime);
+                replies_container.appendChild(reply_card);                
             });
 
-            if (!new_replies_displayed) {
-                feedback_card.show('info', 'All the replies of this page already loaded');
-            }
-        });
+            displayed_pages.add(requested_page);
+        }
     </script>
 </body>
 </html>

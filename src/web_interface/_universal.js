@@ -1,8 +1,3 @@
-/*
- *
- *  Side-Panel
- */
-
 const side_panel = document.querySelector('#side-panel');
 const show_side_panel_btn = document.querySelector('#show-side-panel-btn');
 const main = document.querySelector('main');
@@ -39,12 +34,6 @@ moon_mode_btn.addEventListener('click', () =>
     moon_mode_btn.classList.replace('display-block', 'display-none');
     localStorage.setItem("light-mode", "moon-mode");
 });
-
-
-/*
- *
- *  Utils
- */
 
 async function req(path, method, search_params, req_payload = null)
 {
@@ -141,7 +130,37 @@ function sanitize_input(input) {
     };
     const reg = /[&<>"'/]/gi;
 
-    return input.replace(reg, (match) => map[match]);
+    return input.replace(reg, match => map[match]);
+}
+
+class Form {
+    constructor(form, handler) 
+    {
+        this.form = form;
+        this.action = form.attributes.action.value;
+        this.method = form.attributes.method.value;
+        this.data_id = form.dataset.id;
+        this.submit_btn = this.form.querySelector('button[type=submit]');
+        this.feedback_card = new FeedbackCard(this.form.querySelector('.feedback-card'));
+        
+        this.form.addEventListener('submit', async e => 
+        {
+            e.preventDefault();
+            this.submit_btn.disabled = true;
+            this.feedback_card.hide();
+
+            const res = {
+                type: '',
+                msg: '',
+            };
+            await handler(this, res);
+            if (res.type) {
+                this.feedback_card.show(res.type, res.msg);
+            }
+
+            this.submit_btn.disabled = false;
+        });
+    }
 }
 
 class FeedbackCard {
@@ -177,5 +196,6 @@ export {
     req,
     prettify_date,
     sanitize_input,
+    Form,
     FeedbackCard,
 };

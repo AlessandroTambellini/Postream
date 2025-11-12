@@ -5,34 +5,49 @@ but in this case I used the camelCase to reflect the browser API convention
 given I find this object related to it. */
 const DOMElements = {};
 
+const LINE_LEN = 70;
+const LINES_PER_PAGE = 40;
+
 DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content = false)
 {
     const { id, content, created_at } = post;
 
-    const post_card = [
-        `<article id='post-card-${id}' data-post-id=${id} class="card post-card">`,
-            '<p>',
-    ];
+    const post_card = [];
+    post_card.push(`<article id='post-card-${id}' data-post-id=${id} class="card post-card">`);
 
-    const PAGE_SIZE = 70*40;
+    const PAGE_SIZE = LINE_LEN*LINES_PER_PAGE;
+    let content_lines = 0;
+    let content_preview = [];
+    content.split('\n').forEach(chunk => {
+        content_lines++;
+        content_lines += Math.floor(chunk.length/LINE_LEN);
+        if (content_lines < LINES_PER_PAGE/2) {
+            content_preview.push(chunk + '\n');
+        }
+    });
+    const pages = Math.ceil(content_lines/LINES_PER_PAGE);
 
-    if (cut_post_content && content.length > PAGE_SIZE/2) {
-        post_card.push(content.substring(0, PAGE_SIZE/2) + 
-            `...<a href='/read-post?id=${id}'>Read-Entirely</a>`);
-    } else {
-        if (content.length > PAGE_SIZE) {
-            let pages = Math.ceil(content.length/PAGE_SIZE)
-            const post_pages = new Array(pages);
-            for (let i = 0; i < pages; i++) {
-                post_pages[i] = content.substring(i*PAGE_SIZE, i*PAGE_SIZE + PAGE_SIZE) + `<span class='page-label display-block'>${i+1}</span>`
-            }
-            post_card.push(post_pages.join(''));
+    post_card.push('<div class=\'content-container\'>')
+        post_card.push('<p>');
+        if (cut_post_content) {
+            post_card.push(
+                content_preview.join('') + 
+                `...<a href='/read-post?id=${id}'>Read-Entirely</a>`
+            );
         } else {
             post_card.push(content);
         }
-    }
+        post_card.push('</p>');
+        
+        if (!cut_post_content) {
+            post_card.push('<div class="page-labels-container">')
+            for (let i = 1; i < pages; i++) {
+                post_card.push(`<div class='page-label'>${i}</div>`)
+            }
+            post_card.push('</div>');
+        }
+    post_card.push('</div>');
 
-    post_card.push('</p>');
     post_card.push(`<time datetime="${created_at}"></time>`);
 
     /* The first type of link has the only purpose of keeping the id for the sorting of the posts (e.g. in the index page),
@@ -63,6 +78,8 @@ DOMElements['.reply-card'] = function(reply)
 {
     const { id, content, created_at } = reply;
 
+    // TODO pagination for replies
+
     return (
         `<article id='reply-${id}' data-reply-id=${id} class='card reply-card'>` +
             `<p>${content}</p>` +
@@ -79,13 +96,13 @@ DOMElements['.notification-card'] = function(notification)
         `<article id='notification-card-${id}' data-notification-id=${id} class='card notification-card'>` +
             '<p>' + 
                 `<b>${num_of_replies} new ${num_of_replies === 1 ? 'reply' : 'replies'} for: </b>` + 
-                `"${post_content.length > 70 ? post_content.substring(0, 70) + '...' : post_content}"` + 
+                `"${post_content.length > LINE_LEN ? post_content.substring(0, LINE_LEN) + '...' : post_content}"` + 
             '</p>' +
             '<footer>' +
                 `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>` +
                     `Read-${num_of_replies === 1 ? 'Reply' : 'Replies'}` + 
                 '</a>' +
-                `<form class="delete-notification-form" data-notification-id=${id}>` +
+                `<form class="delete-notification-form" data-id=${id} action='api/user/notifications' method='DELETE'>` +
                     '<div class="card feedback-card display-none">' +
                         "<span role='img' alt='feedback icon'></span>" +
                         '<p>' +

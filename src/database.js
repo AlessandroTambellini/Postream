@@ -340,8 +340,8 @@ function init_db()
         SELECT n.*, posts.content AS post_content FROM notifications n
         JOIN posts ON n.post_id = posts.id
         WHERE n.user_id = ? AND LOWER(posts.content) LIKE '%' || ? || '%'
-        LIMIT ${PAGE_SIZE}
         ORDER BY n.created_at DESC
+        LIMIT ${PAGE_SIZE}
     `);
 }
 

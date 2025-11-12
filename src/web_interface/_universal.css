@@ -14,6 +14,7 @@
     --card-padding: 1em;
     --card-border-thickness: 1px;
     --card-max-width: calc(var(--card-text-length) + var(--card-padding)*2 + var(--card-border-thickness)*2);
+    --text-line-height: 1.4;
 }
 
 :root
@@ -160,14 +161,15 @@ a:hover {
     margin-inline: auto;
 }
 
-.cards-container:empty {
-    padding-top: 2rem;
-    max-width: 70ch;
-    text-align: center;
+.cards-container hr {
+    width: 10ch;
+    margin-left: 0;
+    margin-block: 1em;
+    border-top: 1px solid var(--clr-b8);
 }
 
-p {
-    line-height: 1.4;
+p, input, textarea {
+    line-height: var(--text-line-height);
 }
 
 span[role=img] {
@@ -531,9 +533,36 @@ button {
     overflow: hidden;
 }
 
+.card:has(.content-container) {
+    padding-right: 0;
+}
+
+.card:has(.content-container) time {
+    padding-right: var(--card-padding);
+}
+
+.card .content-container {
+    display: flex;
+}
+
+.content-container p {
+    flex-grow: 2;
+}
+
+.page-labels-container {
+    padding-inline: .25em .5em;
+}
+
+.page-label {
+    display: flex;
+    align-items: flex-end;
+    color: var(--clr-6a);
+    line-height: var(--text-line-height);
+    height: calc(1.4em * 40);
+}
+
 .card p {
     color: var(--clr-txt);
-    line-height: 1.4;
     hyphens: auto;
     /* overflow-wrap: break-word; */
     word-break: break-word;
@@ -568,11 +597,13 @@ button {
     }
 }
 
-.post-card {
+.post-card,
+.textarea-container:has(textarea[name=post-textarea]) {
     background-color: var(--bkg-post-card);
 }
 
-.reply-card {
+.reply-card,
+.textarea-container:has(textarea[name=reply-textarea]) {
     background-color: var(--bkg-reply-card);
 }
 
@@ -754,19 +785,27 @@ form {
 
 form > input {
     padding: var(--input-padding);
-    line-height: 1.4;
     width: 100%;
     background-color: var(--clr-f9);
     border: 1px solid var(--clr-ab);
 }
 
-form > textarea {
-    padding: var(--input-padding);
-    line-height: 1.4;
-    width: 100%;
-    resize: vertical;
+form .textarea-container {
+    display: flex;
     border: 1px solid var(--clr-cc);
     box-shadow: 0 4px 12px rgba(var(--rgb-00), 0.1);
+    
+    padding: var(--input-padding);
+    padding-right: 0;
+}
+
+.textarea-container textarea {
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background-color: inherit;
+    width: 100%;
+    resize: none;
     field-sizing: content;
     hyphens: auto;
 }

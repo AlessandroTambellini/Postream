@@ -13,10 +13,6 @@
         button[type=submit] {
             margin-left: auto;
         }
-
-        textarea {
-            background-color: var(--bkg-post-card);
-        }
     </style>
 </head>
 <body>
@@ -33,8 +29,11 @@
     
         <form action="api/post" method="POST">
                 
-            <textarea name="post-textarea" placeholder="_"></textarea> 
-            
+            <div class="textarea-container">
+                <textarea name="post-textarea" placeholder="_"></textarea> 
+                <div class="page-labels-container"></div>
+            </div>
+
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
                 <p>
@@ -56,34 +55,56 @@
         import { 
             req, 
             sanitize_input,
-            FeedbackCard,
+            Form,
         } from './_universal.js';
 
-        const write_post_form = document.querySelector('form');
-        const textarea = write_post_form.querySelector('textarea');
-        const submit_btn = write_post_form.querySelector('button[type=submit]');
-        const feedback_card = new FeedbackCard(write_post_form.querySelector('.feedback-card'));
+        const write_post = new Form(document.querySelector('form'), handle_post_submission);
+        const textarea = write_post.form.querySelector('textarea');
+        const page_labels_container = write_post.form.querySelector('.page-labels-container');
 
-        write_post_form.addEventListener('submit', async e => 
+        textarea.addEventListener('input', e => 
         {
-            e.preventDefault();
-            submit_btn.disabled = true;
-            feedback_card.hide();
+            /* It has to be checked at every input, 
+            because big chunks of text may be pasted or deleted. */
 
-            const path = write_post_form.attributes.action.value;
-            const method = write_post_form.attributes.method.value;
-            const content = sanitize_input(textarea.value);
+            let lines = 0;
+            textarea.value.split('\n').forEach(chunk => {
+                lines++;
+                lines += Math.floor(chunk.length/70);
+            });
+
+            const pages = Math.ceil(lines/40);
+            let num_of_labels = page_labels_container.children.length;
             
-            const { req_error } = await req(path, method, null, { content });
+            while (num_of_labels !== pages-1) {
+                if (num_of_labels < pages-1) {
+                    const label = document.createElement('div');
+                    label.classList.add('page-label');
+                    label.textContent = num_of_labels+1;
+                    page_labels_container.appendChild(label);
+                } else {
+                    page_labels_container.removeChild(page_labels_container.lastElementChild);
+                }
+                num_of_labels = page_labels_container.children.length;
+            }
+        });
+
+        async function handle_post_submission(_this, res) 
+        {
+            const { req_error } = await req(_this.action, _this.method, null, { 
+                content: sanitize_input(textarea.value) 
+            });
 
             if (req_error) {
-                feedback_card.show('error', req_error.interpret('post', 'send'));
+                res.type = 'error';
+                res.msg = req_error.interpret('post', 'send');
+                return;
             } else {
-                feedback_card.show('success', 'Post created successfully');
+                res.type = 'success';
+                res.msg = 'Post created successfully';
+                return;
             }
-
-            submit_btn.disabled = false;
-        });
+        }
     </script>
 </body>
 </html>

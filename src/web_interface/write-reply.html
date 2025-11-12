@@ -18,10 +18,6 @@
         button[type=submit] {
             margin-left: auto;
         }
-
-        textarea {
-            background-color: var(--bkg-reply-card);
-        }
     </style>
 </head>
 <body>
@@ -46,7 +42,11 @@
         </script>
 
         <form id="reply-form" action="api/reply" method="POST">
-            <textarea name="reply-textarea" placeholder="_"></textarea>
+
+            <div class="textarea-container">
+                <textarea name="reply-textarea" placeholder="_"></textarea>
+                <div class="page-labels-container"></div>
+            </div>
 
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
@@ -69,36 +69,55 @@
         import { 
             req, 
             sanitize_input,
-            FeedbackCard,
+            Form,
         } from './_universal.js';
 
-        const write_reply_form = document.querySelector('form');
-        const textarea = write_reply_form.querySelector('textarea');
-        const submit_btn = write_reply_form.querySelector('button[type=submit]');
-        const feedback_card = new FeedbackCard(write_reply_form.querySelector('.feedback-card'));
+        const write_reply = new Form(document.querySelector('form'), handle_reply_submission);
+        const textarea = write_reply.form.querySelector('textarea');
+        const page_labels_container = write_reply.form.querySelector('.page-labels-container');
 
-        write_reply_form.addEventListener('submit', async e => 
+        textarea.addEventListener('input', e => 
         {
-            e.preventDefault();
-            submit_btn.disabled = true;
-            feedback_card.hide();
+            /* It has to be checked at every input, 
+            because big chunks of text may be pasted or deleted. */
 
-            const path = write_reply_form.attributes.action.value;
-            const method = write_reply_form.attributes.method.value;
+            let lines = 0;
+            textarea.value.split('\n').forEach(chunk => {
+                lines++;
+                lines += Math.floor(chunk.length/70);
+            });
 
-            const post_id = document.querySelector('.post-card').dataset.postId;
-            const content = sanitize_input(textarea.value);
+            const pages = Math.ceil(lines/40);
+            let num_of_labels = page_labels_container.children.length;
+            
+            while (num_of_labels !== pages-1) {
+                if (num_of_labels < pages-1) {
+                    const label = document.createElement('div');
+                    label.classList.add('page-label');
+                    label.textContent = num_of_labels+1;
+                    page_labels_container.appendChild(label);
+                } else {
+                    page_labels_container.removeChild(page_labels_container.lastElementChild);
+                }
+                num_of_labels = page_labels_container.children.length;
+            }
+        });
 
-            const { payload, req_error } = await req(path, method, null, { post_id, content });
+        async function handle_reply_submission(_this, res)
+        {
+            const { payload, req_error } = await req(_this.action, _this.method, null, { 
+                post_id: document.querySelector('.post-card').dataset.postId, 
+                content: sanitize_input(textarea.value),
+            });
             
             if (req_error) {
-                feedback_card.show('error', req_error.interpret('reply', 'send'));
+                res.type = 'error';
+                res.msg = req_error.interpret('reply', 'send');
             } else {
-                feedback_card.show('success', 'Reply created successfully');
+                res.type = 'success';
+                res.msg = 'Reply created successfully';
             }
-
-            submit_btn.disabled = false;
-        });
+        }
     </script>
 </body>
 </html>
