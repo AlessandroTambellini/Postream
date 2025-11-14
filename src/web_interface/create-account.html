@@ -96,7 +96,7 @@
             That's the password you'll have to use to then login.
         </p>
 
-        <form action="api/user" method="POST">
+        <form id="create-account-form" action="api/user" method="POST">
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
                 <p>
@@ -122,28 +122,28 @@
     {{ #side-panel }}
 
     <script type="module">
+        
         import { 
             req, 
-            FeedbackCard,
+            Form,
         } from './_universal.js';
 
-        // It is possible to create an account while logged-in.
+        // It's possible to create an account while logged-in.
 
-        const create_account_form = document.querySelector('form');
-        const feedback_card = new FeedbackCard(create_account_form.querySelector('.feedback-card'));
         const password_container = document.querySelector('div:has(#password)');
         const password_p = document.querySelector('#password');
         const copy_password_btn = password_container.querySelector('button');
-
-        create_account_form.addEventListener('submit', async e => 
+        
+        new Form(document.querySelector('#create-account-form'), async (_this, res) => 
         {
-            e.preventDefault();
-            feedback_card.hide();
-            
-            const { payload, req_error } = await req('api/user', 'POST');
+            const { 
+                payload, 
+                req_error, 
+            } = await req(_this.action, _this.method);
             
             if (req_error) {
-                feedback_card.show('error', req_error.interpret());
+                res.type = 'error';
+                res.msg = req_error.interpret();
             } else {
                 password_p.textContent = payload.password;
                 // Once a registration happens, 
@@ -159,7 +159,7 @@
             clearTimeout(timeout_id);
             navigator.clipboard.writeText(password_p.textContent);
 
-            copy_password_btn.innerHTML = '&#10004; Copied';
+            copy_password_btn.textContent = 'Copied';
             copy_password_btn.classList.replace('btn-unclicked', 'btn-clicked');
             
             timeout_id = setTimeout(() => {

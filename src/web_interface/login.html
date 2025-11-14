@@ -33,7 +33,7 @@
     <h1 class="visually-hidden">Login</h1>
 
     <main>
-        <form action="/api/token">
+        <form id="login-form" action="/api/token" method="post">
 
             <!-- Not used. Here only to shut-up a browser warning
              about best practices for forms. -->
@@ -64,18 +64,17 @@
     {{ #side-panel }}
 
     <script type="module">
-        import { req, FeedbackCard } from "./_universal.js";
+        
+        import { 
+            req, 
+            Form, 
+        } from "./_universal.js";
 
-        const login_form = document.querySelector('form');
-        const feedback_card = new FeedbackCard(login_form.querySelector('.feedback-card'));
+        const login_form = document.querySelector('#login-form')
         const password_input = login_form.querySelector('input[name=password]');
 
-        login_form.addEventListener('submit', async e =>
+        new Form(login_form, async (_this, res) => 
         {
-            e.preventDefault();
-            feedback_card.hide();
-
-            const path = login_form.attributes.action.value;
             const password = password_input.value;
 
             /*
@@ -87,7 +86,7 @@
             */
 
             // 1) Let's try to directly make a POST. Perhaps is the first login ever.
-            const req_POST = await req(path, 'POST', null, { password });
+            const req_POST = await req(_this.action, 'POST', null, { password });
 
             if (!req_POST.req_error) {
                 document.cookie = `password_hash=${req_POST.payload.password_hash}`;
@@ -96,17 +95,19 @@
             }
 
             // 2) Otherwise, try to get the password_hash and then update the token
-            const req_GET = await req(path, 'GET', { password });
+            const req_GET = await req(_this.action, 'GET', { password });
 
             if (req_GET.req_error) {
-                feedback_card.show('error', req_GET.req_error.interpret('password'));
+                res.type = 'error';
+                res.msg = req_GET.req_error.interpret('password');
                 return;
             }
 
-            const req_PUT = await req(path, 'PUT', null, { password });
+            const req_PUT = await req(_this.action, 'PUT', null, { password });
 
             if (req_PUT.req_error) {
-                feedback_card.show('error', req_PUT.req_error.interpret('password'));
+                res.type = 'error';
+                res.msg = req_PUT.req_error.interpret('password');
                 return;
             }
 

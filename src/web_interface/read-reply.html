@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Postream / Reply</title>
+
+    <link rel="icon" type="image/webp" href="../assets/logo.webp">
+    <link rel='stylesheet' href='./_universal.css'>
+      
+    <script type="module" src="./_universal.js"></script>
+
+    <style>
+        main > a {
+            display: block;
+            margin-bottom: 1em;
+            text-align: center;
+        }
+
+        .reply-card {
+            content-visibility: auto;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const light_mode = localStorage.getItem('light-mode');
+        if (light_mode === 'moon-mode') {
+            document.querySelector('html').classList.add('moon-mode');
+        }
+    </script>
+    <main>
+        <a href='/read-post?id={{ post-id }}'>Read Post</a>
+        {{ .reply-card }}
+    </main>
+
+    {{ #side-panel }}
+</body>
+</html>

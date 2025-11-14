@@ -46,19 +46,23 @@ db_ops.insert_notification = (user_id, post_id, first_new_reply_id) => (
     insert_data('insert_notification', user_id, post_id, first_new_reply_id, new Date().toISOString(), 1)
 );
 
-db_ops.select_token = (user_id) => (
+db_ops.select_token = user_id => (
     select_data('select_token', user_id)
 );
 
-db_ops.select_user = (password_hash) => (
+db_ops.select_user = password_hash => (
     select_data('select_user', password_hash)
 );
 
-db_ops.select_post = (id) => (
+db_ops.select_post = id => (
     select_data('select_post', id)
 );
 
-db_ops.select_notification = (post_id) => (
+db_ops.select_reply = id => (
+    select_data('select_reply', id)
+);
+
+db_ops.select_notification = post_id => (
     select_data('select_notification', post_id)
 );
 
@@ -291,7 +295,7 @@ function init_db()
     queries.delete_post = db.prepare('DELETE FROM posts WHERE id = ? AND user_id = ?');
     
     queries.insert_reply = db.prepare('INSERT INTO replies (post_id, content, created_at) VALUES (?, ?, ?)');
-    queries.select_post_replies = db.prepare('SELECT * FROM replies WHERE post_id = ? ORDER BY created_at DESC');
+    queries.select_reply = db.prepare('SELECT * FROM replies WHERE id = ?');
     
     queries.insert_notification = db.prepare(`
         INSERT INTO notifications (user_id, post_id, first_new_reply_id, created_at, num_of_replies) 
@@ -386,7 +390,26 @@ async function rebuild_db()
         return;
     }
 
-    /* Each of the underlying posts shows a nuance of the post-card. */
+    const users = new Array(3);
+
+    for (let i = 0; i < users.length; i++) 
+    {
+        const password = generate_password();
+        const { password_hash, hash_error } = hash_password(password, true);
+        
+        if (hash_error) {
+            return;
+        }
+        
+        const user_id = db_ops.insert_user(password_hash);
+        
+        users[i] = {};
+        users[i].id = user_id;
+        users[i].password = password;
+    }
+
+    /* 
+        Each of the underlying posts shows a nuance of the post-card. */
 
     const lorem_ipsum =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." +
@@ -395,10 +418,11 @@ async function rebuild_db()
         "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
     ;
 
-    const long_post_chunks = new Array(100);
+    let long_post_chunks = new Array(100);
     for (let i = 0; i < long_post_chunks.length; i++) {
         long_post_chunks[i] = lorem_ipsum;
     }
+    long_post_chunks = long_post_chunks.join('');
 
     const list = 'Pros:\n✅ ...\n✅ ...\n✅ ...\n\nCons:\n❌ ...\n❌ ...\n';
 
@@ -412,43 +436,36 @@ async function rebuild_db()
         '\n141.0_ 141.0.2 141.0.3\n140.0_ 140.0.1 140.0.2 140.0.4 140.1.0 140.2.0 140.3.0 140.3.1 140.4.0\n' +
         '139.0_ 139.0.1 139.0.4\n138.0_ 138.0.1 138.0.3 138.0.4\n137.0_';
 
-    const users = new Array(3);
-
-    console.log('Users:');
-    for (let i = 0; i < users.length; i++) {
-        const password = generate_password();
-        const { password_hash, hash_error } = hash_password(password, true);
-        if (hash_error) {
-            return;
-        }
-        const user = db_ops.insert_user(password_hash);
-        users[i] = user;
-
-        console.log(`- password_${i}:`, password);
-    }
-
     // 40 posts are crated to show the pagination feature
     for (let i = 0; i < 40; i++) {
-        db_ops.insert_post(users[0], 'post ' + i);
+        db_ops.insert_post(users[0].id, 'post ' + i);
     }
 
-    db_ops.insert_post(users[0], long_post_chunks.join(''));
-    db_ops.insert_post(users[0], list);
+    db_ops.insert_post(users[0].id, long_post_chunks);
+    db_ops.insert_post(users[0].id, list);
     
-    let post_id = db_ops.insert_post(users[1], code);
-    db_ops.insert_post(users[1], long_post_chunks.join(''));
-    db_ops.insert_post(users[1], firefox_releases);
-
+    let post_id = db_ops.insert_post(users[1].id, code);
     for (let i = 0; i < 45; i++) {
         db_ops.insert_reply(post_id, `console.log('Hello World');`);
     }
 
+    db_ops.insert_post(users[1].id, long_post_chunks);
+    
+    post_id = db_ops.insert_post(users[1].id, firefox_releases);
+    db_ops.insert_reply(post_id, long_post_chunks);
+
     console.log('\nDatabase rebuilt successfully ✅');
+
+    console.log('\nUsers:');
+    users.forEach(({ id, password }) => {
+        console.log(`- password_${id}:`, password);
+    });
+
     console.log('\nThings I suggest to do to fully experience the website:');
     console.log('- Create looong posts');
     console.log('- Create looong replies');
     console.log('- Look at the notifications');
-    console.log('- Create a lot of posts and replies to see the pagination in action');
+    console.log('- Create a lot of posts and replies to exploit the pagination feature');
 }
 
 export {

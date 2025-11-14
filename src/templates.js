@@ -1,88 +1,47 @@
+import { PAGE_SIZE } from "./database.js";
 import { log_error } from "./utils.js";
 
 /* Little Unimportant Note: for the name of objects I use snake_case,
-but in this case I used the camelCase to reflect the browser API convention
-given I find this object related to it. */
+but in this case I used the camelCase to reflect the browser API convention. */
 const DOMElements = {};
 
 const LINE_LEN = 70;
-const LINES_PER_PAGE = 40;
 
-DOMElements['.post-card'] = function(post, reply_link_type = 0, cut_post_content = false)
+DOMElements['.post-card'] = function(post, reply_link_type = 0, f_preview = false)
 {
     const { id, content, created_at } = post;
 
-    const post_card = [];
-    post_card.push(`<article id='post-card-${id}' data-post-id=${id} class="card post-card">`);
-
-    const PAGE_SIZE = LINE_LEN*LINES_PER_PAGE;
-    let content_lines = 0;
-    let content_preview = [];
-    content.split('\n').forEach(chunk => {
-        content_lines++;
-        content_lines += Math.floor(chunk.length/LINE_LEN);
-        if (content_lines < LINES_PER_PAGE/2) {
-            content_preview.push(chunk + '\n');
-        }
-    });
-    const pages = Math.ceil(content_lines/LINES_PER_PAGE);
-
-    post_card.push('<div class=\'content-container\'>')
-        post_card.push('<p>');
-        if (cut_post_content) {
-            post_card.push(
-                content_preview.join('') + 
-                `...<a href='/read-post?id=${id}'>Read-Entirely</a>`
-            );
-        } else {
-            post_card.push(content);
-        }
-        post_card.push('</p>');
-        
-        if (!cut_post_content) {
-            post_card.push('<div class="page-labels-container">')
-            for (let i = 1; i < pages; i++) {
-                post_card.push(`<div class='page-label'>${i}</div>`)
-            }
-            post_card.push('</div>');
-        }
-    post_card.push('</div>');
-
-    post_card.push(`<time datetime="${created_at}"></time>`);
-
-    /* The first type of link has the only purpose of keeping the id for the sorting of the posts (e.g. in the index page),
-    but it doesn't cover any role as a link per se. */
+    /* The first type of link (0) has no purpose. 
+    There for legacy. */
     const reply_link_types = [
         `<a href='#id=${id}' style="display: none;"></a>`,
         `<a href='/read-post?id=${id}#replies-container'>Read-Replies</a>`,
         `<a href='/write-reply?id=${id}'>Reply</a>`
     ];
 
-    const footer = [];
-    if (reply_link_type === 0)
-        footer.push(reply_link_types[reply_link_type]);
-    else {
-        footer.push('<footer>', reply_link_types[reply_link_type]);
-        if (reply_link_type === 1)
-            footer.push(`<button type='button' data-post-id=${id} class='delete-post-btn secondary-btn'>Delete</button>`);
-        footer.push('</footer>');
-    }
-
-    post_card.push(footer.join(''));
-    post_card.push('</article>');
-
-    return post_card.join('');
+    return (
+        `<article id='post-card-${id}' data-post-id=${id} class="card post-card">` +
+            get_card_content('post', id, content, f_preview) +
+            `<time datetime="${created_at}"></time>` +
+            (reply_link_type === 0 ?
+                reply_link_types[reply_link_type] :
+                ('<footer>' + 
+                    reply_link_types[reply_link_type] +
+                    (reply_link_type === 1 ?
+                        `<button type='button' data-post-id=${id} class='secondary-btn'>Delete</button>` : 
+                        '') +
+                '</footer>')) +
+        '</article>'
+    );
 }
 
-DOMElements['.reply-card'] = function(reply)
+DOMElements['.reply-card'] = function(reply, f_preview = false)
 {
     const { id, content, created_at } = reply;
 
-    // TODO pagination for replies
-
     return (
         `<article id='reply-${id}' data-reply-id=${id} class='card reply-card'>` +
-            `<p>${content}</p>` +
+            get_card_content('reply', id, content, f_preview) +
             `<time datetime="${created_at}"></time>` +
         `</article>`
     );
@@ -90,7 +49,13 @@ DOMElements['.reply-card'] = function(reply)
 
 DOMElements['.notification-card'] = function(notification)
 {
-    const { id, post_id, post_content, first_new_reply_id, num_of_replies } = notification;
+    const { 
+        id, 
+        post_id, 
+        post_content, 
+        first_new_reply_id, 
+        num_of_replies,
+    } = notification;
 
     return (
         `<article id='notification-card-${id}' data-notification-id=${id} class='card notification-card'>` +
@@ -128,7 +93,7 @@ DOMElements['.profile-picture'] = function(max_num_of_circles, picture_size)
     const picked_positions = new Set();
     const pick_pos = () => {
         let pos = Math.floor(Math.random() * picture_size);
-        // To distribute a bit the circles to not have them too near.
+        // Distribute a bit the circles to not have them too near.
         if (pos % 2 !== 0) pos += 1;
         return pos;
     };
@@ -144,19 +109,25 @@ DOMElements['.profile-picture'] = function(max_num_of_circles, picture_size)
         }
         picked_positions.add(`${top},${left}`);
 
+        /* It may happen that all the circles remain outside the 'circular window',
+        but I bet on the probability and so I don't care. */
+
         circles.push(
             `<span class='circle' style="` +
-                `background: radial-gradient(circle at 50% 50%, var(--clr-ff), rgb(${pick_color()}, ${pick_color()}, ${pick_color()}));` +
+                'background: radial-gradient(circle at 50% 50%, var(--clr-ff), ' 
+                    + `rgb(${pick_color()}, ${pick_color()}, ${pick_color()}));` +
                 `width: ${pick_circle_size()}px;` +
-                /* It may happen that all the circles remain outside the 'circular window',
-                but I bet on the probability and so I don't care. */
                 `top: ${top}px;` +
                 `left: ${left}px;">` +
             `</span>`
         );
     }
 
-    return `<span class="profile-picture" role="img">${circles.join('')}</span>`;
+    return (
+        '<span class="profile-picture" role="img">' + 
+            circles.join('') + 
+        '</span>'
+    );
 };
 
 DOMElements['#side-panel'] = function(user_id, page = '')
@@ -313,6 +284,57 @@ function fallback_page(status_code, custom_msg)
         '</body>' +
         '</html>'
     );
+}
+
+function get_card_content(type, id, content, f_preview = false)
+{
+    const LINES_PER_PAGE = 40;
+
+    let lines = 0;
+    let preview = [];
+    
+    content.split('\n').forEach(chunk => {
+        lines++;
+        lines += Math.floor(chunk.length/LINE_LEN);
+        if (lines < LINES_PER_PAGE/2) {
+            preview.push(chunk + '\n');
+        }
+    });
+
+    if (f_preview)
+    {
+        preview = preview.join('');
+        
+        // content may not have '\n'
+        if (preview.length === 0) {
+            preview = content.substring(0, LINE_LEN*LINES_PER_PAGE/2);
+        }
+        
+        return (
+            '<p>' +
+                preview + 
+                (preview.length < content.length ?
+                    `...<a href='/read-${type}?id=${id}'>Read-Entirely</a>` : '') +
+            '</p>'
+        );
+    } 
+    else 
+    {
+        const pages = Math.ceil(lines/LINES_PER_PAGE);
+        const page_labels = new Array(pages-1);
+        for (let i = 1; i < pages; i++) {
+            page_labels.push(`<div class='page-label'>${i}</div>`)
+        }
+
+        return (
+            '<div class="content-container">' +
+                `<p>${content}</p>` +
+                '<div class="page-labels-container">' +
+                    page_labels.join('') +
+                '</div>' +
+            '</div>'
+        );
+    }
 }
 
 export {

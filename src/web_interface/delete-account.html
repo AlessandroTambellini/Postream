@@ -65,30 +65,26 @@
     {{ #side-panel }}
     
     <script type="module">
-        import { req, FeedbackCard, } from './_universal.js';
+        import { 
+            req, 
+            Form, 
+        } from './_universal.js';
 
-        const delete_account_form = document.querySelector('form');
-        const feedback_card = new FeedbackCard(delete_account_form.querySelector('.feedback-card'));
-
-        delete_account_form.addEventListener('submit', handle_account_deletion);
-
-        async function handle_account_deletion(e)
-        {
-            e.preventDefault();
-            feedback_card.hide();
-
-            const path = delete_account_form.attributes.action.value;
-            const method = delete_account_form.attributes.method.value;
-            
-            const { req_error } = await req(path, method);
-
-            if (req_error) {
-                feedback_card.show('error', req_error.interpret('user', 'delete'));
-            } else {
-                document.cookie = 'password_hash=';
-                location.href = '/';
+        new Form(
+            document.querySelector('form'), 
+            async (_this, res) => 
+            {
+                const { req_error } = await req(_this.action, _this.method);
+        
+                if (req_error) {
+                    res.type = 'error';
+                    res.msg = req_error.interpret('account', 'delete');
+                } else {
+                    document.cookie = 'password_hash=';
+                    location.href = '/';
+                }
             }
-        }
+        );
     </script>
 </body>
 </html>

@@ -102,9 +102,11 @@ async function req(path, method, search_params, req_payload = null)
     return res;
 }
 
-function prettify_date(date)
+function prettify_card_date(card)
 {
-    const locale_date = new Date(date).toLocaleString();
+    const time = card.querySelector('time');
+
+    const locale_date = new Date(time.dateTime).toLocaleString();
 
     const week_days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = [null, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -116,7 +118,7 @@ function prettify_date(date)
     const [clock_time, am_pm] = day_time.split(' ');
     const [hour, mins] = clock_time.split(':');
 
-    return `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
+    time.textContent = `${week_days[week_day]}, ${day} ${months[month]} ${year}, ${hour}:${mins} ${am_pm}`;
 }
 
 function sanitize_input(input) {
@@ -194,8 +196,7 @@ class FeedbackCard {
 
 export {
     req,
-    prettify_date,
+    prettify_card_date,
     sanitize_input,
     Form,
-    FeedbackCard,
 };

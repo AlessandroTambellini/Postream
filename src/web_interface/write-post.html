@@ -27,7 +27,7 @@
     <main>
         <h1 class="visually-hidden">Write Post</h1>
     
-        <form action="api/post" method="POST">
+        <form id="write-post-form" action="api/post" method="POST">
                 
             <div class="textarea-container">
                 <textarea name="post-textarea" placeholder="_"></textarea> 
@@ -58,7 +58,24 @@
             Form,
         } from './_universal.js';
 
-        const write_post = new Form(document.querySelector('form'), handle_post_submission);
+        const write_post = new Form(
+            document.querySelector('#write-post-form'), 
+            async (_this, res) => 
+            {
+                const { req_error } = await req(_this.action, _this.method, null, { 
+                    content: sanitize_input(textarea.value) 
+                });
+
+                if (req_error) {
+                    res.type = 'error';
+                    res.msg = req_error.interpret('post', 'send');
+                } else {
+                    res.type = 'success';
+                    res.msg = 'Post created successfully';
+                }
+            }
+        );
+
         const textarea = write_post.form.querySelector('textarea');
         const page_labels_container = write_post.form.querySelector('.page-labels-container');
 
@@ -88,23 +105,6 @@
                 num_of_labels = page_labels_container.children.length;
             }
         });
-
-        async function handle_post_submission(_this, res) 
-        {
-            const { req_error } = await req(_this.action, _this.method, null, { 
-                content: sanitize_input(textarea.value) 
-            });
-
-            if (req_error) {
-                res.type = 'error';
-                res.msg = req_error.interpret('post', 'send');
-                return;
-            } else {
-                res.type = 'success';
-                res.msg = 'Post created successfully';
-                return;
-            }
-        }
     </script>
 </body>
 </html>

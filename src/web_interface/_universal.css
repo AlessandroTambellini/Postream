@@ -541,7 +541,7 @@ button {
     padding-right: var(--card-padding);
 }
 
-.card .content-container {
+.content-container {
     display: flex;
 }
 

@@ -36,9 +36,9 @@
         {{ .post-card }}
 
         <script type="module">
-            import { prettify_date } from './_universal.js';
-            const time = document.querySelector('.post-card time');
-            time.textContent = prettify_date(time.dateTime);
+            import { prettify_card_date } from './_universal.js';
+            
+            prettify_card_date(document.querySelector('.post-card'));
         </script>
 
         <form id="reply-form" action="api/reply" method="POST">

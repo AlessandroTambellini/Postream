@@ -52,7 +52,7 @@
             {{ notification-cards }}
         </div>
 
-        <nav id="filter-notifications-nav">
+        <nav id="filter-notifications-nav" style="{{ display-filter }}">
             <form id="load-page-form" action="api/notifications/user/page" method="get">
                 <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
                 <div class="card feedback-card display-none">
@@ -67,7 +67,7 @@
                 <button class="secondary-btn" type="submit" aria-label="load a notifications page">Load</button>
             </form>
     
-            <form id="search-notification-form" action="api/notifications/user/search" method="get">
+            <form id="search-notification-form" action="api/notifications/user/page" method="get">
                 <input name="search-notification-input" type="search" placeholder="Search Notification" required>
                 <div class="card feedback-card display-none">
                     <span role='img' alt='feedback icon'></span>
@@ -94,13 +94,13 @@
         const notifications_container = document.querySelector('#notifications-container');
         const notification_cards = notifications_container.querySelectorAll('.notification-card');
         
-        const load_page_form = new Form(document.querySelector('#load-page-form'), handle_page_req);
-        const load_page_input = load_page_form.form.querySelector('input');
-        const search_notification_form = new Form(
+        const load_page = new Form(document.querySelector('#load-page-form'), req_page);
+        const load_page_input = load_page.form.querySelector('input');
+        const search_notification = new Form(
             document.querySelector('#search-notification-form'), 
-            handle_search_notification_req
+            req_search_notification
         );
-        const search_notification_input = search_notification_form.form.querySelector('input');
+        const search_notification_input = search_notification.form.querySelector('input');
         
         const PAGE_SIZE = notification_cards.length;
         const displayed_pages = new Set();
@@ -115,7 +115,7 @@
             );
         });
 
-        async function handle_page_req(action, method, res)
+        async function req_page(action, method, res)
         {
             const requested_page = Number(load_page_input.value);
             
@@ -158,13 +158,13 @@
             displayed_pages.add(requested_page);
         }
 
-        async function handle_search_notification_req(_this, res)
+        async function req_search_notification(_this, res)
         {
             const { 
                 payload: notifications, 
                 req_error, 
             } = await req(_this.action, _this.method, { 
-                search_term: search_notification_input.value,
+                match: search_notification_input.value,
                 format: 'html',
             });
 

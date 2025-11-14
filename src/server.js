@@ -25,7 +25,9 @@ if (process.argv[1] === import.meta.filename)
             cert: readFileSync(join(CERTIFICATES_PATH, 'certificate.pem')),
         }) : http.createServer();
 
-    server.on('request', handle_request);
+    server.on('request', (req, responder) => {
+        serve_req(req, new Messenger(responder));
+    });
     server.on('listening', () => console.log(`INFO: Server started on ${PROTOCOL}://localhost:${PORT}`));
     server.on('error', e => handle_server_error(server, e));
 
@@ -38,18 +40,8 @@ if (process.argv[1] === import.meta.filename)
     server.listen(PORT);
 }
 
-function handle_request(req, res)
+function serve_req(req, messenger)
 {
-    const res_data = new ResData();
-
-    const { url, url_error } = get_url(req.url);
-
-    if (url_error) {
-        res_data.error(400, 'Invalid URL');
-        write_res(res, res_data);
-        return;
-    }
-
     const body = [];
     let buffer_size = 0;
     let f_abort = false;
@@ -61,11 +53,12 @@ function handle_request(req, res)
         buffer_size += buffer.length;
         if (buffer_size > MAX_BUFFER_SIZE)
         {
-            res_data.error(413,
-                `Content too large. Exceeded ${MAX_BUFFER_SIZE} bytes. Received ${buffer_size} bytes`,
-                true);
+            const res = new Res(413, 
+                { Error: `Content too large. Exceeded ${MAX_BUFFER_SIZE} bytes. Received ${buffer_size} bytes` }, 
+                'application/json'
+            );
 
-            write_res(res, res_data);
+            messenger.send(res);
             f_abort = true;
             return;
         }
@@ -77,17 +70,19 @@ function handle_request(req, res)
     {
         if (f_abort) return;
 
-        const req_data = {
-            'path': scrub_path(url.pathname),
-            'search_params': url.searchParams,
-            'method': req.method.toUpperCase(),
-        };
+        const { url, url_error } = get_url(req.url);
+
+        if (url_error) {
+            const res = new Res(400, { Error: 'Invalid URL' }, 'application/json');
+            messenger.send(res);
+            return;
+        }
 
         const { cookies, cookies_error } = parse_cookies(req.headers);
         
         if (cookies_error) {
-            res_data.error(400, cookies_error);
-            write_res(res, res_data);
+            const res = new Res(400, { Error: cookies_error }, 'application/json');
+            messenger.send(res);
             return;
         }
 
@@ -95,67 +90,34 @@ function handle_request(req, res)
         const { obj, JSON_error } = convert_JSON_to_obj(JSON_payload);
         
         if (JSON_error) {
-            res_data.error(400, JSON_error);
-            write_res(res, res_data);
+            const res = new Res(400, { Error: JSON_error }, 'application/json');
+            messenger.send(res);
             return;
         }
-        
+
+        const req_data = {};
+        req_data.path = scrub_path(url.pathname); 
+        req_data.search_params = url.searchParams;
+        req_data.method = req.method.toUpperCase();        
         req_data.cookies = cookies;
         req_data.payload = obj;
 
-        try {
-            if (handlers[req_data.path]) {
-                await handlers[req_data.path](req_data, res_data);
-            } else {
-                await get_asset(req_data, res_data);
-            }
-        } catch (error) {
-            log_error(error);
-            res_data.error(500, 'An unexpected error has occurred while processing the request');
-            write_res(res, res_data);
-            return;
+        let res = null;
+        if (handlers[req_data.path]) {
+            res = await handlers[req_data.path](req_data);
+        } else {
+            res = await get_asset(req_data);
         }
 
-        write_res(res, res_data);
+        messenger.send(res);
     });
 
     req.on('error', err => {
         console.error('ERROR: Request error:', err);
-        if (!res.headersSent) {
-            res_data.error(400, 'Bad request');
-            write_res(res, res_data);
+        if (!messenger.responder.headersSent) {
+            messenger.send(new Res(400, { Error: 'Bad request' }, 'application/json'));
         }
     });
-
-    res.on('error', err => {
-        console.error('ERROR: Response error:', err);
-    });
-}
-
-function write_res(res, res_data)
-{
-    let payload;
-    if (res_data.content_type === 'application/json')
-    {
-        const { json, obj_error } = convert_obj_to_JSON(res_data.payload);
-        if (obj_error) {
-            res.writeHead(500, { 'Content-Type': 'text/plain' });
-            res.end('Internal Server Error');
-            return;
-        }
-        payload = json;
-    } else {
-        payload = res_data.payload;
-    }
-
-    res.strictContentLength = true;
-    res.writeHead(res_data.status_code, {
-        'Content-Length': Buffer.byteLength(payload),
-        'Content-Type': res_data.content_type,
-        'X-Frame-Options': 'SAMEORIGIN',
-    });
-
-    res.end(payload);
 }
 
 function get_url(url_string)
@@ -260,29 +222,70 @@ function shutdown_server(server, signal)
     });
 }
 
-class ResData {
-    status_code = 500;
-    payload = {};
-    content_type = 'application/json';
+class Messenger {
+    constructor(responder) {
+        this.responder = responder;
+        this.responder.on('error', err => {
+            console.error('ERROR: Response error:', err);
+        });
+    }
 
-    error(status_code, error_msg = '', server_log = false) {
-        this.status_code = status_code;
+    send(res)
+    {
+        let payload = null;
+        if (res.content_type === 'application/json')
+        {
+            const { 
+                json, 
+                obj_error, 
+            } = convert_obj_to_JSON(res.payload);
+            
+            if (obj_error) {
+                this.responder.writeHead(500, { 'Content-Type': 'text/plain' });
+                this.responder.end('Internal Server Error');
+            } else {
+                payload = json;
+            }
+        } else {
+            payload = res.payload;
+        }
+
+        this.responder.strictContentLength = true;
+        this.responder.writeHead(res.code, {
+            'Content-Length': Buffer.byteLength(payload),
+            'Content-Type': res.content_type,
+            'X-Frame-Options': 'SAMEORIGIN',
+        });
+
+        this.responder.end(payload);
+    }
+}
+
+class Res {
+    constructor(code, payload, content_type) {
+        this.code = code;
+        this.payload = payload;
+        this.content_type = content_type;
+    }
+
+    error(code, error_msg = '', server_log = false) {
+        this.code = code;
         this.payload = { Error: `${error_msg}.` };
         this.content_type = 'application/json';
 
         if (server_log) console.error(`ERROR: ${error_msg}.`);
     }
 
-    success(status_code, payload = {}, content_type = 'application/json') {
-        this.status_code = status_code;
+    success(code, payload = {}, content_type = 'application/json') {
+        this.code = code;
         this.payload = payload;
         this.content_type = content_type;
     }
 
     /* The 'page' method was added,
     because calling 'res_data.success()' for a 500/401 fallback page doesn't seem semantically clear to me. */
-    page(status_code, payload = '') {
-        this.status_code = status_code;
+    page(code, payload = '') {
+        this.code = code;
         this.payload = payload;
         this.content_type = 'text/html';
     }

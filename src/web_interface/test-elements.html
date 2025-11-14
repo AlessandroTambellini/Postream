@@ -46,11 +46,10 @@
         {{ .reply-card }}
         
         <script type="module">
-            import { prettify_date } from './_universal.js';
-            let time = document.querySelector('.post-card time');
-            time.textContent = prettify_date(time.dateTime);
-            time = document.querySelector('.reply-card time');
-            time.textContent = prettify_date(time.dateTime);
+            import { prettify_card_date } from './_universal.js';
+
+            prettify_card_date(document.querySelector('.post-card'));
+            prettify_card_date(document.querySelector('.reply-card'));
         </script>
 
         {{ .notification-card }}

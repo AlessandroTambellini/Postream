@@ -60,7 +60,7 @@
     <script type="module">
         import { 
             req, 
-            prettify_date,
+            prettify_card_date,
             Form, 
         } from './_universal.js';
 
@@ -77,9 +77,8 @@
         const displayed_pages = new Set();
         displayed_pages.add(last_page);
 
-        post_cards.forEach(post => {
-            const time = post.querySelector('time');
-            time.textContent = prettify_date(time.dateTime);
+        post_cards.forEach(post_card => {
+            prettify_card_date(post_card);
         });
 
         async function handle_page_req(_this, res) 
@@ -111,8 +110,7 @@
             posts_container.appendChild(document.createElement('hr'));
             posts.forEach(post => {
                 const post_card = document.createRange().createContextualFragment(post.card);
-                const time = post_card.querySelector('time');
-                time.textContent = prettify_date(time.dateTime);
+                prettify_card_date(post_card);
                 posts_container.appendChild(post_card);
             });
         }

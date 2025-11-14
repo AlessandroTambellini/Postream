@@ -8,27 +8,32 @@ import { DOMElements, fallback_page } from "./templates.js";
 const WEB_INTERFACE_PATH = path.join(import.meta.dirname, 'web_interface');
 const cached_pages = new Map();
 
-const APOLOGY_MSG = (entity) => (
-    `Sorry, but for an unknown reason, the server isn't able to retrieve the ${entity} :(`
+const ERR_CUSTOM = msg => (
+    { Error: msg }
 );
-const MSG_INVALID_METHOD = (method, path) => (
-    `The method '${method}' isn't allowed for path '${path}'`
+const ERR_INVALID_METHOD = (method, path) => (
+    { Error: `The method '${method}' isn't allowed for path '${path}'`}
 );
-const MSG_INVALID_SEARCH_PARAM = (header_name) => (
-    `Missing or invalid '${header_name}' search param`
+const ERR_INVALID_SEARCH_PARAM = header_name => (
+    { Error: `Missing or invalid '${header_name}' search param`}
 );
-const MSG_INVALID_COOKIE = (cookie_name) => (
-    `Missing or invalid '${cookie_name}' cookie`
+const ERR_INVALID_COOKIE = cookie_name => (
+    { Error: `Missing or invalid '${cookie_name}' cookie`}
 );
-const MSG_INVALID_PAYLOAD_FIELD = (field_name) => (
-    `Missing or invalid '${field_name}' field`
+const ERR_INVALID_PAYLOAD_FIELD = field_name => (
+    { Error: `Missing or invalid '${field_name}' field`}
 );
-const MSG_NOT_FOUND = (entity, field) => (
-    `No ${entity} for the specified '${field}'`
+const ERR_NOT_FOUND = (entity, field) => (
+    { Error: `No ${entity} for the specified '${field}'`}
 );
-const MSG_UNKNOWN_DB_ERROR = (action, entity) => (
-    `Un unknown database error has occured while trying to ${action} the ${entity}`
+const ERR_INVALID_DB_QUERY = (action, entity) => (
+    { Error: `Some of the arguments passed to ${action} the ${entity} may be invalid`}
 );
+
+const type = {
+    JSON: 'application/json',
+    HTML: 'text/html',
+};
 
 const handlers = {};
 
@@ -42,10 +47,23 @@ const handlers = {};
     '/notifications',
     '/write-reply',
     '/read-post',
+    '/read-reply',
     '/logout',
     '/delete-account',
     '/test-elements',
     '/logo',
+    
+    // '/api/apis',
+    // '/api/posts',
+    // '/api/tokens/:token-id',
+    // '/api/users/:user-id',
+    // '/api/users/:user-id/posts',
+    // '/api/users/:user-id/posts/:post-id',
+    // '/api/users/:user-id/posts/:post-id/replies',
+    // '/api/users/:user-id/posts/:post-id/replies/:reply-id',
+    // '/api/users/:user-id/notifications',
+    // '/api/users/:user-id/notifications/:notification-id',
+
     '/api/apis',
     '/api/user',
     '/api/token',
@@ -56,36 +74,42 @@ const handlers = {};
     '/api/user/notifications',
     '/api/posts/user/page',
     '/api/notifications/user/page',
-    '/api/posts/user/search',
-    '/api/notifications/user/search',
 
 ].forEach(path => {
-    handlers[path] = async function(req_data, res_data) {
-        if (this[path][req_data.method]) {
-            // Page handlers aren't asynchronous, while APIs are. 
-            // Using async for both isn't an issue.
-            await this[path][req_data.method](req_data, res_data);
+    handlers[path] = async function(req_data) 
+    {
+        if (this[path][req_data.method]) 
+        {
+            try {
+                // Page handlers aren't asynchronous, while APIs are. 
+                // Using async for both isn't an issue.
+                return await this[path][req_data.method](req_data);
+                
+            } catch (error) {
+                log_error(error);
+                return new Res(500, ERR_CUSTOM('An unexpected error has occurred while routing the request'), 
+                    type.JSON
+                );
+            }
         } else {
-            res_data.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
+            return new Res(405, ERR_INVALID_METHOD(req_data.method, req_data.path), type.JSON);
         }
     }
 });
 
 handlers['/'].GET = 
-handlers['/index'].GET = async function(req_data, res_data)
+handlers['/index'].GET = async function(req_data)
 {
     const { page, fs_error } = await get_page('index');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (auth_error.code === 500) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const { count, db_error } = db_ops.count_posts();
@@ -94,7 +118,7 @@ handlers['/index'].GET = async function(req_data, res_data)
     const { data: posts, db_error: posts_error } = db_ops.select_posts_page();
 
     let post_cards;
-    if (posts_error) post_cards = DOMElements['.info-msg'](APOLOGY_MSG('posts'));
+    if (posts_error) post_cards = DOMElements['.info-msg'](ERR_INVALID_DB_QUERY('get', 'posts'));
     else if (posts.length === 0) post_cards = DOMElements['.info-msg']('There aren\'t posts.');
     else post_cards = posts.map(post => DOMElements['.post-card'](post, 2, true)).join('');
 
@@ -104,16 +128,15 @@ handlers['/index'].GET = async function(req_data, res_data)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'index'))
     ;
 
-    res_data.page(200, res);
+    return new Res(200, res, type.HTML);
 };
 
-handlers['/profile'].GET = async function(req_data, res_data)
+handlers['/profile'].GET = async function(req_data)
 {
     const { page, fs_error } = await get_page('profile');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const { user_id, auth_error } = auth_user(req_data.cookies);
@@ -121,62 +144,71 @@ handlers['/profile'].GET = async function(req_data, res_data)
     if (!user_id) {
         // Even though there isn't the user_id, not necessarily is a 401. 
         // So, better to pass the status code
-        res_data.page(auth_error.code, fallback_page(auth_error.code));
-        return;
+        return new Res(auth_error.code, fallback_page(auth_error.code), type.HTML);
     }
 
     const { count, db_error } = db_ops.count_user_posts(user_id);
     const last_page = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
 
-    const { data: posts, db_error: posts_error } = db_ops.select_user_posts_page(user_id);    
+    const { 
+        data: posts, 
+        db_error: posts_error, 
+    } = db_ops.select_user_posts_page(user_id);    
 
-    let post_cards;
+    let post_cards = [];
+    let info_msg = '';
 
-    if (posts_error) post_cards = DOMElements['.info-msg'](APOLOGY_MSG('posts'));
-    else if (posts.length === 0) post_cards = DOMElements['.info-msg']('You didn\'t create any post yet.');
-    else post_cards = posts.map(post => DOMElements['.post-card'](post, 1, true)).join('');
+    if (posts_error) {
+        info_msg = DOMElements['.info-msg'](ERR_INVALID_DB_QUERY('get', 'posts'));
+    } else if (posts.length === 0) {
+        info_msg = DOMElements['.info-msg']('You didn\'t create any post yet.');
+    } else {
+        post_cards = posts.map(post => DOMElements['.post-card'](post, 1, true));
+    }
 
     const res = page
         .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
-        .replace('{{ post-cards }}', post_cards)
+        .replace('{{ post-cards }}', post_cards.length > 0 ? post_cards.join('') : info_msg)
+        .replace('{{ display-filter }}', last_page > 1 ? '' : 'display: none;')
         .replaceAll('{{ last-page }}', last_page)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'profile'))
     ;
 
-    res_data.page(200, res);
+    return new Res(200, res, type.HTML);
 };
 
-handlers['/notifications'].GET = async function(req_data, res_data)
+handlers['/notifications'].GET = async function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.page(auth_error.code, fallback_page(auth_error.code));
-        return;
+        return new Res(auth_error.code, fallback_page(auth_error.code), type.HTML);
     }
 
     const { page, fs_error } = await get_page('notifications');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const { count, db_error } = db_ops.count_user_notifications(user_id);
-    const pages = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
+    const last_page = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
 
-    const { data: notifications, db_error: notifications_error } = db_ops.select_user_notifications_page(user_id);
+    const { 
+        data: notifications, 
+        db_error: notifications_error,
+    } = db_ops.select_user_notifications_page(user_id);
 
     if (notifications_error) {
-        res_data.page(500, fallback_page(500, APOLOGY_MSG('notifications')));
-        return;
+        return new Res(500, fallback_page(500, ERR_INVALID_DB_QUERY('get', 'notifications')), type.HTML);
     }
 
-    let notification_cards;
+    let notification_cards = [];
+    let info_msg = '';
 
-    if (notifications_error) notification_cards = DOMElements['.info-msg'](APOLOGY_MSG('notifications'));
-    else if (notifications.length === 0) notification_cards = DOMElements['.info-msg']('You don\'t have any notification :)');
-    else {
+    if (notifications.length === 0) {
+        info_msg = DOMElements['.info-msg']('You don\'t have any notification :)');
+    } else {
         notification_cards = new Array(notifications.length);
         notifications.forEach(notification => {
             const { data: post, db_error } = db_ops.select_post(notification.post_id)
@@ -185,107 +217,97 @@ handlers['/notifications'].GET = async function(req_data, res_data)
                 notification_cards.push(DOMElements['.notification-card'](notification));
             }
         });
-
-        notification_cards = notification_cards.join('');
     }
 
     const res = page
-        .replace('{{ notification-cards }}', notification_cards)
-        .replaceAll('{{ last-page }}', pages)
+        .replace('{{ notification-cards }}', notification_cards.length > 0 ? notification_cards.join('') : info_msg)
+        .replace('{{ display-filter }}', last_page > 1 ? '' : 'display: none;')
+        .replaceAll('{{ last-page }}', last_page)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'notifications'))
     ;
 
-    res_data.page(200, res);
+    return new Res(200, res, type.HTML);
 };
 
-handlers['/create-account'].GET = async function(req_data, res_data)
+handlers['/create-account'].GET = async function(req_data)
 {
     const { page, fs_error } = await get_page('create-account');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const res = page
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](false, 'create-account'))
     ;
 
-    res_data.page(200, res);
+    return new Res(200, res, type.HTML);
 };
 
-handlers['/login'].GET = async function(req_data, res_data)
+handlers['/login'].GET = async function(req_data)
 {
     const { page, fs_error } = await get_page('login');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const res = page
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](false, 'login'))
     ;
 
-    res_data.page(200, res);
+    return new Res(200, res, type.HTML);
 };
 
-handlers['/write-post'].GET = async function(req_data, res_data)
+handlers['/write-post'].GET = async function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.page(auth_error.code, fallback_page(auth_error.code));
-        return;
+        return new Res(auth_error.code, fallback_page(auth_error.code), type.HTML);
     }
 
     const { page, fs_error } = await get_page('write-post');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const res = page
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'write-post'))
     ;
 
-    res_data.page(200, res);
+    return new Res(200, res, type.HTML);
 };
 
-handlers['/write-reply'].GET = async function(req_data, res_data)
+handlers['/write-reply'].GET = async function(req_data)
 {
     const { page, fs_error } = await get_page('write-reply');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const post_id = parseInt(req_data.search_params.get('id'));
 
     if (!post_id) {
-        res_data.page(400, fallback_page(400, MSG_INVALID_SEARCH_PARAM('id')));
-        return;
+        return new Res(400, fallback_page(400, ERR_INVALID_SEARCH_PARAM('id')), type.HTML);
     }
 
     const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     if (!post) {
-        res_data.page(404, fallback_page(404, 'The post you requested doesn\'t exists'));
-        return;
+        return new Res(404, fallback_page(404, 'The post you requested doesn\'t exists'), type.HTML);
     }
 
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (auth_error.code === 500) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const res = page
@@ -293,47 +315,100 @@ handlers['/write-reply'].GET = async function(req_data, res_data)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'write-reply'))
     ;
 
-    res_data.page(200, res);
+    return new Res(200, res, type.HTML);
 };
 
-handlers['/read-post'].GET = async function(req_data, res_data)
+handlers['/read-reply'].GET = async function(req_data)
+{
+    const { user_id, auth_error } = auth_user(req_data.cookies);
+
+    if (!user_id) {
+        return new Res(auth_error.code, fallback_page(auth_error.code), type.HTML);
+    }
+
+    const { page, fs_error } = await get_page('read-reply');
+
+    if (fs_error) {
+        return new Res(500, fallback_page(500), type.HTML);
+    }
+
+    const reply_id = parseInt(req_data.search_params.get('id'));
+
+    if (!reply_id) {
+        return new Res(400, fallback_page(400, ERR_INVALID_SEARCH_PARAM('id')), type.HTML);
+    }
+
+    const { data: reply, db_error } = db_ops.select_reply(reply_id);
+
+    if (db_error) {
+        return new Res(500, fallback_page(500), type.HTML);
+    }
+
+    if (!reply) {
+        return new Res(404, fallback_page(404), type.HTML);
+    }
+
+    const { 
+        data: post, 
+        db_error: post_error 
+    } = db_ops.select_post(reply.post_id);
+
+    if (db_error) {
+        return new Res(500, fallback_page(500), type.HTML);
+    }
+
+    if (!post) {
+        return new Res(404, fallback_page(404), type.HTML);
+    }
+
+    if (post.user_id !== user_id) {
+        return new Res(401, fallback_page(401, 'Only the author of the post can read its replies'), type.HTML);
+    }
+
+    const res = page
+        .replace('{{ post-id }}', post.id)
+        .replace('{{ .reply-card }}', DOMElements['.reply-card'](reply))
+        .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'read-post'))
+    ;
+
+    return new Res(200, res, type.HTML);
+};
+
+handlers['/read-post'].GET = async function(req_data)
 {
     const { page, fs_error } = await get_page('read-post');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const post_id = parseInt(req_data.search_params.get('id'));
 
     /* NaN is considered a falsy value, therefore I can write 'if (!post_id)' */
     if (!post_id) {
-        res_data.page(400, fallback_page(400, MSG_INVALID_SEARCH_PARAM('id')));
-        return;
+        return new Res(400, fallback_page(400, ERR_INVALID_SEARCH_PARAM('id')), type.HTML);
     }
 
     const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     if (!post) {
-        res_data.page(404, fallback_page(404));
-        return;
+        return new Res(404, fallback_page(404), type.HTML);
     }
 
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (auth_error.code === 500) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
-    let reply_cards = '';
+    let reply_cards = [];
+    let info_msg = '';
     let last_page = 1;
+    
     if (post.user_id === user_id)
     {
         const { count, db_error } = db_ops.count_post_replies(post_id);
@@ -344,32 +419,33 @@ handlers['/read-post'].GET = async function(req_data, res_data)
             db_error: replies_error 
         } = db_ops.select_post_replies_page(post_id);
 
-        if (replies_error) reply_cards = DOMElements['.info-msg'](APOLOGY_MSG('replies'));
-        else if (replies.length === 0) reply_cards = DOMElements['.info-msg']('There aren\'t replies.');
-        else {
+        if (replies_error) {
+            info_msg = DOMElements['.info-msg'](ERR_INVALID_DB_QUERY('get', 'replies'));
+        } else if (replies.length === 0) {
+            info_msg = DOMElements['.info-msg']('There aren\'t replies.');
+        } else {
             reply_cards = new Array(replies.length);
-            reply_cards.push(...replies.map(reply => DOMElements['.reply-card'](reply)));
-            reply_cards = reply_cards.join('')
+            reply_cards.push(...replies.map(reply => DOMElements['.reply-card'](reply, true)));
         }
     }
 
     const res = page
         .replace('{{ .post-card }}', DOMElements['.post-card'](post, user_id && post.user_id !== user_id ? 2 : 0))
-        .replace('{{ replies }}', reply_cards)
+        .replace('{{ replies }}', reply_cards.length > 0 ? reply_cards.join('') : info_msg)
+        .replace('{{ display-filter }}', last_page > 1 && post.user_id === user_id ? '' : 'display: none;')
         .replaceAll('{{ last-page }}', last_page)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'read-post'))
     ;
 
-    res_data.page(200, res);
+    return new Res(200, res, type.HTML);
 };
 
-handlers['/test-elements'].GET = async function(req_data, res_data)
+handlers['/test-elements'].GET = async function(req_data)
 {
     const { page, fs_error } = await get_page('test-elements');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
     const card = {
@@ -386,74 +462,72 @@ handlers['/test-elements'].GET = async function(req_data, res_data)
         num_of_replies: 2,
     };
 
-    res_data.page(200, page
+    const payload = page
         .replace('{{ .profile-picture }}', DOMElements['.profile-picture'](50, 300))
         .replace('{{ .post-card }}', DOMElements['.post-card'](card))
         .replace('{{ .reply-card }}', DOMElements['.reply-card'](card))
         .replace('{{ .notification-card }}', DOMElements['.notification-card'](notif_card))
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'test-elements'))
-    );
+    ;
+
+    return new Res(200, payload, type.HTML);
 };
 
-handlers['/logout'].GET = async function(req_data, res_data)
+handlers['/logout'].GET = async function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.page(auth_error.code, fallback_page(auth_error.code));
-        return;
+        return new Res(auth_error.code, fallback_page(auth_error.code), type.HTML);
     }
 
     const { page, fs_error } = await get_page('logout');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
-    res_data.page(200, page
-        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'logout'))
-    );
+    const payload = page.replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'logout'))
+
+    return new Res(200, payload, type.HTML);
 };
 
-handlers['/delete-account'].GET = async function(req_data, res_data)
+handlers['/delete-account'].GET = async function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.page(auth_error.code, fallback_page(auth_error.code));
-        return;
+        return new Res(auth_error.code, fallback_page(auth_error.code), type.HTML);
     }
 
     const { page, fs_error } = await get_page('delete-account');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
-        return;
+        return new Res(500, fallback_page(500), type.HTML);
     }
 
-    res_data.page(200, page
-        .replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'delete-account'))
-    );
+    const payload = page.replace('{{ #side-panel }}', DOMElements['#side-panel'](true, 'delete-account'));
+
+    return new Res(200, payload, type.HTML);
 };
 
-handlers['/logo'].GET = async function(req_data, res_data)
+handlers['/logo'].GET = async function(req_data)
 {
     const { page, fs_error } = await get_page('logo');
 
     if (fs_error) {
-        res_data.page(500, fallback_page(500));
+        return new Res(500, fallback_page(500), type.HTML);
     } else {
-        res_data.page(200, page);
+        return new Res(200, page, type.HTML);
     }
 };
 
-handlers['/api/apis'].GET = function(req_data, res_data)
+handlers['/api/apis'].GET = function(req_data)
 {
-    res_data.success(200, { 'Available APIs': Object.keys(APIs) });
+    return new Res(200, { 'Available APIs': Object.keys(APIs) }, type.JSON);
 };
 
-handlers['/api/user'].POST = function(req_data, res_data)
+handlers['/api/user'].POST = function(req_data)
 {
     const password = generate_password();
 
@@ -466,64 +540,57 @@ handlers['/api/user'].POST = function(req_data, res_data)
     const { password_hash, hash_error } = hash_password(password, true);
 
     if (hash_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('create', 'password'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('create', 'password'), type.JSON);
     }
 
     const user_id = db_ops.insert_user(password_hash);
 
     if (!user_id) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'user'));
+        return new Res(500, ERR_INVALID_DB_QUERY('insert', 'user'), type.JSON);
     } else {
-        res_data.success(200, { password });
+        return new Res(200, { password }, type.JSON);
     }
 };
 
-handlers['/api/user'].DELETE = function(req_data, res_data)
+handlers['/api/user'].DELETE = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
+        return new Res(auth_error.code, auth_error.msg, type.JSON);
     }
 
     const { is_data_deleted, db_error } = db_ops.delete_user(user_id);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'user'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('delete', 'user'), type.JSON);
     }
 
     if (!is_data_deleted) {
-        res_data.error(404, MSG_NOT_FOUND('user', 'user_id'));
-        return;
+        return new Res(404, ERR_NOT_FOUND('user', 'user_id'), type.JSON);
     }
 
-    res_data.success(200);
+    return new Res(200, type.JSON);
 };
 
-handlers['/api/token'].GET = function(req_data, res_data)
+handlers['/api/token'].GET = function(req_data)
 {
     const password = req_data.search_params.get('password');
 
     const { password_hash, hash_error } = hash_password(password);
     
     if (hash_error) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('password'));
-        return;
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('password'), type.JSON);
     }
 
     const { data: user, db_error } = db_ops.select_user(password_hash);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'user'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('select', 'user'), type.JSON);
     }
 
     if (!user) {
-        res_data.error(404, MSG_NOT_FOUND('user', 'password'));
-        return;
+        return new Res(404, ERR_NOT_FOUND('user', 'password'), type.JSON);
     }
 
     const { 
@@ -532,222 +599,198 @@ handlers['/api/token'].GET = function(req_data, res_data)
     } = db_ops.select_token(user.id);
 
     if (token_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('validate', 'token'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('validate', 'token'), type.JSON);
     }
 
     if (token) {
-        res_data.success(200, token);
+        return new Res(200, token, type.JSON);
     } else {
-        res_data.error(404, MSG_NOT_FOUND('token', 'password'));
+        return new Res(404, ERR_NOT_FOUND('token', 'password'), type.JSON);
     }
 };
 
-handlers['/api/token'].POST = function(req_data, res_data)
+handlers['/api/token'].POST = function(req_data)
 {
     const { password } = req_data.payload;
 
     const { password_hash, hash_error } = hash_password(password);
 
     if (hash_error) {
-        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('password'));
-        return;
+        return new Res(400, ERR_INVALID_PAYLOAD_FIELD('password'), type.JSON);
     }
 
     const { data: user, db_error } = db_ops.select_user(password_hash);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'user'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('select', 'user'), type.JSON);
     }
 
     if (!user) {
-        res_data.error(404, MSG_NOT_FOUND('user', 'password'));
-        return;
+        return new Res(404, ERR_NOT_FOUND('user', 'password'), type.JSON);
     }
 
     const { data: token, db_error: token_error } = db_ops.select_token(user.id);
 
     if (token_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('validate', 'token'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('validate', 'token'), type.JSON);
     }
 
     if (token) {
-        res_data.error(400, 'A token for that user already exists');
-        return;
+        return new Res(400, ERR_CUSTOM('A token for that user already exists'), type.JSON);
     }
 
     const token_id = db_ops.insert_token(user.id);
 
     if (!token_id) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'token'));
+        return new Res(500, ERR_INVALID_DB_QUERY('insert', 'token'), type.JSON);
     } else {
-        res_data.success(200, { password_hash });
+        return new Res(200, { password_hash }, type.JSON);
     }
 };
 
-handlers['/api/token'].PUT = function(req_data, res_data)
+handlers['/api/token'].PUT = function(req_data)
 {
     const { password } = req_data.payload;
     
     const { password_hash, hash_error } = hash_password(password);
     
     if (hash_error) {
-        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('password'));
-        return;
+        return new Res(400, ERR_INVALID_PAYLOAD_FIELD('password'), type.JSON);
     }
 
     const { data: user, db_error} = db_ops.select_user(password_hash);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'user'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('select', 'user'), type.JSON);
     }
 
     if (!user) {
-        res_data.error(404, MSG_NOT_FOUND('user', 'password'));
-        return;
+        return new Res(404, ERR_NOT_FOUND('user', 'password'), type.JSON);
     }
 
     const { data: token, db_error: token_error } = db_ops.select_token(user.id);
 
     if (token_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'token'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('select', 'token'), type.JSON);
     }
 
     if (!token) {
-        res_data.error(404, MSG_NOT_FOUND('token', 'user_id'));
-        return;
+        return new Res(404, ERR_NOT_FOUND('token', 'user_id'), type.JSON);
     }
 
     const { is_token_updated, db_error: update_token_error } = db_ops.update_token(user.id);
 
     if (update_token_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('update', 'token'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('update', 'token'), type.JSON);
     }
 
     if (!is_token_updated) {
-        res_data.error(404, MSG_NOT_FOUND('token', 'user id'));
-        return;
+        return new Res(404, ERR_NOT_FOUND('token', 'user id'), type.JSON);
     }
 
-    res_data.success(200, { password_hash });
+    return new Res(200, { password_hash }, type.JSON);
 };
 
-handlers['/api/post'].GET = function(req_data, res_data)
+handlers['/api/post'].GET = function(req_data)
 {
     const post_id = parseInt(req_data.search_params.get('id'));
 
     if (!post_id) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('id'));
-        return;
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('id'), type.JSON);
     }
 
     const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'post'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('select', 'post'), type.JSON);
     }
 
     if (!post) {
-        res_data.error(404, MSG_NOT_FOUND('post', 'id'));
-        return;
+        return new Res(404, ERR_NOT_FOUND('post', 'id'), type.JSON);
     }
 
-    res_data.success(200, post);
+    return new Res(200, post, type.JSON);
 };
 
-handlers['/api/post'].POST = function(req_data, res_data)
+handlers['/api/post'].POST = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
+        return new Res(auth_error.code, auth_error.msg, type.JSON);
     }
 
     const { content } = req_data.payload;
 
     if (!content || typeof content !== 'string') {
-        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
-        return;
+        return new Res(400, ERR_INVALID_PAYLOAD_FIELD('content'), type.JSON);
     }
 
     const post_id = db_ops.insert_post(user_id, content);
 
     if (!post_id) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'post'))
+        return new Res(500, ERR_INVALID_DB_QUERY('insert', 'post', type.JSON))
     } else {
-        res_data.success(200, { post_id });
+        return new Res(200, { post_id }, type.JSON);
     }
 };
 
-handlers['/api/post'].DELETE = function(req_data, res_data)
+handlers['/api/post'].DELETE = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
+        return new Res(auth_error.code, auth_error.msg, type.JSON);
     }
 
     const post_id = parseInt(req_data.search_params.get('id'));
 
     if (!post_id) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('id'));
-        return;
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('id'), type.JSON);
     }
 
     const { is_data_deleted, db_error } = db_ops.delete_post(post_id, user_id);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'post'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('delete', 'post'), type.JSON);
     }
 
     if (!is_data_deleted) {
-        res_data.error(404,  `Either the post for the specified 'id' doesn't exist, or you aren't the owner of that post`);
-        return;
+        return new Res(404, 
+            ERR_CUSTOM("Either the post for the specified 'id' doesn't exist," + 
+                "or you aren't the owner of that post"), 
+            type.JSON);
     }
 
-    res_data.success(200);
+    return new Res(200, { Success: 'post deleted successfully' }, type.JSON);
 };
 
-handlers['/api/reply'].POST = function(req_data, res_data)
+handlers['/api/reply'].POST = function(req_data)
 {
     const { post_id, content } = req_data.payload;
 
     if (!post_id) {
-        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('post_id'));
-        return;
+        return new Res(400, ERR_INVALID_PAYLOAD_FIELD('post_id'), type.JSON);
     }
     
     if (!content || typeof content !== 'string') {
-        res_data.error(400, MSG_INVALID_PAYLOAD_FIELD('content'));
-        return;
+        return new Res(400, ERR_INVALID_PAYLOAD_FIELD('content'), type.JSON);
     }
 
     const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'post'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('select', 'post'), type.JSON);
     }
 
     if (!post) {
-        res_data.error(404, MSG_NOT_FOUND('post', 'id'));
-        return;
+        return new Res(404, ERR_NOT_FOUND('post', 'id'), type.JSON);
     }
 
     const reply_id = db_ops.insert_reply(post_id, content);
 
     if (!reply_id) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'reply'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('insert', 'reply'), type.JSON);
     }
 
     const { 
@@ -756,8 +799,7 @@ handlers['/api/reply'].POST = function(req_data, res_data)
     } = db_ops.select_notification(post_id);
 
     if (notification_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('select', 'notification'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('select', 'notification'), type.JSON);
     }
 
     /* If a post is popular, it may get tons of replies and so,
@@ -774,293 +816,230 @@ handlers['/api/reply'].POST = function(req_data, res_data)
         const notification_id = db_ops.insert_notification(post.user_id, post.id, reply_id);
 
         if (!notification_id) {
-            res_data.error(500, MSG_UNKNOWN_DB_ERROR('insert', 'notification'));
-            return;
+            return new Res(500, ERR_INVALID_DB_QUERY('insert', 'notification'), type.JSON);
         }
     } else {
         const { is_notification_updated, db_error } = db_ops.update_notification(post_id);
         if (db_error) {
-            res_data.error(500, MSG_UNKNOWN_DB_ERROR('update', 'notification'));
-            return;
+            return new Res(500, ERR_INVALID_DB_QUERY('update', 'notification'), type.JSON);
         }
         if (!is_notification_updated) {
-            res_data.error(404, MSG_NOT_FOUND('notification', 'post_id'));
-            return;
+            return new Res(404, ERR_NOT_FOUND('notification', 'post_id'), type.JSON);
         }
     }
 
-    res_data.success(200, { reply_id });
+    return new Res(200, { reply_id }, type.JSON);
 };
 
-handlers['/api/user/notifications'].DELETE = function(req_data, res_data)
+handlers['/api/user/notifications'].DELETE = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
+        return new Res(auth_error.code, auth_error.msg, type.JSON);
     }
 
     const notification_id = parseInt(req_data.search_params.get('id'));
 
     if (!notification_id) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('id'));
-        return;
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('id'), type.JSON);
     }
 
-    const { is_data_deleted, db_error } = db_ops.delete_notification(notification_id, user_id);
+    const { 
+        is_data_deleted, 
+        db_error, 
+    } = db_ops.delete_notification(notification_id, user_id);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('delete', 'notification'));
-        return;
+        return new Res(500, ERR_INVALID_DB_QUERY('delete', 'notification'), type.JSON);
     }
 
     if (!is_data_deleted) {
-        res_data.error(404,  `Either the notification for the specified 'id' doesn't exist, or you aren't the owner of that notification`);
-        return;
+        return new Res(404, 
+            ERR_CUSTOM("Either the notification for the specified 'id' doesn't exist, " +
+                "or you aren't the owner of that notification"), 
+            type.JSON);
     }
 
-    res_data.success(200);
+    return new Res(200, type.JSON);
 };
 
-handlers['/api/posts/page'].GET = function(req_data, res_data)
+handlers['/api/posts/page'].GET = function(req_data)
 {
     const page = parseInt(req_data.search_params.get('page'));
-    const format = req_data.search_params.get('format') || 'js';
+    const format = req_data.search_params.get('format') || 'json';
 
     if (!page) {
-        res_data.page(400, MSG_INVALID_SEARCH_PARAM('page'));
-        return;
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('page'), type.HTML);
     }
 
     /* In case of negative page (page < 1), the db returns the last page.
     It's a behavior not choosen by me, but I find it okay. */    
 
-    if (!['js', 'html'].includes(format)) {
-        res_data.error(400, `Invalid format option. Got '${format}'. Valid options are: js, html`);
-        return;
+    if (!['json', 'html'].includes(format)) {
+        return new Res(400, ERR_CUSTOM(`Invalid format option. Got '${format}'. Valid options are: json, html`), type.JSON);
     }
 
     const { data: posts, db_error } = db_ops.select_posts_page(page);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('get', 'posts'));
+        return new Res(500, ERR_INVALID_DB_QUERY('get', 'posts'), type.JSON);
     } else {
         if (format === 'html') {
             const post_cards = posts.map(post => ({ 
                 id: post.id, 
-                card: DOMElements['.post-card'](post, 2, true)
+                card: DOMElements['.post-card'](post, 2, true),
             }));
-            res_data.success(200, post_cards);
+            return new Res(200, post_cards, type.JSON);
         } else {
-            res_data.success(200, posts);
+            return new Res(200, posts, type.JSON);
         }
     }
 };
 
-handlers['/api/replies/page'].GET = function(req_data, res_data)
+handlers['/api/replies/page'].GET = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
+        return new Res(auth_error.code, auth_error.msg, type.JSON);
     } 
 
     const post_id = parseInt(req_data.search_params.get('post_id'));
     const page = parseInt(req_data.search_params.get('page'));
-    const format = req_data.search_params.get('format') || 'js';
+    const format = req_data.search_params.get('format') || 'json';
 
     if (!post_id) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('post_id'));
-        return;
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('post_id'), type.JSON);
     }
 
     if (!page) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('page'));
-        return;
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('page'), type.JSON);
     }
 
-    if (!['js', 'html'].includes(format)) {
-        res_data.error(400, `Invalid format option. Got '${format}'. Valid options are: js, html`);
-        return;
+    if (!['json', 'html'].includes(format)) {
+        return new Res(400, ERR_CUSTOM(`Invalid format option. Got '${format}'. Valid options are: json, html`), type.JSON);
     }
 
-    const { data: replies, db_error } = db_ops.select_post_replies_page(post_id, page);
+    const { data: post, db_error } = db_ops.select_post(post_id);
 
     if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('retrieve', 'replies'));
+        return new Res(500, ERR_INVALID_DB_QUERY('get', 'post'), type.JSON);
+    }
+
+    if (!post) {
+        return new Res(404, ERR_NOT_FOUND('post', 'id'), type.JSON);
+    }
+    
+    if (post.user_id !== user_id) {
+        return new Res(401, 'Only the author of the post can read the replies', type.JSON);
+    }
+
+    const { data: replies, db_error: replies_error } = db_ops.select_post_replies_page(post_id, page);
+
+    if (replies_error) {
+        return new Res(500, ERR_INVALID_DB_QUERY('retrieve', 'replies'), type.JSON);
     } else {
         if (format === 'html') {
             const reply_cards = replies.map(reply => ({ 
                 id: reply.id, 
-                card: DOMElements['.reply-card'](reply, 1, true)
+                card: DOMElements['.reply-card'](reply, true)
             }));
-            res_data.success(200, reply_cards);
+            return new Res(200, reply_cards, type.JSON);
         } else {
-            res_data.success(200, replies);
+            return new Res(200, replies, type.JSON);
         }
     }
 };
 
-handlers['/api/posts/user/page'].GET = function(req_data, res_data)
+handlers['/api/posts/user/page'].GET = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
+        return new Res(auth_error.code, auth_error.msg, type.JSON);
     }
 
     const page = parseInt(req_data.search_params.get('page'));
-    const format = req_data.search_params.get('format') || 'js';
+    const match = req_data.search_params.get('match');
+    const format = req_data.search_params.get('format') || 'json';
 
-    if (!page) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('page'));
-        return;
+    if (!page && !match) {
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('page or match'), type.JSON);
     }
 
-    if (!['js', 'html'].includes(format)) {
-        res_data.error(400, `Invalid format option. Got '${format}'. Valid options are: js, html`);
-        return;
+    if (!['json', 'html'].includes(format)) {
+        return new Res(400, ERR_CUSTOM(`Invalid format option. Got '${format}'. Valid options are: json, html`), type.JSON);
     }
 
-    const { data: posts, db_error } = db_ops.select_user_posts_page(user_id, page);
+    let db_res = null;
+    if (page) {
+        db_res = db_ops.select_user_posts_page(user_id, page);
+    } else {
+        db_res = db_ops.select_user_posts_match(user_id, match);
+    }
 
-    if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('retrieve', 'user posts'));
+    if (db_res.db_error) {
+        return new Res(500, ERR_INVALID_DB_QUERY('get', 'user posts'), type.JSON);
     } else {
         if (format === 'html') {
-            const post_cards = posts.map(post => ({ 
+            const post_cards = db_res.data.map(post => ({ 
                 id: post.id, 
                 card: DOMElements['.post-card'](post, 1, true)
             }));
-            res_data.success(200, post_cards);
+            return new Res(200, post_cards, type.JSON);
         } else {
-            res_data.success(200, posts);
+            return new Res(200, db_res.data, type.JSON);
         }
     }
 };
 
-handlers['/api/notifications/user/page'].GET = function(req_data, res_data)
+handlers['/api/notifications/user/page'].GET = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
     if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
+        return new Res(auth_error.code, auth_error.msg, type.JSON);
     }
 
     const page = parseInt(req_data.search_params.get('page'));
-    const format = req_data.search_params.get('format') || 'js';
+    const match = req_data.search_params.get('match');
+    const format = req_data.search_params.get('format') || 'json';
     
-    if (!page) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('page'));
-        return;
+    if (!page && !match) {
+        return new Res(400, ERR_INVALID_SEARCH_PARAM('page or match'), type.JSON);
     }
 
-    if (!['js', 'html'].includes(format)) {
-        res_data.error(400, `Invalid format option. Got '${format}'. Valid options are: js, html`);
-        return;
+    if (!['json', 'html'].includes(format)) {
+        return new Res(400, 
+            ERR_CUSTOM(`Invalid format option. Got '${format}'. Valid options are: json, html`), 
+            type.JSON
+        );
     }
 
-    const { data: notifications, db_error } = db_ops.select_user_notifications_page(user_id, page);
-
-    if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('retrieve', 'user notifications'));
+    let db_res = null;
+    if (page) {
+        db_res = db_ops.select_user_notifications_page(user_id, page);
     } else {
-        if (format === 'html') {
-            const notification_cards = notifications.map(notification => ({ 
-                id: notification.id, 
-                card: DOMElements['.notification-card'](notification)
-            }));
-            res_data.success(200, notification_cards);
-        } else {
-            res_data.success(200, notifications);
-        }
+        db_res = db_ops.select_user_notifications_match(user_id, match);
+    }
+
+    if (db_res.db_error) {
+        return new Res(500, ERR_INVALID_DB_QUERY('retrieve', 'user notifications'), type.JSON);
+    }
+
+    if (format === 'html') {
+        const notification_cards = db_res.data.map(notification => ({ 
+            id: notification.id, 
+            card: DOMElements['.notification-card'](notification)
+        }));
+        return new Res(200, notification_cards, type.JSON);
+    } else {
+        return new Res(200, db_res.data, type.JSON);
     }
 };
 
-handlers['/api/posts/user/search'].GET = function(req_data, res_data)
-{
-    const { user_id, auth_error } = auth_user(req_data.cookies);
-    
-    if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
-    }
-
-    const search_term = req_data.search_params.get('search_term');
-    const format = req_data.search_params.get('format') || 'js';
-    
-    if (!search_term) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('search_term'));
-        return;
-    }
-
-    if (!['js', 'html'].includes(format)) {
-        res_data.error(400, `Invalid format option. Got '${format}'. Valid options are: js, html`);
-        return;
-    }
-
-    const { data: posts, db_error } = db_ops.select_user_posts_match(user_id, search_term);
-
-    if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('get', 'matching posts'));
-    } else {
-        if (format === 'html') {
-            const post_cards = posts.map(post => ({ 
-                id: post.id, 
-                card: DOMElements['.post-card'](post, 1, true)
-            }));
-            res_data.success(200, post_cards);
-        } else {
-            res_data.success(200, posts);
-        }
-    }
-};
-
-handlers['/api/notifications/user/search'].GET = function(req_data, res_data)
-{
-    const { user_id, auth_error } = auth_user(req_data.cookies);
-    
-    if (!user_id) {
-        res_data.error(auth_error.code, auth_error.msg);
-        return;
-    }
-
-    const search_term = req_data.search_params.get('search_term');
-    const format = req_data.search_params.get('format') || 'js';
-
-    if (!search_term) {
-        res_data.error(400, MSG_INVALID_SEARCH_PARAM('search_term'));
-        return;
-    }
-    
-    if (!['js', 'html'].includes(format)) {
-        res_data.error(400, `Invalid format option. Got '${format}'. Valid options are: js, html`);
-        return;
-    }
-
-    const { data: notifications, db_error } = db_ops.select_user_notifications_match(user_id, search_term);
-
-    if (db_error) {
-        res_data.error(500, MSG_UNKNOWN_DB_ERROR('get', 'matching notifications'));
-    } else {
-        if (format === 'html') {
-            const notification_cards = notifications.map(notification => ({ 
-                id: notification.id, 
-                card: DOMElements['.notification-card'](notification)
-            }));
-            res_data.success(200, notification_cards);
-        } else {
-            res_data.success(200, notifications);
-        }
-    }
-};
-
-
-async function get_asset(req_data, res_data)
+async function get_asset(req_data)
 {
     /* 'get_asset' is called as the last resort in case none of the previous ones matched the requested path.
     So, not necessarily the request was made to get an asset. */
@@ -1069,15 +1048,14 @@ async function get_asset(req_data, res_data)
     const file_ext = path.extname(asset_path).replace('.', '');
 
     if (file_ext && req_data.method !== 'GET') {
-        res_data.error(405, MSG_INVALID_METHOD(req_data.method, req_data.path));
-        return;
+        return new Res(405, ERR_INVALID_METHOD(req_data.method, req_data.path), type.JSON);
     }
 
     const MIME_types = {
         css:  'text/css',
         js:   'text/javascript',
         mjs:  'text/javascript',
-        json: 'application/json',
+        json: type.JSON,
         svg:  'image/svg+xml',
         webp: 'image/webp',
         ttf:  'font/ttf',
@@ -1095,20 +1073,21 @@ async function get_asset(req_data, res_data)
         fs_error 
     } = await read_file(asset_path, essence === 'font/ttf' ? null : 'utf8');
 
+    let res = null;
     if (fs_error) {
         if (fs_error.code === 'ENOENT') {
-            res_data.error(404, `The path '${asset_path}' doesn't exist`);
+            res = new Res(404, ERR_CUSTOM(`The path '${asset_path}' doesn't exist`), type.JSON);
         } else if (fs_error.code === 'EISDIR') {
-            res_data.error(400, `'${asset_path}' is a directory`);
+            res = new Res(400, ERR_CUSTOM(`'${asset_path}' is a directory`), type.JSON);
         } else {
             log_error(fs_error);
-            res_data.error(500, `Un unknown error has occured while trying to read '${asset_path}' from disk`);
+            res = new Res(500, ERR_CUSTOM(`Un unknown error has occured while trying to read '${asset_path}' from disk`), type.JSON);
         }
-
-        return;
+    } else {
+        res = new Res(200, asset, essence, type.JSON);
     }
 
-    res_data.success(200, asset, essence);
+    return res;
 }
 
 async function get_page(page_name)
@@ -1148,7 +1127,7 @@ function auth_user(cookies)
 
     if (!cookies || !cookies.password_hash) {
         res.auth_error.code = 401;
-        res.auth_error.msg = MSG_INVALID_COOKIE('password_hash');
+        res.auth_error.msg = ERR_INVALID_COOKIE('password_hash');
         return res;
     }
 
@@ -1156,13 +1135,13 @@ function auth_user(cookies)
 
     if (db_error) {
         res.auth_error.code = 500;
-        res.auth_error.msg = MSG_UNKNOWN_DB_ERROR('select', 'user');
+        res.auth_error.msg = ERR_INVALID_DB_QUERY('select', 'user');
         return res;
     }
 
     if (!user) {
         res.auth_error.code = 404;
-        res.auth_error.msg = MSG_NOT_FOUND('user', 'password');
+        res.auth_error.msg = ERR_NOT_FOUND('user', 'password');
         return res;
     }
 
@@ -1170,7 +1149,7 @@ function auth_user(cookies)
 
     if (token_error) {
         res.auth_error.code = 500;
-        res.auth_error.msg = MSG_UNKNOWN_DB_ERROR('validate', 'token');
+        res.auth_error.msg = ERR_INVALID_DB_QUERY('validate', 'token');
     } else if (!token) {
         res.auth_error.code = 401;
         res.auth_error.msg = `Invalid 'password_hash'. It may be expired`;
@@ -1181,6 +1160,13 @@ function auth_user(cookies)
     return res;
 }
 
+class Res {
+    constructor(code, payload, content_type) {
+        this.code = code;
+        this.payload = payload;
+        this.content_type = content_type;
+    }
+}
 
 export {
     handlers,

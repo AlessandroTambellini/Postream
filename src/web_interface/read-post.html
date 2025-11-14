@@ -25,7 +25,7 @@
 </head>
 <body>
     <script>
-        // light_mode, used in the side-nav
+        // light_mode, used in the side-panel
         const light_mode = localStorage.getItem('light-mode');
         if (light_mode === 'moon-mode') {
             document.querySelector('html').classList.add('moon-mode');
@@ -43,17 +43,16 @@
         </div>
 
         <script type="module">
-            import { prettify_date } from './_universal.js';
+            import { prettify_card_date } from './_universal.js';
             
-            let time = document.querySelector('.post-card time');
-            time.textContent = prettify_date(time.dateTime);
-            document.querySelectorAll('.reply-card').forEach(reply => {
-                time = reply.querySelector('time');
-                time.textContent = prettify_date(time.dateTime);
+            prettify_card_date(document.querySelector('.post-card'));
+            
+            document.querySelectorAll('.reply-card').forEach(reply_card => {
+                prettify_card_date(reply_card);
             });
         </script>
 
-        <form id="load-page-form" action="api/replies/page" method="get">
+        <form id="load-page-form" style="{{ display-filter }}" action="api/replies/page" method="get">
             <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
             <div class="card feedback-card display-none">
                 <span role='img' alt='feedback icon'></span>
@@ -73,7 +72,7 @@
     <script type="module">
         import { 
             req, 
-            prettify_date, 
+            prettify_card_date, 
             Form,
         } from './_universal.js';
 
@@ -120,8 +119,7 @@
             replies_container.appendChild(document.createElement('hr'));
             replies.forEach(reply => {
                 const reply_card = document.createRange().createContextualFragment(reply.card);
-                const time = reply_card.querySelector('time');
-                time.textContent = prettify_date(time.dateTime);
+                prettify_card_date(reply_card);
                 replies_container.appendChild(reply_card);                
             });
 
