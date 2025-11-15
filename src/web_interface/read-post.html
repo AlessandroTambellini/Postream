@@ -21,6 +21,10 @@
             margin-top: .5em;
             margin-inline: auto;
         }
+
+        #load-page-form button {
+            margin-left: auto;
+        }
     </style>
 </head>
 <body>
@@ -52,19 +56,21 @@
             });
         </script>
 
-        <form id="load-page-form" style="{{ display-filter }}" action="api/replies/page" method="get">
-            <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
-            <div class="card feedback-card display-none">
-                <span role='img' alt='feedback icon'></span>
-                <p>
-                    <span class='type'></span>
-                    <span class='msg'></span>
-                </p>
-                <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
-            </div>
-
-            <button class="secondary-btn" type="submit" aria-label="load a posts page">Load</button>
-        </form>
+        <nav class="filter-nav">
+            <form id="load-page-form" style="{{ display-filter }}" action="api/user/post/replies" method="get">
+                <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
+                <div class="card feedback-card display-none">
+                    <span role='img' alt='feedback icon'></span>
+                    <p>
+                        <span class='type'></span>
+                        <span class='msg'></span>
+                    </p>
+                    <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
+                </div>
+                
+                <button class="secondary-btn" type="submit" aria-label="load a posts page">Load Page</button>
+            </form>
+        </nav>
     </main>
 
     {{ #side-panel }}

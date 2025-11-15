@@ -21,17 +21,17 @@
             margin-bottom: .5em;
         }
 
-        #filter-notifications-nav {
+        .filter-nav {
             display: flex;
             justify-content: center;
             max-width: var(--card-max-width);
         }
 
-        #search-notification-form {
+        #search-form {
             flex-grow: 2;
         }
 
-        #search-notification-form button {
+        #search-form button {
             margin-left: auto;
         }
     </style>
@@ -52,8 +52,8 @@
             {{ notification-cards }}
         </div>
 
-        <nav id="filter-notifications-nav" style="{{ display-filter }}">
-            <form id="load-page-form" action="api/notifications/user/page" method="get">
+        <nav class="filter-nav" style="{{ display-filter }}">
+            <form id="load-page-form" action="api/user/notifications" method="get">
                 <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
                 <div class="card feedback-card display-none">
                     <span role='img' alt='feedback icon'></span>
@@ -64,10 +64,10 @@
                     <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
                 </div>
 
-                <button class="secondary-btn" type="submit" aria-label="load a notifications page">Load</button>
+                <button class="secondary-btn" type="submit" aria-label="load a notifications page">Load Page</button>
             </form>
     
-            <form id="search-notification-form" action="api/notifications/user/page" method="get">
+            <form id="search-form" action="api/user/notifications" method="get">
                 <input name="search-notification-input" type="search" placeholder="Search Notification" required>
                 <div class="card feedback-card display-none">
                     <span role='img' alt='feedback icon'></span>
@@ -97,7 +97,7 @@
         const load_page = new Form(document.querySelector('#load-page-form'), req_page);
         const load_page_input = load_page.form.querySelector('input');
         const search_notification = new Form(
-            document.querySelector('#search-notification-form'), 
+            document.querySelector('#search-form'), 
             req_search_notification
         );
         const search_notification_input = search_notification.form.querySelector('input');
@@ -106,7 +106,6 @@
         const displayed_pages = new Set();
         const last_page = Number(load_page_input.max);
         displayed_pages.add(last_page);
-        let last_action_is_search = false;
 
         notification_cards.forEach(notification_card => {
             new Form(
@@ -139,13 +138,10 @@
                 return;
             }
 
-            if (last_action_is_search) {
-                notifications_container.replaceChildren();
-                displayed_pages.clear();
-                last_action_is_search = false;
+            if (displayed_pages.size > 1) {
+                notifications_container.appendChild(document.createElement('hr'));
             }
-
-            notifications_container.appendChild(document.createElement('hr'));
+            
             notifications.forEach(notification => {
                 const notification_card = document.createRange().createContextualFragment(notification.card);
                 new Form(
@@ -172,7 +168,7 @@
                 res.type = 'error';
                 res.msg = req_error.msg;
             } else {
-                last_action_is_search = true;
+                displayed_pages.clear();
                 notifications_container.replaceChildren();
                 notifications.forEach(notification => {
                     const notification_card = document.createRange().createContextualFragment(notification.card);

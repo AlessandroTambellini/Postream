@@ -824,6 +824,14 @@ form > .feedback-card {
     margin-block: 5px;
 }
 
+.filter-nav {
+    margin-top: 1em;
+}
+
+.filter-nav > * {
+    margin-inline: auto;
+}
+
 
 /*
     Profile Pic */

@@ -35,7 +35,7 @@
             margin-bottom: .5em;
         }
 
-        #filter-posts-nav {
+        .filter-nav {
             display: flex;
             justify-content: center;
             max-width: var(--card-max-width);
@@ -115,8 +115,8 @@
 
         <div id="posts-container" class="cards-container">{{ post-cards }}</div>
 
-        <nav id="filter-posts-nav" style="{{ display-filter }}">
-            <form id="load-page-form" action="/api/posts/user/page" method="get">
+        <nav class="filter-nav" style="{{ display-filter }}">
+            <form id="load-page-form" action="api/user/posts" method="get">
                 <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
                 <div class="card feedback-card display-none">
                     <span role='img' alt='feedback icon'></span>
@@ -127,10 +127,10 @@
                     <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
                 </div>
 
-                <button class="secondary-btn" type="submit" aria-label="load posts page">Load</button>
+                <button class="secondary-btn" type="submit" aria-label="load posts page">Load Page</button>
             </form>
     
-            <form id="search-post-form" action="/api/posts/user/page" method="get">
+            <form id="search-post-form" action="api/user/posts" method="get">
                 <input name="search-post-input" type="search" placeholder="Search Post" required>
                 <div class="card feedback-card display-none">
                     <span role='img' alt='feedback icon'></span>
@@ -141,13 +141,13 @@
                     <button class="close-btn" type='button' aria-label='close feedback'>🗙</button>
                 </div>
                 
-                <button class="secondary-btn" type="submit">Search</button>
+                <button class="secondary-btn" type="submit">Search Post</button>
             </form>
         </nav>
 
         <dialog id="delete-post-dialog">
             <button type="button" class="close-btn" aria-label="close dialog">✗</button>
-            <form id="delete-post-form" action="/api/post" method="dialog">
+            <form id="delete-post-form" action="api/user/post" method="dialog">
                 <p>Are you sure you want to delete the post?</p>
                 <div class="card feedback-card display-none">
                     <span role='img' alt='feedback icon'></span>
@@ -175,7 +175,38 @@
         const posts_container = document.querySelector('#posts-container');
         const post_cards = posts_container.querySelectorAll('.post-card');
 
-        const load_page = new Form(document.querySelector('#load-page-form'), async (_this, res) => 
+        const load_page = new Form(document.querySelector('#load-page-form'), req_posts_page);
+        const search_post = new Form(document.querySelector('#search-post-form'), req_posts_match);
+        const delete_post = new Form(document.querySelector('#delete-post-form'), req_delete_post);
+
+        const load_page_input = load_page.form.querySelector('input');
+        const search_post_input = search_post.form.querySelector('input');
+
+        const delete_post_dialog = document.querySelector('#delete-post-dialog');
+        const close_dialog_btn = delete_post_dialog.querySelector('.close-btn');
+
+        const PAGE_SIZE = post_cards.length;
+        const displayed_pages = new Set();
+        const last_page = Number(load_page_input.max);
+        displayed_pages.add(last_page);
+
+        post_cards.forEach(post_card => {
+            prettify_card_date(post_card);
+            append_delete_post_listener(post_card.querySelector('button'));
+        });
+
+        /* I'd like to close the dialog when clicking on its background,
+        but I can't append a listener to '::backdrop',
+        and using e.composedPath() or e.currentTarget doesn't really help,
+        because ::backdrop is still part of the dialog.
+        The only option would be to let the elements inside the dialog fill all the space available
+        inside the dialog itself, but it's a bit of an hack and not really precise. */
+        close_dialog_btn.addEventListener("click", () => {
+            delete_post_feedback_card.hide();
+            delete_post_dialog.close();
+        });
+
+        async function req_posts_page(_this, res)
         {
             const requested_page = Number(load_page_input.value);
             
@@ -201,13 +232,10 @@
                 return;
             }
 
-            if (last_action_is_search) {
-                posts_container.replaceChildren();
-                displayed_pages.clear();
-                last_action_is_search = false;
+            if (displayed_pages.size > 1) {
+                posts_container.appendChild(document.createElement('hr'));
             }
-
-            posts_container.appendChild(document.createElement('hr'));
+            
             posts.forEach(post => {
                 const post_card = document.createRange().createContextualFragment(post.card);
                 prettify_card_date(post_card);
@@ -216,56 +244,7 @@
             });
 
             displayed_pages.add(requested_page);
-        });
-        
-        const search_post = new Form(document.querySelector('#search-post-form'), req_posts_match);
-        const delete_post = new Form(document.querySelector('#delete-post-form'), req_delete_post);
-
-        const load_page_input = load_page.form.querySelector('input');
-        const search_post_input = search_post.form.querySelector('input');
-
-        const delete_post_dialog = document.querySelector('#delete-post-dialog');
-        const close_dialog_btn = delete_post_dialog.querySelector('.close-btn');
-
-        const PAGE_SIZE = post_cards.length;
-        const displayed_pages = new Set();
-        const last_page = Number(load_page_input.max);
-        displayed_pages.add(last_page);
-        let last_action_is_search = false;
-
-        post_cards.forEach(post_card => {
-            prettify_card_date(post_card);
-            append_delete_post_listener(post_card.querySelector('button'));
-        });
-
-        /* I'd like to close the dialog when clicking on its background,
-        but I can't append a listener to '::backdrop',
-        and using e.composedPath() or e.currentTarget doesn't really help,
-        because ::backdrop is still part of the dialog.
-        The only option would be to let the elements inside the dialog fill all the space available
-        inside the dialog itself, but it's a bit of an hack and not really precise. */
-        close_dialog_btn.addEventListener("click", () => {
-            delete_post_feedback_card.hide();
-            delete_post_dialog.close();
-        });
-
-        async function req_delete_post(_this, res)
-        {
-            const post_id = delete_post_dialog.returnValue;
-            const { req_error } = await req(_this.action, 'DELETE', { id: post_id });
-
-            if (req_error) {
-                res.type = 'error';
-                res.msg = req_error.interpret('post', 'delete');
-                return;
-            } 
-
-            delete_post_dialog.close();
-            document.querySelector(`#post-card-${post_id}`).classList.add('deleting');
         }
-
-        // async function req_posts_page(_this, res)
-        
 
         async function req_posts_match(_this, res)
         {
@@ -283,7 +262,7 @@
                 return;
             } 
         
-            last_action_is_search = true;
+            displayed_pages.clear();
             posts_container.replaceChildren();
             posts.forEach(post => 
             {
@@ -298,6 +277,21 @@
                 res.msg = 'There aren\'t posts matching the search parameters';
                 return;
             }
+        }
+
+        async function req_delete_post(_this, res)
+        {
+            const post_id = delete_post_dialog.returnValue;
+            const { req_error } = await req(_this.action, 'DELETE', { id: post_id });
+
+            if (req_error) {
+                res.type = 'error';
+                res.msg = req_error.interpret('post', 'delete');
+                return;
+            } 
+
+            delete_post_dialog.close();
+            document.querySelector(`#post-card-${post_id}`).classList.add('deleting');
         }
 
         function append_delete_post_listener(btn)

@@ -1,6 +1,7 @@
 import * as path from "node:path";
 import { env } from 'node:process';
 
+import Res from "./server.js";
 import { PAGE_SIZE, db_ops } from "./database.js";
 import { hash_password, generate_password, log_error, read_file } from './utils.js';
 import { DOMElements, fallback_page } from "./templates.js";
@@ -39,7 +40,7 @@ const handlers = {};
 
 [
     '/',
-    '/index', // Alias
+    '/index', // Alias of '/'
     '/login',
     '/create-account',
     '/profile',
@@ -53,47 +54,51 @@ const handlers = {};
     '/test-elements',
     '/logo',
     
-    // '/api/apis',
-    // '/api/posts',
-    // '/api/tokens/:token-id',
-    // '/api/users/:user-id',
-    // '/api/users/:user-id/posts',
-    // '/api/users/:user-id/posts/:post-id',
-    // '/api/users/:user-id/posts/:post-id/replies',
-    // '/api/users/:user-id/posts/:post-id/replies/:reply-id',
-    // '/api/users/:user-id/notifications',
-    // '/api/users/:user-id/notifications/:notification-id',
+    /*
+        'api/apis',
+        'api/posts',
+        'api/users/:user-id',
+        'api/users/:user-id/tokens/:token-id',
+        'api/users/:user-id/posts',
+        'api/users/:user-id/posts/:post-id',
+        'api/users/:user-id/posts/:post-id/replies',
+        'api/users/:user-id/posts/:post-id/replies/:reply-id',
+        'api/users/:user-id/notifications',
+        'api/users/:user-id/notifications/:notification-id',
+    */
 
     '/api/apis',
+    '/api/posts',
     '/api/user',
-    '/api/token',
-    '/api/post',
-    '/api/reply',
-    '/api/posts/page',
-    '/api/replies/page',
+    '/api/user/token',
+    '/api/user/posts',
+    '/api/user/post',
+    '/api/user/post/replies',
+    '/api/user/post/reply',
     '/api/user/notifications',
-    '/api/posts/user/page',
-    '/api/notifications/user/page',
+    '/api/user/notification',
 
 ].forEach(path => {
     handlers[path] = async function(req_data) 
     {
+        let res = null;
         if (this[path][req_data.method]) 
         {
             try {
                 // Page handlers aren't asynchronous, while APIs are. 
                 // Using async for both isn't an issue.
-                return await this[path][req_data.method](req_data);
-                
+                res = await this[path][req_data.method](req_data);
             } catch (error) {
                 log_error(error);
-                return new Res(500, ERR_CUSTOM('An unexpected error has occurred while routing the request'), 
+                res = new Res(500, ERR_CUSTOM('An unexpected error has occurred while routing the request'), 
                     type.JSON
                 );
             }
         } else {
-            return new Res(405, ERR_INVALID_METHOD(req_data.method, req_data.path), type.JSON);
+            res = new Res(405, ERR_INVALID_METHOD(req_data.method, req_data.path), type.JSON);
         }
+
+        return res;
     }
 });
 
@@ -524,7 +529,7 @@ handlers['/logo'].GET = async function(req_data)
 
 handlers['/api/apis'].GET = function(req_data)
 {
-    return new Res(200, { 'Available APIs': Object.keys(APIs) }, type.JSON);
+    return new Res(200, { 'Available APIs': Object.keys(handlers) }, type.JSON);
 };
 
 handlers['/api/user'].POST = function(req_data)
@@ -570,10 +575,10 @@ handlers['/api/user'].DELETE = function(req_data)
         return new Res(404, ERR_NOT_FOUND('user', 'user_id'), type.JSON);
     }
 
-    return new Res(200, type.JSON);
+    return new Res(200, { Success: 'User delete successfully' }, type.JSON);
 };
 
-handlers['/api/token'].GET = function(req_data)
+handlers['/api/user/token'].GET = function(req_data)
 {
     const password = req_data.search_params.get('password');
 
@@ -609,7 +614,7 @@ handlers['/api/token'].GET = function(req_data)
     }
 };
 
-handlers['/api/token'].POST = function(req_data)
+handlers['/api/user/token'].POST = function(req_data)
 {
     const { password } = req_data.payload;
 
@@ -648,7 +653,7 @@ handlers['/api/token'].POST = function(req_data)
     }
 };
 
-handlers['/api/token'].PUT = function(req_data)
+handlers['/api/user/token'].PUT = function(req_data)
 {
     const { password } = req_data.payload;
     
@@ -691,7 +696,7 @@ handlers['/api/token'].PUT = function(req_data)
     return new Res(200, { password_hash }, type.JSON);
 };
 
-handlers['/api/post'].GET = function(req_data)
+handlers['/api/user/post'].GET = function(req_data)
 {
     const post_id = parseInt(req_data.search_params.get('id'));
 
@@ -712,7 +717,7 @@ handlers['/api/post'].GET = function(req_data)
     return new Res(200, post, type.JSON);
 };
 
-handlers['/api/post'].POST = function(req_data)
+handlers['/api/user/post'].POST = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
@@ -735,7 +740,7 @@ handlers['/api/post'].POST = function(req_data)
     }
 };
 
-handlers['/api/post'].DELETE = function(req_data)
+handlers['/api/user/post'].DELETE = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
@@ -765,7 +770,7 @@ handlers['/api/post'].DELETE = function(req_data)
     return new Res(200, { Success: 'post deleted successfully' }, type.JSON);
 };
 
-handlers['/api/reply'].POST = function(req_data)
+handlers['/api/user/post/reply'].POST = function(req_data)
 {
     const { post_id, content } = req_data.payload;
 
@@ -831,7 +836,7 @@ handlers['/api/reply'].POST = function(req_data)
     return new Res(200, { reply_id }, type.JSON);
 };
 
-handlers['/api/user/notifications'].DELETE = function(req_data)
+handlers['/api/user/notification'].DELETE = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
@@ -861,10 +866,10 @@ handlers['/api/user/notifications'].DELETE = function(req_data)
             type.JSON);
     }
 
-    return new Res(200, type.JSON);
+    return new Res(200, { Success: 'notification deleted successfully' }, type.JSON);
 };
 
-handlers['/api/posts/page'].GET = function(req_data)
+handlers['/api/posts'].GET = function(req_data)
 {
     const page = parseInt(req_data.search_params.get('page'));
     const format = req_data.search_params.get('format') || 'json';
@@ -897,7 +902,7 @@ handlers['/api/posts/page'].GET = function(req_data)
     }
 };
 
-handlers['/api/replies/page'].GET = function(req_data)
+handlers['/api/user/post/replies'].GET = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
@@ -952,7 +957,7 @@ handlers['/api/replies/page'].GET = function(req_data)
     }
 };
 
-handlers['/api/posts/user/page'].GET = function(req_data)
+handlers['/api/user/posts'].GET = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
@@ -994,7 +999,7 @@ handlers['/api/posts/user/page'].GET = function(req_data)
     }
 };
 
-handlers['/api/notifications/user/page'].GET = function(req_data)
+handlers['/api/user/notifications'].GET = function(req_data)
 {
     const { user_id, auth_error } = auth_user(req_data.cookies);
 
@@ -1090,28 +1095,6 @@ async function get_asset(req_data)
     return res;
 }
 
-async function get_page(page_name)
-{
-    // Only for production, otherwise isn't possible to update a page during development
-    if (env.NODE_ENV === 'production' && cached_pages.has(page_name)) {
-        return { 
-            page: cached_pages.get(page_name), 
-            fs_error: null 
-        };
-    }
-
-    const { 
-        file_content: page, 
-        fs_error 
-    } = await read_file(path.join(WEB_INTERFACE_PATH, `${page_name}.html`), 'utf8', true);
-
-    if (page && env.NODE_ENV === 'production') {
-        cached_pages.set(page_name, page);
-    }
-
-    return { page, fs_error };
-}
-
 function auth_user(cookies)
 {
     /* The auth_error msg is meant for the backend APIs, not for the request of web pages,
@@ -1160,12 +1143,26 @@ function auth_user(cookies)
     return res;
 }
 
-class Res {
-    constructor(code, payload, content_type) {
-        this.code = code;
-        this.payload = payload;
-        this.content_type = content_type;
+async function get_page(page_name)
+{
+    // Only for production, otherwise isn't possible to update a page during development
+    if (env.NODE_ENV === 'production' && cached_pages.has(page_name)) {
+        return { 
+            page: cached_pages.get(page_name), 
+            fs_error: null 
+        };
     }
+
+    const { 
+        file_content: page, 
+        fs_error 
+    } = await read_file(path.join(WEB_INTERFACE_PATH, `${page_name}.html`), 'utf8', true);
+
+    if (page && env.NODE_ENV === 'production') {
+        cached_pages.set(page_name, page);
+    }
+
+    return { page, fs_error };
 }
 
 export {

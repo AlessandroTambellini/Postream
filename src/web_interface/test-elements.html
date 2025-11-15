@@ -89,16 +89,10 @@
 
     {{ #side-panel }}
 
-    <script type="module">
-        import { FeedbackCard } from './_universal.js';
-
+    <script>
         document.querySelectorAll('main a').forEach(a => {
             a.addEventListener('click', e => e.preventDefault());
         });
-
-        document.querySelectorAll('.feedback-card').forEach(card => (
-            new FeedbackCard(card)
-        ));
     </script>
 </body>
 </html>

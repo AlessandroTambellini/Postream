@@ -1,4 +1,3 @@
-import { PAGE_SIZE } from "./database.js";
 import { log_error } from "./utils.js";
 
 /* Little Unimportant Note: for the name of objects I use snake_case,
@@ -16,7 +15,7 @@ DOMElements['.post-card'] = function(post, reply_link_type = 0, f_preview = fals
     const reply_link_types = [
         `<a href='#id=${id}' style="display: none;"></a>`,
         `<a href='/read-post?id=${id}#replies-container'>Read-Replies</a>`,
-        `<a href='/write-reply?id=${id}'>Reply</a>`
+        `<a href='/write-reply?id=${id}#write-reply-form'>Reply</a>`
     ];
 
     return (
@@ -67,7 +66,7 @@ DOMElements['.notification-card'] = function(notification)
                 `<a href='/read-post?id=${post_id}#reply-${first_new_reply_id}'>` +
                     `Read-${num_of_replies === 1 ? 'Reply' : 'Replies'}` + 
                 '</a>' +
-                `<form class="delete-notification-form" data-id=${id} action='api/user/notifications' method='DELETE'>` +
+                `<form class="delete-notification-form" data-id=${id} action='api/user/notification' method='DELETE'>` +
                     '<div class="card feedback-card display-none">' +
                         "<span role='img' alt='feedback icon'></span>" +
                         '<p>' +

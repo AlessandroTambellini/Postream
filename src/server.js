@@ -267,26 +267,6 @@ class Res {
         this.payload = payload;
         this.content_type = content_type;
     }
-
-    error(code, error_msg = '', server_log = false) {
-        this.code = code;
-        this.payload = { Error: `${error_msg}.` };
-        this.content_type = 'application/json';
-
-        if (server_log) console.error(`ERROR: ${error_msg}.`);
-    }
-
-    success(code, payload = {}, content_type = 'application/json') {
-        this.code = code;
-        this.payload = payload;
-        this.content_type = content_type;
-    }
-
-    /* The 'page' method was added,
-    because calling 'res_data.success()' for a 500/401 fallback page doesn't seem semantically clear to me. */
-    page(code, payload = '') {
-        this.code = code;
-        this.payload = payload;
-        this.content_type = 'text/html';
-    }
 }
+
+export default Res;
