@@ -119,8 +119,9 @@ handlers['/index'].GET = async function(req_data)
 
     const { count, db_error } = db_ops.count_posts();
     const last_page = (db_error || count < 1) ? 1 : Math.ceil(count/PAGE_SIZE);
+    const curr_page = Math.floor(Math.random() * 4) + 1;
 
-    const { data: posts, db_error: posts_error } = db_ops.select_posts_page();
+    const { data: posts, db_error: posts_error } = db_ops.select_posts_page(curr_page);
 
     let post_cards;
     if (posts_error) post_cards = DOMElements['.info-msg'](ERR_INVALID_DB_QUERY('get', 'posts'));
@@ -129,7 +130,8 @@ handlers['/index'].GET = async function(req_data)
 
     const res = page
         .replace('{{ post-cards }}', post_cards)
-        .replaceAll('{{ last-page }}', last_page)
+        .replace('{{ last-page }}', last_page)
+        .replace('{{ curr-page }}', curr_page)
         .replace('{{ #side-panel }}', DOMElements['#side-panel'](user_id, 'index'))
     ;
 
@@ -148,7 +150,7 @@ handlers['/profile'].GET = async function(req_data)
 
     if (!user_id) {
         // Even though there isn't the user_id, not necessarily is a 401. 
-        // So, better to pass the status code
+        // So, better to pass the status code (it may be a 500)
         return new Res(auth_error.code, fallback_page(auth_error.code), type.HTML);
     }
 
@@ -810,6 +812,7 @@ handlers['/api/user/post/reply'].POST = function(req_data)
     /* If a post is popular, it may get tons of replies and so,
     if I architect the database to create a new notification for each reply,
     there would be a couple of problems:
+    
     1) Huge notification feed
     2) Noisy notification feed
 
@@ -878,8 +881,8 @@ handlers['/api/posts'].GET = function(req_data)
         return new Res(400, ERR_INVALID_SEARCH_PARAM('page'), type.HTML);
     }
 
-    /* In case of negative page (page < 1), the db returns the last page.
-    It's a behavior not choosen by me, but I find it okay. */    
+    /* In case of page <= 0, the db returns the last page.
+    It's a default behavior that I find to be okay. */    
 
     if (!['json', 'html'].includes(format)) {
         return new Res(400, ERR_CUSTOM(`Invalid format option. Got '${format}'. Valid options are: json, html`), type.JSON);
@@ -1046,7 +1049,7 @@ handlers['/api/user/notifications'].GET = function(req_data)
 
 async function get_asset(req_data)
 {
-    /* 'get_asset' is called as the last resort in case none of the previous ones matched the requested path.
+    /* 'get_asset' is called as the last resort in case the requested path didn't match any of the handlers.
     So, not necessarily the request was made to get an asset. */
 
     const asset_path = path.join(WEB_INTERFACE_PATH, req_data.path);
@@ -1097,7 +1100,8 @@ async function get_asset(req_data)
 
 function auth_user(cookies)
 {
-    /* The auth_error msg is meant for the backend APIs, not for the request of web pages,
+    /* The auth_error msg is meant for the backend APIs, 
+    not for the request of web pages,
     because for the latter the err messages are framed a bit differently for the final user. */
 
     const res = {

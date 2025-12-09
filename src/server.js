@@ -9,7 +9,7 @@ import { init_db, close_db } from './database.js';
 import { log_error } from './utils.js';
 
 // I don't handle a possible error, because if it happens, 
-// I want a crash before starting the server.
+// I want to crash before starting the server.
 loadEnvFile();
 
 const PORT = env.NODE_ENV === 'production' ? 3001 : 3000;

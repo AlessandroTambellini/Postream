@@ -568,7 +568,7 @@ button {
     word-break: break-word;
 
     /* Keep extra whitespaces and newlines because
-    I think is an important feature e.g. to write lists or code.
+    I think is an important feature (e.g. to write lists or code).
     A side-effect of this property is that if the text is selected,
     the selection overflows a bit the card. */
     white-space: pre-wrap;
@@ -649,7 +649,8 @@ button {
 }
 
 .feedback-card span[role=img] {
-    /* I don't want the text inside the icon to be regulated based on user rem. */
+    /* I don't want the text inside the icon to be regulated based on user rem.
+    So, it has a fixed size. */
     font-size: 13px;
     height: 22px;
     aspect-ratio: 1;
@@ -664,7 +665,7 @@ button {
 .feedback-card p {
     padding-inline: 1em;
     /* Override the '.card p' property because the '.feedback-card' html elements 
-    are pasted by hand in the html files and therefore there are extra newlines.
+    aren't injected via js in the html files, and so there are extra newlines.
     Moreover, keeping the extra newlines in post & reply cards is a feature,
     but in the feedback-card is not. */
     white-space: unset;
@@ -682,7 +683,6 @@ button {
 .feedback-card p .msg {
     font-size: 1rem;
     opacity: 0.8;
-    /* max-width: 70ch; */
     white-space: pre-wrap;
 }
 

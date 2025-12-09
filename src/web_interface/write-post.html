@@ -82,7 +82,7 @@
         textarea.addEventListener('input', e => 
         {
             /* It has to be checked at every input, 
-            because big chunks of text may be pasted or deleted. */
+            because chunks of text may be pasted or deleted. */
 
             let lines = 0;
             textarea.value.split('\n').forEach(chunk => {

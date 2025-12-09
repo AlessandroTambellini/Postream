@@ -213,7 +213,7 @@ DOMElements['.info-msg'] = function(msg)
 /* fallback_page may be called in case I'm not able to load the wanted page from disk using readFile()
 (but not only for that).
 Therefore, I don't store this page as an HTML file because
-I would have to read it from disk and potentially have the same issue. */
+I would have to read it from disk and potentially have the same problem. */
 function fallback_page(status_code, custom_msg)
 {
     const statuses = {

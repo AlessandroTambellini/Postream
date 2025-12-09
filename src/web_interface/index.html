@@ -22,6 +22,8 @@
 </head>
 <body>
     <script>
+        /* It's key to set the light-mode before the elements are rendered
+        otherwise it is visible the flickering of the mode change. */
         const light_mode = localStorage.getItem('light-mode');
         if (light_mode === 'moon-mode')
         {
@@ -36,7 +38,7 @@
 
         <nav class="filter-nav">
             <form id="load-page-form" action="api/posts" method="GET">
-                <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ last-page }}">
+                <input name="load-page-input" type="number" min="1" max='{{ last-page }}' value="{{ curr-page }}">
                 <div class="card feedback-card display-none">
                     <span role='img' alt='feedback icon'></span>
                     <p>
@@ -71,7 +73,7 @@
         const PAGE_SIZE = post_cards.length;
         const last_page = Number(load_page_input.max);
         const displayed_pages = new Set();
-        displayed_pages.add(last_page);
+        displayed_pages.add(Number(load_page_input.value));
 
         post_cards.forEach(post_card => {
             prettify_card_date(post_card);

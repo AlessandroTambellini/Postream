@@ -147,7 +147,7 @@
             } else {
                 password_p.textContent = payload.password;
                 // Once a registration happens, 
-                // the previous cookie is deleted to avoid conflicts with a previous user in case of login
+                // the previous cookie is deleted to avoid conflicts with a previous user in case of subsequent login
                 document.cookie = 'password_hash=';
                 password_container.classList.replace('display-none', 'display-block');
             }
