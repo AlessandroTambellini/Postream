@@ -24,6 +24,9 @@
 
     --clr-ff: #ffffff;
     --clr-f9: #f9f9f9;
+    /* In light-mode f9 and bkg are the same, but in moon-mode they diverge
+    and bkg become a color that isn't the exact opposite of the light-one. */
+    --clr-bkg: #f9f9f9;
     --clr-e8: #e8e8e8;
     --clr-d8: #d8d8d8;
     --clr-cc: #cccccc;
@@ -51,7 +54,7 @@
     --clr-txt: #343A40;
     --clr-link: #551a8b;
     --clr-selected: #ffd17c;
-    --clr-sky: #f4ffff;
+    --clr-profile-pic-bkg: #f4ffff;
 }
 
 :root.moon-mode
@@ -61,6 +64,7 @@
 
     --clr-ff: #000000;
     --clr-f9: #060606;
+    --clr-bkg: #1a1c20;
     --clr-e8: #171717;
     --clr-d8: #272727;
     --clr-cc: #333333;
@@ -90,7 +94,7 @@
     --clr-txt: #f9fafb;
     --clr-link: #aae574;
     --clr-selected: #002e83;
-    --clr-sky: #0b0000;
+    --clr-profile-pic-bkg: #0b0000;
 }
 
 *,
@@ -106,7 +110,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--clr-f9);
+    background-color: var(--clr-bkg);
+    /* rgb(26, 28, 32) */
     color: var(--clr-txt);
     font-size: 1rem;
 }
@@ -375,7 +380,7 @@ li[itemprop=delete-account]::before {
 #moon-icon {
     position: relative;
     overflow: hidden;
-    background-color: var(--clr-f9);
+    background-color: var(--clr-bkg);
     --moon-size: calc(var(--icon-size) - 5px);
 }
 
@@ -839,7 +844,7 @@ form > .feedback-card {
 .profile-picture {
     display: block;
     aspect-ratio: 1;
-    background-color: var(--clr-sky);
+    background-color: var(--clr-profile-pic-bkg);
     border-radius: 100%;
     border: 1px solid var(--clr-d8);
 
