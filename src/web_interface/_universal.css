@@ -235,8 +235,15 @@ span[role=img] {
     font-size: inherit;
     line-height: 1.4;
     list-style: none;
-    /* Avoid 'create-account' link from wrapping onto a new line. */
+}
+
+#side-panel li,
+#side-panel > nav {
+    /* Prevent 'Create-Account' and 'Test-Elements' from wrapping. */
     white-space: nowrap;
+    /* Substitute the last part of a word with '...' if it doesn't fit on the screen */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #side-panel menu li {
