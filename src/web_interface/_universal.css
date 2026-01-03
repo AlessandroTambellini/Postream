@@ -25,7 +25,8 @@
     --clr-ff: #ffffff;
     --clr-f9: #f9f9f9;
     /* In light-mode f9 and bkg are the same, but in moon-mode they diverge
-    and bkg become a color that isn't the exact opposite of the light-one. */
+    and bkg become a color that isn't the exact opposite of the light-one
+    because it was too bright */
     --clr-bkg: #f9f9f9;
     --clr-e8: #e8e8e8;
     --clr-d8: #d8d8d8;
