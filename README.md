@@ -13,7 +13,7 @@ Node.js version used: `v22.14.0`
     NODE_ENV=development
     ```
 3) Install the dependencies: `npm install`
-4) Optionally, if you want to fill the website with some account, post and reply, you can run `node src/database.js -S`. Then, you can also login with the passwords of the accounts created outputted on the console.
+4) Optionally, if you want to fill the website with some account, post and reply, you can run `node src/database.js -s`. Then, you can also login with the passwords of the accounts created outputted on the console.
 5) Note: to run https you need to generate the keys: `openssl req -newkey rsa:2048 -new -noenc -x509 -days 365 -keyout private-key.pem -out certificate.pem`
 
 Now you are ready to go. Run `npm run dev` to start the app.

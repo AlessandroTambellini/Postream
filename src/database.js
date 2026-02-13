@@ -26,11 +26,12 @@ let db = new Database(DB_PATH);
  *  DB Operations
  */
 
-db_ops.insert_user = (password_hash) => (
+// This is the Lisp you want
+db_ops.insert_user = password_hash => (
     insert_data('insert_user', password_hash)
 );
 
-db_ops.insert_token = (user_id) => (
+db_ops.insert_token = user_id => (
     insert_data('insert_token', user_id, get_token_expiration())
 );
 
@@ -373,7 +374,7 @@ if (process.argv[1] === import.meta.filename)
     } else {
         init_db();
 
-        // Usually I do tests here.
+        // Usually I perform tests here.
     }
 }
 

@@ -1069,12 +1069,12 @@ async function get_asset(req_data)
         ttf:  'font/ttf',
     };
 
-    const essence = MIME_types[file_ext];
+    let essence = MIME_types[file_ext];
 
     if (file_ext && !essence) {
         console.error(`ERROR: Unhandled file extension '${file_ext}'. ` +
             `Path: '${asset_path}'.`);
-    }
+    } 
 
     const { 
         file_content: asset, 
@@ -1092,7 +1092,7 @@ async function get_asset(req_data)
             res = new Res(500, ERR_CUSTOM(`Un unknown error has occured while trying to read '${asset_path}' from disk`), type.JSON);
         }
     } else {
-        res = new Res(200, asset, essence, type.JSON);
+        res = new Res(200, asset, essence || 'text/plain');
     }
 
     return res;
